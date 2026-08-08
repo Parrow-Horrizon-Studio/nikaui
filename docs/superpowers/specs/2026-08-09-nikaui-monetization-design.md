@@ -2,7 +2,8 @@
 
 **Date:** 2026-08-09
 **Status:** Approved
-**Scope:** Sub-project A of five. Defines the open-source/premium boundary, how paid artifacts reach buyers, repository topology, commercial terms, and launch posture.
+**Scope:** Sub-project A. Defines the open-source/premium boundary, how paid artifacts reach buyers, repository topology, commercial terms, and launch posture.
+**Parent:** [`docs/MASTER-PLAN.md`](../../MASTER-PLAN.md) — the single reference for Nika UI. This spec is the deep-dive behind decisions A1–A11 in its ledger.
 
 ---
 
@@ -204,11 +205,4 @@ These are consequences of the decisions above. They are scheduled into sub-proje
 
 ## 6. Sub-project sequence
 
-| # | Sub-project | Depends on | Status |
-|---|---|---|---|
-| **A** | Monetization strategy | — | **This document** |
-| **B** | Design-system foundation — prototype tokens, motion preset API, registry schema | — | Next |
-| **C** | Landing page | A, B | |
-| **D** | Documentation and component showcase | B, A | |
-| **E** | Repository migration, hosting, domain | A | |
-| **F** | Block and template lineup | A, B | |
+Owned by [`docs/MASTER-PLAN.md`](../../MASTER-PLAN.md) §4 so there is only one roadmap to keep current. This spec covers sub-project A.
