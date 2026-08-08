@@ -57,7 +57,7 @@ npx nika add auth-form-01
         │
         ├─ free entry → raw.githubusercontent.com/<org>/nikaui/main/…
         │
-        └─ pro entry  → POST registry.nikaui.dev/api/registry/<path>  { licenseKey }
+        └─ pro entry  → POST pro.nikaui.dev/api/registry/<path>  { licenseKey }
                              │
                              ├─ validate: Polar POST /v1/customer-portal/license-keys/validate
                              └─ on success: read file from local disk, stream back
@@ -65,7 +65,7 @@ npx nika add auth-form-01
 
 **The registry index is public even for Pro entries.** Only source bytes are gated. This lets `npx nika list` surface locked blocks, lets the documentation render them with previews and a lock badge, and lets a failed fetch return a useful message rather than a bare 404.
 
-**The API is deployed from the private Pro repository**, which is also where the Pro block source lives. Because the API serves files from the same repository it deploys from, it reads them off local disk — there is no cross-repository GitHub API call and no GitHub personal access token anywhere in the system. The only secret is `POLAR_ORG_TOKEN`.
+**The API is deployed from the private Pro repository** as route handlers inside `apps/pro` — the same Next.js application that serves the Pro marketing site and documentation. Because it serves files from `packages/blocks` in the repository it deploys from, it reads them off local disk. There is no cross-repository GitHub API call and no GitHub personal access token anywhere in the system. The only secret is `POLAR_ORG_TOKEN`.
 
 The API is **not** placed in the public repository. A public repo with an open contribution workflow is an unsafe place for deployment secrets: an outside contributor's pull request triggers a preview deployment with the project's environment variables attached, and any code in that PR can read `process.env`. Separate deployment means separate environment scope.
 
@@ -93,10 +93,20 @@ The CLI never touches routing configuration. In Next.js, file placement *is* rou
 
 ### D4 — Repository topology
 
-| Repository | Visibility | Owner | Contents |
-|---|---|---|---|
-| `nikaui` | public | Parrow Horrizon Studio | components, CLI, docs site, landing page |
-| `nikaui-pro` | private | Parrow Horrizon Studio | Pro blocks, templates, registry API |
+Two repositories, each a Turborepo. The Pro tier gets its own landing page and documentation site rather than being grafted onto the open-source one.
+
+```
+nikaui       (public,  org)
+  apps/docs         → nikaui.dev       landing + OSS documentation
+  packages/         registry, cli, tailwind-config, eslint-config, typescript-config
+
+nikaui-pro   (private, org)
+  apps/pro          → pro.nikaui.dev   Pro landing, Pro docs, block browser,
+                                       checkout — and the registry API routes
+  packages/blocks   → Pro block and template source
+```
+
+This costs a second landing page and a second documentation site. It buys a Pro surface that can render locked previews, run checkout, and manage licenses without any of that logic entering the open-source tree — and it means the registry API and the Pro site are one deployment rather than two.
 
 Both repositories belong in the organisation. GitHub Free for organisations includes **unlimited private repositories with unlimited collaborators**; the previously assumed need to park private code on a personal account to avoid a paid org plan does not exist. Free organisations forgo repository rules and branch protection on private repos, CODEOWNERS, required reviewers, draft pull requests, Pages and Wikis on private repos, and are capped at 2,000 Actions minutes per month (public repositories are unmetered).
 
@@ -111,13 +121,21 @@ Migration mechanics are sub-project E.
 | Projects | unlimited, personal and commercial | unlimited, personal and commercial |
 | Client work | permitted | permitted |
 | Updates | lifetime | lifetime |
-| Refunds | 14 days, no questions asked | 14 days, no questions asked |
+| Refunds | 14 days, void after 5 Pro installs | 14 days, void after 5 Pro installs |
 
 **License grant.** Unlimited personal and commercial projects; may be shipped in client work. **May not** redistribute the blocks themselves, nor use them to build a competing component library or template store.
 
-**Payment provider: Polar.** Polar is merchant of record, so it handles global VAT and sales tax on the seller's behalf — material when selling from the Philippines into the EU and US. Polar supports Philippines payouts via Stripe Connect Express. Lemon Squeezy is a viable drop-in alternative should Polar's terms change.
+**Selling entity: Parrow Horrizon Studio.** Nika UI ships under PHS alongside the studio's other products.
 
-**Refunds do not claw back code.** Copy-paste distribution means a refunded buyer retains whatever they have already installed; revocation prevents only *future* installs. This is inherent to the model and is shared by every library in this category. It is recorded here so it is not discovered as a surprise.
+**Payment provider: Polar**, acting as merchant of record. Polar is legally the seller; customers buy from Polar, and Polar pays out to PHS via Stripe Connect Express, which supports Philippines payouts. Lemon Squeezy is a viable drop-in alternative should Polar's terms change.
+
+Stripe direct was considered and rejected on two grounds. Stripe Philippines is invite-only with PHP-only settlement, so every USD sale would auto-convert with FX loss and Stripe Connect functionality is limited for PH accounts. More significantly, selling through Stripe directly would make PHS the merchant of record, making it responsible for collecting and remitting consumption tax in every jurisdiction sold into — EU VAT on digital goods to consumers carries a €0 registration threshold, so the first European sale triggers it, alongside UK VAT and US state sales tax at economic nexus. An MoR absorbs all of this for roughly two percentage points over raw Stripe processing, which is a good trade for a solo-operated product.
+
+**Refunds do not claw back code**, and the policy is built around that fact. Copy-paste distribution means a refunded buyer retains whatever they already installed; revocation prevents only *future* installs. This is inherent to the model and shared by every library in the category. The five-install cap exists to close the resulting abuse case — install the entire Pro catalogue, then request a refund — while keeping a visible refund policy, which measurably aids conversion for an unproven product.
+
+Enforcement is cheap: Polar's validate endpoint accepts `increment_usage` and supports per-key usage quotas, and the CLI calls validate on every Pro install regardless. The install count is a parameter on a request already being made, not a subsystem.
+
+One constraint is not PHS's to set. EU consumer law grants buyers of digital goods a 14-day right of withdrawal, waivable only where the buyer expressly consents to immediate delivery and acknowledges losing that right. Because Polar is merchant of record for EU sales, Polar's terms govern this. The five-install condition must be confirmed against Polar's refund policy before launch rather than assumed to be enforceable.
 
 Early-bird pricing is deferred until Pro is near-complete. It is a store configuration, not an architectural concern.
 
@@ -161,6 +179,8 @@ These are consequences of the decisions above. They are scheduled into sub-proje
 
 5. **New CLI surface:** `nika login`, `nika logout`, and a `--pro`-aware `nika list`.
 
+   `nika login` calls Polar's activation endpoint, so seat limits are enforced mechanically. Every Pro fetch passes `increment_usage` to Polar's validate endpoint, which is what makes the five-install refund condition enforceable without additional infrastructure.
+
 6. **`transformer.ts`** gains a directive rule, since `"use client"` is Next.js-specific and the assembled page is emitted for multiple React frameworks.
 
 ---
@@ -170,14 +190,15 @@ These are consequences of the decisions above. They are scheduled into sub-proje
 - **Vue and Nuxt support.** The registry is React at the bone — `@headlessui/react`, `motion/react`, `.tsx` with `React.forwardRef`. A Vue version is a second component set written from scratch against Headless UI Vue and Motion for Vue: a separate product line, not a CLI option. The page-destination prompt covers arbitrary paths *within React*, which spans Next.js, Vite, Remix, TanStack Start, and React-in-Astro.
 - **`npx nika create` project scaffolding.** Revisit on Pro-user feedback; the install-into-existing-project flow covers the need for now.
 - **The block and template lineup.** Its own spec.
-- **Hosting selection.** Belongs to sub-project E. Noted here because it carries a cost that has not been budgeted: Vercel's fair use guidelines restrict Hobby teams to non-commercial personal use, and define commercial usage to include *"advertising the sale of a product or service."* A landing page advertising Nika Pro qualifies. That implies Vercel Pro at $20/month, or Cloudflare Workers/Pages, which permits commercial use on its free tier.
+- **Hosting selection.** Belongs to sub-project E. The intended target is a **self-hosted VPS under Coolify**, shared with the studio's other projects, with Vercel Pro as fallback. Vercel's free tier is not an option: its fair use guidelines restrict Hobby teams to non-commercial personal use and define commercial usage to include *"advertising the sale of a product or service"* — which a landing page advertising Nika Pro is, even in waitlist state. Fallback therefore costs $20/month, not $0.
 
 ---
 
 ## 5. Open dependencies
 
-- **Domain.** This spec assumes `registry.nikaui.dev` for the API and `nikaui.dev/pro` for the sales page. If `nikaui.dev` is not owned, acquisition is a sub-project E task.
-- **Polar account.** Organisation setup, product creation, and license-key benefit configuration precede any Pro launch, but not the waitlist.
+- **Domains.** `nikaui.dev` is available and will be purchased; acquisition is a sub-project E task. The Pro site and registry API both live at `pro.nikaui.dev`, a subdomain, to avoid a second registration before the product has earned anything. `nikaui.pro` remains under consideration as an additional domain — a cosmetic upgrade, not an architectural change, and safe to add later without touching the CLI if the subdomain is kept as an alias.
+- **PHS re-registration.** Parrow Horrizon Studio was registered in 2025 and closed in 2026; re-registration is planned. Polar onboarding requires a seller entity, and changing that entity later is disruptive because tax records and invoices are issued under whoever is registered. **PHS should therefore be re-registered before Polar onboarding, and onboarding as an individual to save time should be avoided.** This is not on the critical path: the waitlist launch posture means the landing page, documentation, and email capture ship with no payment provider involved at all.
+- **Polar account.** Organisation setup, product creation, license-key benefit configuration, and confirmation of the five-install refund condition against Polar's own refund policy. All precede a Pro launch; none precede the waitlist.
 
 ---
 
