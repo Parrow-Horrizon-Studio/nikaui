@@ -263,7 +263,7 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 - Security: Dependabot, secret scanning with push protection, private vulnerability reporting, CodeQL, read-only default `GITHUB_TOKEN`
 - CI: `install → lint → check-types → build` on PR and push
 - Community files: `LICENSE` (**blocking**), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue and PR templates, `.nvmrc`, `.editorconfig`
-- npm identity: package `nikaui`, bins `nikaui` + `nika`, `@nikaui` org scope, both reserved with stub publishes
+- npm identity: package `nikaui`, bins `nikaui` + `nika`, `@nikaui` org scope — ✅ **both reserved 2026-08-09** with `0.0.0` stubs; first real release is `0.1.0` after B
 - Fix `REGISTRY_BASE_URL` and the stale `README.md` (§2.4)
 
 **E2 — deferred until C and D exist:** Coolify VPS, DNS, TLS, deploy pipeline. Nothing to deploy yet. Domains (`nikaui.dev`, `pro.nikaui.dev`) are purchased directly by the maintainer; `nikaui.pro` remains under consideration.

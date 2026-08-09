@@ -84,9 +84,15 @@ Actions minutes are unmetered on public repositories, so this costs nothing. The
 
 The org is named `nikaui` rather than after the studio because the org name *is* the scope: `@nikaui/mcp` reads correctly, `@parrow-horrizon-studio/mcp` does not. PHS may hold a separate npm organisation for other products; they are independent and both free.
 
-**Both names are reserved immediately with stub publishes** — `nikaui@0.0.0` and `@nikaui/cli@0.0.0`, whose binary prints a "in development" notice. npm has no reservation mechanism; a name is held only once a version exists. Given that `nika` and `nika-ui` were both lost this way, a one-minute stub removes the risk that B completes and the name is gone. Scoped publishes require `--access public` or they attempt a private package and fail against a free organisation.
+**Both names are reserved immediately with stub publishes** — `nikaui@0.0.0` and `@nikaui/cli@0.0.0`, whose binary prints an "in development" notice. npm has no reservation mechanism; a name is held only once a version exists. Given that `nika` and `nika-ui` were both lost this way, a one-minute stub removes the risk that B completes and the name is gone. Scoped publishes require `--access public` or they attempt a private package and fail against a free organisation.
 
-The real release happens after B, when the CLI works.
+> ✅ **Done 2026-08-09.** `nikaui@0.0.0` and `@nikaui/cli@0.0.0` are published, public, MIT, maintainer `roweeapor13`. Both names are permanently held. **The implementation plan does not need to repeat this step.**
+
+**The unscoped package is owned by the personal account, and cannot be moved to the organisation.** On npm the scope *is* the ownership: `@nikaui/*` belongs to the org because the scope does, while `nikaui` has no scope and belongs to whoever published it. npm's documentation is explicit that unscoped packages *"are always public"* and are not subject to team-based access control, so `npm access grant <scope:team>` does not apply to them. Only individual maintainers can be added, via `npm owner add`. This is normal — many major packages are unscoped and user-owned alongside an org — and it has no effect on consumers, who only ever type `npx nikaui`.
+
+**Never unpublish either package.** Unpublishing every version of a name locks it for 24 hours and makes it permanently unavailable to anyone who is not the original owner — the exact state `nika-ui` is in. If a release is wrong, bump the version or use `npm deprecate`.
+
+The real release happens after B, when the CLI works. It is `0.1.0`; `0.0.0` is burned and can never be reused.
 
 ### E6 — Community health files
 
