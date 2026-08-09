@@ -17,13 +17,13 @@ This is the single reference for Nika UI. It holds the product definition, curre
 | **B** | Design-system foundation — tokens, motion API, registry schema | **L** | — | C, D, F, G | ✅ **Specced** |
 | **C** | Landing page — port the prototype onto real Next.js | M | A, B | — | Not started |
 | **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | Not started |
-| **E** | Repo migration & ops — org transfer, domains, Coolify hosting | S–M | A ✅ | — | Not started |
+| **E** | Repo migration & ops — org transfer, protection, CI, npm identity | S–M | A ✅ | — | ✅ **Specced — do first** |
 | **F** | Block & template lineup — choose, then build | M decide / L build | A, B | G | Not started |
 | **G** | Agent surface — MCP server, Pro agent skill | M | B, D, F | — | Not started |
 
 *Sizes are relative to one another, not time estimates.*
 
-**Two scheduling notes.** **E is not blocked** — it depends only on A, which is done. Running the migration early means B's commits land in their permanent home, and it competes for different headspace than design work. **F splits in two** — choosing the lineup needs only A, while building blocks needs B; deciding early lets C's Templates section show real names instead of placeholders.
+**Two scheduling notes.** **E runs first** — it depends only on A, so B's commits land in their permanent home rather than transferring mid-flight, and it fixes distribution strings B would otherwise write twice. **F splits in two** — choosing the lineup needs only A, while building blocks needs B; deciding early lets C's Templates section show real names instead of placeholders.
 
 ---
 
@@ -91,6 +91,9 @@ Four gaps, none cosmetic:
 | `packages/cli/src/commands/add.ts:23` | `REGISTRY_BASE_URL` points at `raw.githubusercontent.com/nicaui/nikaui/…`. `nicaui` is a transposition; the account does not exist, so every remote fetch 404s. Masked in development because `getFileContent` tries local monorepo paths first — so it works for the author and fails for every real consumer. |
 | `packages/cli/src/commands/add.ts:72, :174` | Both call `path.basename(file.target)`, discarding directory structure, and `targetDir` is only ever `uiDir` or `libDir`. Every file lands flat in `components/ui/`. Blocks and templates are impossible until this honours full relative targets. |
 | `README.md` | Documents an `apps/showcase` that was merged away in commit `325b75b`. |
+| `packages/cli/package.json` | Declares the name `nika-ui`, which is **tombstoned on npm** — an entry with zero versions and zero maintainers, which npm does not permit reusing. `npm publish` would fail. |
+| Everywhere `npx nika` appears | `nika` on npm belongs to another publisher. The prototype hero, prototype docs page, current landing page, and every component doc advertise a command that runs someone else's code. |
+| repository root | **No `LICENSE` file.** The README and CLI `package.json` both claim MIT; absent a license file the legal default is all rights reserved. |
 
 ---
 
@@ -115,15 +118,17 @@ A template is **composition, not new code**. Build order is therefore necessaril
 Two repositories, each a Turborepo, both owned by the Parrow Horrizon Studio organisation.
 
 ```
-nikaui       (public)
+Parrow-Horrizon-Studio/nikaui      (public, org)
   apps/docs         → nikaui.dev       landing + OSS documentation
-  packages/         registry, cli, tailwind-config, eslint-config, typescript-config
+  packages/         registry, cli, eslint-config, typescript-config
 
-nikaui-pro   (private)
+Rowee13/nikaui-pro                 (private, personal account)
   apps/pro          → pro.nikaui.dev   Pro landing, Pro docs, block browser,
                                        checkout — and the registry API routes
   packages/blocks   → Pro block and template source
 ```
+
+The Pro repository stays on the personal account, which already carries Pro. A free organisation cannot apply branch protection to *private* repositories; personal Pro can, and carries 3,000 Actions minutes rather than 2,000. Nobody outside ever sees that repository — buyers receive files through the API, contributors only touch the public repo — so the split costs nothing in perception. Transfer to the org is intended once PHS carries a paid plan; GitHub transfers configure redirects automatically, so this is deferred cost rather than sunk cost.
 
 The Pro tier gets its own landing page and documentation site rather than being grafted onto the open-source one. This costs a second site; it buys a surface that can render locked previews, run checkout, and manage licenses without any of that logic entering the open-source tree — and it makes the registry API and the Pro site one deployment rather than two.
 
@@ -202,7 +207,7 @@ Tiers 2 and 3 are built when the catalogue justifies them — an MCP server sear
 | **B** | Design-system foundation | — | **Specced** |
 | **C** | Landing page | A, B | Not started |
 | **D** | Documentation and showcase | A, B | Not started |
-| **E** | Repository migration and ops | A | Not started |
+| **E** | Repository migration and ops | A | **Specced** |
 | **F** | Block and template lineup | A, B | Not started |
 | **G** | Agent surface — MCP and skill | B, D, F | Not started |
 
@@ -246,16 +251,22 @@ Prototype sections, in order: nav with theme toggle → hero with rays, sun, liv
 - Absorbs agent Tiers 0 and 1 — `llms.txt` and the `AGENTS.md` snippet.
 - **Pro doc pages must not render full source** (§3.4).
 
-### E — Repository migration and ops
+### E — Repository migration and ops ✅
 
-**Goal:** move to the organisation and stand up hosting.
+Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.md`](superpowers/specs/2026-08-09-nikaui-repository-migration-ops.md)
 
-- Transfer `nikaui` to Parrow Horrizon Studio. GitHub Free for organisations includes unlimited private repositories with unlimited collaborators, so both repos belong there — the earlier plan to park private code on the personal account solves a problem that does not exist.
-- Create `nikaui-pro` as a private Turborepo.
-- Fix `REGISTRY_BASE_URL` (§2.4) — it changes during migration anyway.
-- Purchase `nikaui.dev`; `pro.nikaui.dev` as subdomain. `nikaui.pro` remains under consideration as an additional domain.
-- Hosting: self-hosted VPS under Coolify, shared with other PHS projects. Vercel Pro at $20/month as fallback — Vercel's free tier is not an option (§7).
-- Update `README.md` (§2.4).
+**Goal:** move to the organisation, protect the repo, and fix the distribution identity. Runs **before B**, so B's 27-file migration lands in the permanent home.
+
+**E1 — now:**
+- Transfer to `Parrow-Horrizon-Studio/nikaui`; create `Rowee13/nikaui-pro` private scaffold
+- Branch protection on `main` with administrators excluded; classic rules, not rulesets
+- Security: Dependabot, secret scanning with push protection, private vulnerability reporting, CodeQL, read-only default `GITHUB_TOKEN`
+- CI: `install → lint → check-types → build` on PR and push
+- Community files: `LICENSE` (**blocking**), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue and PR templates, `.nvmrc`, `.editorconfig`
+- npm identity: package `nikaui`, bins `nikaui` + `nika`, `@nikaui` org scope, both reserved with stub publishes
+- Fix `REGISTRY_BASE_URL` and the stale `README.md` (§2.4)
+
+**E2 — deferred until C and D exist:** Coolify VPS, DNS, TLS, deploy pipeline. Nothing to deploy yet. Domains (`nikaui.dev`, `pro.nikaui.dev`) are purchased directly by the maintainer; `nikaui.pro` remains under consideration.
 
 ### F — Block and template lineup
 
@@ -326,7 +337,7 @@ A coherent cluster rather than scattered additions — build as one wave or not 
 | A4 | Pro served by an API deployed from the private repo, gated on Polar license keys | No GitHub PAT in the system; secrets never enter the public repo's contributor surface | Spec A §D3 |
 | A5 | Registry index public including Pro entries | Discovery, lock badges in docs, useful error messages. Only source bytes are gated | Spec A §D3 |
 | A6 | Templates install into existing projects; no scaffolder | `npx nika create` revisited on Pro-user feedback | Spec A §D3 |
-| A7 | Both repos in the PHS organisation | GitHub Free orgs include unlimited private repos with unlimited collaborators | Spec A §D4 |
+| A7 | Public repo in the PHS organisation; **private Pro repo on the personal account** | A free org can host private repos, but cannot branch-protect them. Personal Pro can, and nobody outside ever sees that repo. Transfer once PHS is paid | Spec A §D4, amended by Spec E §E1 |
 | A8 | $149 personal / $349 team-of-5, one-time | Team tier is $70/seat, a 53% discount against five individual licenses — normal band, and makes the team tier obvious for any real company | Spec A §D5 |
 | A9 | 14-day refunds, void after 5 Pro installs | Closes install-everything-then-refund abuse while keeping a visible refund policy, which aids conversion. Enforced by `increment_usage` on a call the CLI already makes | Spec A §D5 |
 | A10 | Polar as merchant of record; Stripe direct rejected | Stripe PH is invite-only with PHP-only settlement; more importantly, direct Stripe would make PHS liable for consumption tax in every jurisdiction sold into | Spec A §D5 |
@@ -338,6 +349,11 @@ A coherent cluster rather than scattered additions — build as one wave or not 
 | B5 | Reduced motion overrides even an explicit prop | A library selling animation is the one that has to get this right | Spec B §B4 |
 | B6 | `init` writes a separate `nika-tokens.css` + one `@import` | Keeps the ownership promise while giving updates a file to replace wholesale; consumer overrides live after the import | Spec B §B5 |
 | B7 | Ship 27 components, catalogue the rest | Components are the free tier, blocks are the paid one — months on components 28–69 delays the revenue path while guessing which matter | Spec B §B7 |
+| E1 | Advertised command becomes `npx nikaui`; bins `nikaui` + `nika` | `nika` on npm belongs to another publisher and `nika-ui` is tombstoned. The short bin still serves anyone who installs the package | Spec E §E5 |
+| E2 | npm **organisation** named `nikaui` for the `@nikaui` scope | A scope maps to a user or org of the same name — `@nikaui/*` cannot be published from a personal account. Orgs are free for public packages | Spec E §E5 |
+| E3 | Reserve both names with stub publishes now | npm has no reservation mechanism. `nika` and `nika-ui` were both lost exactly this way | Spec E §E5 |
+| E4 | Branch protection with administrators **excluded**, tighten at v1.0 | Contributors hit the full gate from day one; self-merging B's 27-file rewrite through PRs is friction with no review benefit at one contributor | Spec E §E2 |
+| E5 | Hosting deferred until C and D exist | Nothing to deploy — the docs app is a stale page B is about to rewrite. Standing up DNS and TLS for it is work that would be redone | Spec E §E7 |
 | G1 | Pro docs must not render full Pro source | Otherwise the paywall is decorative — humans and agents both copy it | §3.4 |
 | G2 | Agents never handle the license key | Agent context leaks into transcripts, logs, and commits. All agent flows route through the CLI | §3.4 |
 | G3 | MCP server free, scoped by license | Produces an in-context upsell at the moment of need; gating it would trade the best conversion mechanism for a feature bullet | §3.4 |

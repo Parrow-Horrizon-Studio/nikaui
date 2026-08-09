@@ -101,11 +101,13 @@ nikaui       (public,  org)
   apps/docs         → nikaui.dev       landing + OSS documentation
   packages/         registry, cli, tailwind-config, eslint-config, typescript-config
 
-nikaui-pro   (private, org)
+nikaui-pro   (private, personal account)
   apps/pro          → pro.nikaui.dev   Pro landing, Pro docs, block browser,
                                        checkout — and the registry API routes
   packages/blocks   → Pro block and template source
 ```
+
+> **Amended by spec E §E1.** The Pro repository stays on the personal account rather than the organisation. A free organisation cannot apply branch protection to private repositories; personal Pro can, and carries 3,000 Actions minutes rather than 2,000. Nobody outside ever sees the Pro repository, so the split costs nothing in perception. Transfer to the organisation is intended once PHS carries a paid plan.
 
 This costs a second landing page and a second documentation site. It buys a Pro surface that can render locked previews, run checkout, and manage licenses without any of that logic entering the open-source tree — and it means the registry API and the Pro site are one deployment rather than two.
 
