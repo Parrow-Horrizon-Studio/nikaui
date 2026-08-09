@@ -5,7 +5,25 @@
 
 This is the single reference for Nika UI. It holds the product definition, current state, architecture, and the full sequence of work. Individual sub-projects get their own specs as they are brainstormed; this document links to them and records the decisions that came out of them.
 
-**How to use it:** read §4 to see what is being built and in what order. Read §5 for what has already been decided and why. Read §7 for what is still open. Take one sub-project at a time — each gets brainstormed into a spec, planned, then implemented.
+**How to use it:** read §4 to see what is being built and in what order, and §5 for the component catalogue. Read §6 for what has already been decided and why. Read §8 for what is still open. Take one sub-project at a time — each gets brainstormed into a spec, planned, then implemented.
+
+---
+
+## At a glance
+
+| Phase | What | Size | Waiting on | Unblocks | Status |
+|---|---|---|---|---|---|
+| **A** | Monetization & distribution — boundary, delivery, pricing, launch posture | — | — | C, E, F | ✅ **Specced** |
+| **B** | Design-system foundation — tokens, motion API, registry schema | **L** | — | C, D, F, G | ✅ **Specced** |
+| **C** | Landing page — port the prototype onto real Next.js | M | A, B | — | Not started |
+| **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | Not started |
+| **E** | Repo migration & ops — org transfer, domains, Coolify hosting | S–M | A ✅ | — | Not started |
+| **F** | Block & template lineup — choose, then build | M decide / L build | A, B | G | Not started |
+| **G** | Agent surface — MCP server, Pro agent skill | M | B, D, F | — | Not started |
+
+*Sizes are relative to one another, not time estimates.*
+
+**Two scheduling notes.** **E is not blocked** — it depends only on A, which is done. Running the migration early means B's commits land in their permanent home, and it competes for different headspace than design work. **F splits in two** — choosing the lineup needs only A, while building blocks needs B; deciding early lets C's Templates section show real names instead of placeholders.
 
 ---
 
@@ -181,7 +199,7 @@ Tiers 2 and 3 are built when the catalogue justifies them — an MCP server sear
 | # | Sub-project | Depends on | Status |
 |---|---|---|---|
 | **A** | Monetization and distribution | — | **Specced** |
-| **B** | Design-system foundation | — | Next |
+| **B** | Design-system foundation | — | **Specced** |
 | **C** | Landing page | A, B | Not started |
 | **D** | Documentation and showcase | A, B | Not started |
 | **E** | Repository migration and ops | A | Not started |
@@ -194,18 +212,20 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-monetization-design.md`](s
 
 Fixes the free/Pro boundary, delivery architecture, repository topology, commercial terms, and launch posture. Summarised in §3 above; see the spec for rationale.
 
-### B — Design-system foundation
+### B — Design-system foundation ✅
+
+Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-design-system-foundation.md`](superpowers/specs/2026-08-09-nikaui-design-system-foundation.md)
 
 **Goal:** everything visual sits on this. It must be right before C and D consume it.
 
-- Port the prototype's OKLCH token layer — `data-theme` (light/dark) and `data-accent` (sun/violet/emerald/azure/rose), Manrope + JetBrains Mono, the spring easing set.
-- Resolve the two coexisting token systems in `globals.css` (§2.3 gap 1). Fumadocs' `fd-*` variables must either be mapped onto Nika tokens or deliberately scoped to Fumadocs chrome only.
-- Build the named motion preset API — `bounce`, `pop`, `glide`, `snap`, `none` — and adopt it across all 22 components, replacing `animated?: boolean`.
-- Registry schema: add `access: "free" | "pro"`, extend `type` to `"ui" | "lib" | "block" | "template"`, move to alias-relative targets (`@ui/`, `@blocks/`, `@lib/`, `@page`).
-- Fix the CLI path flattening (§2.4) — prerequisite for every block and template.
-- `nika.config.ts` gains `aliases.blocks` and a remembered page destination.
+- Own token vocabulary — `canvas` / `surface` / `overlay` / `muted`, `content` / `content-muted` / `content-subtle`, `line` / `line-strong`. Scales, not paired foregrounds. Prototype OKLCH values.
+- `--nika-*` CSS variables with clean utilities via `@theme inline`; `.dark` for theme, `[data-accent]` for the five accents.
+- Motion preset API — `none` / `snap` / `glide` / `spring` / `bounce`, default `spring`, with an optional provider and reduced-motion override.
+- `nika init` writes `nika-tokens.css` plus one `@import`; `packages/tailwind-config` folds into `packages/registry`.
+- Registry schema changes and the CLI path-flattening fix, both carried from spec A §3.
+- Ship 27 components — the 22 built plus alert, textarea, radio-group, slider, progress.
 
-**Open:** the 22-vs-40 component question (§7).
+**B is completion work, not refactoring.** `init` never writes the token layer and `REGISTRY_BASE_URL` points at a nonexistent account, so the CLI has never worked outside this monorepo (§2.4).
 
 ### C — Landing page
 
@@ -234,7 +254,7 @@ Prototype sections, in order: nav with theme toggle → hero with rays, sun, liv
 - Create `nikaui-pro` as a private Turborepo.
 - Fix `REGISTRY_BASE_URL` (§2.4) — it changes during migration anyway.
 - Purchase `nikaui.dev`; `pro.nikaui.dev` as subdomain. `nikaui.pro` remains under consideration as an additional domain.
-- Hosting: self-hosted VPS under Coolify, shared with other PHS projects. Vercel Pro at $20/month as fallback — Vercel's free tier is not an option (§6).
+- Hosting: self-hosted VPS under Coolify, shared with other PHS projects. Vercel Pro at $20/month as fallback — Vercel's free tier is not an option (§7).
 - Update `README.md` (§2.4).
 
 ### F — Block and template lineup
@@ -253,7 +273,50 @@ Sequenced last deliberately: the MCP tool surface should be designed against B's
 
 ---
 
-## 5. Decisions ledger
+## 5. Component catalogue
+
+The target component set, merged from the two most complete React libraries in this space and normalised to one vocabulary. Duplicate concepts under different names were collapsed: modal → `dialog`, divider → `separator`, breadcrumbs → `breadcrumb`, radio → `radio-group`, autocomplete → `combobox`.
+
+**Those libraries are reference only.** Names, grouping, variants, and API surface are Nika's own. A single sentence in the documentation acknowledges the inspiration; **nothing in the codebase, component names, registry entries, or docs attributes any component to another library.**
+
+### Wave 1 — first ship (27)
+
+**Built (22):** accordion · alert-dialog · aspect-ratio · avatar · badge · button · card · checkbox · combobox · dialog · dropdown-menu · input · label · popover · select · separator · skeleton · spinner · switch · tabs · toast · tooltip
+
+**To add (5)** — already designed in the prototype stylesheet, all simple: alert · textarea · radio-group · slider · progress
+
+### Wave 2 — core completion (23)
+
+avatar-group · breadcrumb · button-group · code · collapsible · context-menu · drawer · empty · field · form · hover-card · input-group · input-otp · kbd · link · menubar · navigation-menu · number-input · pagination · scroll-area · table · toggle · toggle-group
+
+### Wave 3 — complex, high effort (13)
+
+calendar · carousel · chart · command · data-table · date-input · date-picker · date-range-picker · image · listbox · resizable · scroll-shadow · sidebar
+
+### Wave 4 — AI and chat surfaces (6)
+
+attachment · bubble · marker · message · message-scroller · questionnaire
+
+A coherent cluster rather than scattered additions — build as one wave or not at all.
+
+### Deliberately excluded
+
+| Excluded | Reason |
+|---|---|
+| ripple | A Material-style effect that conflicts with the spring-preset motion identity |
+| spacer | A div with margin; Tailwind spacing covers it |
+| direction | An RTL utility, not a component |
+| typography | Tailwind's typography plugin covers it |
+| native-select | A variant of `select`, not a separate component |
+| chip | A dismissible variant of `badge` |
+| user | Composition of `avatar` and text; a usage example, not a component |
+| navbar | Belongs to the block catalogue (sub-project F), not the component registry |
+
+**Target total: 69.** Waves 3 and 4 are aspirational and should be re-prioritised against waitlist feedback rather than built in listed order — the whole point of shipping at 27 is learning which of these people actually ask for.
+
+---
+
+## 6. Decisions ledger
 
 | ID | Decision | Rationale | Where |
 |---|---|---|---|
@@ -268,13 +331,20 @@ Sequenced last deliberately: the MCP tool surface should be designed against B's
 | A9 | 14-day refunds, void after 5 Pro installs | Closes install-everything-then-refund abuse while keeping a visible refund policy, which aids conversion. Enforced by `increment_usage` on a call the CLI already makes | Spec A §D5 |
 | A10 | Polar as merchant of record; Stripe direct rejected | Stripe PH is invite-only with PHP-only settlement; more importantly, direct Stripe would make PHS liable for consumption tax in every jurisdiction sold into | Spec A §D5 |
 | A11 | Pro is waitlist-only at launch | Zero blocks exist on day one; the waitlist list is worth more than early revenue when deciding which blocks to build | Spec A §D6 |
+| B1 | Own token vocabulary; scales not paired foregrounds | Copy-paste into a project with another library collides on `--primary`/`--background`; and the existing `-foreground` pairs already hold identical values | Spec B §B1 |
+| B2 | `--nika-*` variables, unprefixed utilities via `@theme inline` | The collision that silently corrupts colour is the CSS-variable one; utility overlap surfaces as a build-time conflict instead. Keeps owned code readable | Spec B §B2 |
+| B3 | `.dark` for theme, `[data-accent]` for accent | next-themes' default, which Fumadocs already wires, and Tailwind's `dark:` convention — consumers reconfigure nothing | Spec B §B3 |
+| B4 | Motion presets are a *feel*, not an animation: `none`/`snap`/`glide`/`spring`/`bounce` | One name must mean something coherent across components animating different properties. Presets-as-animations do not generalise | Spec B §B4 |
+| B5 | Reduced motion overrides even an explicit prop | A library selling animation is the one that has to get this right | Spec B §B4 |
+| B6 | `init` writes a separate `nika-tokens.css` + one `@import` | Keeps the ownership promise while giving updates a file to replace wholesale; consumer overrides live after the import | Spec B §B5 |
+| B7 | Ship 27 components, catalogue the rest | Components are the free tier, blocks are the paid one — months on components 28–69 delays the revenue path while guessing which matter | Spec B §B7 |
 | G1 | Pro docs must not render full Pro source | Otherwise the paywall is decorative — humans and agents both copy it | §3.4 |
 | G2 | Agents never handle the license key | Agent context leaks into transcripts, logs, and commits. All agent flows route through the CLI | §3.4 |
 | G3 | MCP server free, scoped by license | Produces an in-context upsell at the moment of need; gating it would trade the best conversion mechanism for a feature bullet | §3.4 |
 
 ---
 
-## 6. Verified external constraints
+## 7. Verified external constraints
 
 Facts checked against source rather than assumed. Each changed a decision.
 
@@ -290,16 +360,16 @@ Facts checked against source rather than assumed. Each changed a decision.
 
 ---
 
-## 7. Open questions
+## 8. Open questions
 
 | # | Question | Blocks | Notes |
 |---|---|---|---|
-| 1 | **22 components vs. the prototype's "40+"** — build ~18 more, or change the number? | B, C | Content decision. Building more delays launch; changing the number is free and honest |
-| 2 | How should Fumadocs' `fd-*` variables relate to Nika tokens — mapped, or scoped to Fumadocs chrome only? | B | Determines whether the docs site can be fully themed by `data-accent` |
-| 3 | Which ~10 blocks are free? | F | Principle is set (§4 F); the list is not |
-| 4 | Template lineup | F | Prototype gestures at Admin Dashboard, SaaS Landing, App Shell |
-| 5 | Does Polar's refund policy permit the 5-install condition? | Pro launch only | Confirm before building a pricing page that promises it |
-| 6 | `nikaui.pro` as an additional domain? | — | Cosmetic. Safe to add later without touching the CLI if the subdomain is kept as an alias |
+| 1 | Which ~10 blocks are free? | F | Principle is set (§4 F); the list is not |
+| 2 | Template lineup | F | Prototype gestures at Admin Dashboard, SaaS Landing, App Shell |
+| 3 | Does Polar's refund policy permit the 5-install condition? | Pro launch only | Confirm before building a pricing page that promises it |
+| 4 | `nikaui.pro` as an additional domain? | — | Cosmetic. Safe to add later without touching the CLI if the subdomain is kept as an alias |
+
+*Resolved: the component-count question (ship 27, catalogue in §5) and the Fumadocs token relationship (one-way `--fd-*` ← `--nika-*` mapping, docs app only) — both settled in sub-project B.*
 
 **Dependencies outside the codebase:**
 
@@ -309,7 +379,7 @@ Facts checked against source rather than assumed. Each changed a decision.
 
 ---
 
-## 8. Explicitly out of scope
+## 9. Explicitly out of scope
 
 - **Vue and Nuxt.** The registry is React at the bone — `@headlessui/react`, `motion/react`, `.tsx` with `React.forwardRef`. A Vue version is a second component set written from scratch against Headless UI Vue and Motion for Vue: a separate product line, not a CLI option. The page-destination prompt covers arbitrary paths *within React*, spanning Next.js, Vite, Remix, TanStack Start, and React-in-Astro.
 - **`npx nika create` project scaffolding.** Revisit on Pro-user feedback.
