@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from "@headlessui/react";
+import { TabGroup, TabList, Tab, TabPanel } from "@headlessui/react";
 import { motion } from "motion/react";
 import { cn } from "../lib/utils";
 

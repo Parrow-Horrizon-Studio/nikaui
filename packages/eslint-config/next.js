@@ -24,6 +24,9 @@ export const nextJsConfig = [
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated fumadocs MDX runtime output — gitignored, regenerated on
+    // every build, and not present at all until the first typegen/build.
+    ".source/**",
   ]),
   {
     ...pluginReact.configs.flat.recommended,

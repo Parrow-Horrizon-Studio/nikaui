@@ -8,7 +8,7 @@ import {
   DialogBackdrop,
   Description,
 } from "@headlessui/react";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { cn } from "../lib/utils";
 
 const Dialog = HeadlessDialog;

@@ -1,4 +1,4 @@
-import type { Root, Node, Folder, Item } from "fumadocs-core/page-tree";
+import type { Root, Folder, Item } from "fumadocs-core/page-tree";
 
 /**
  * Extract a subtree from the page tree by folder name.

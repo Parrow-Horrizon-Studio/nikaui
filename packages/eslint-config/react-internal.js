@@ -36,4 +36,12 @@ export const config = [
       "react/react-in-jsx-scope": "off",
     },
   },
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      // TypeScript validates props at compile time; propTypes was removed
+      // in React 19, so this rule is a false-positive generator here.
+      "react/prop-types": "off",
+    },
+  },
 ];

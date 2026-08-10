@@ -14,7 +14,7 @@ import { Label } from "@nikaui/registry/ui/label";
 import { Separator } from "@nikaui/registry/ui/separator";
 import { Skeleton } from "@nikaui/registry/ui/skeleton";
 import { Spinner, LoadingDots } from "@nikaui/registry/ui/spinner";
-import { Avatar, AvatarImage, AvatarFallback } from "@nikaui/registry/ui/avatar";
+import { Avatar, AvatarFallback } from "@nikaui/registry/ui/avatar";
 import { AspectRatio } from "@nikaui/registry/ui/aspect-ratio";
 import {
   Dialog,
