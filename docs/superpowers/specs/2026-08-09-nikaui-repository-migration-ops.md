@@ -69,7 +69,7 @@ The reasoning in spec A was that GitHub Free for organisations includes unlimite
 
 Applied to the public repository, all free at this tier:
 
-- Dependabot alerts and security updates
+- Dependabot alerts — **kept**. Automated pull requests are **off**: `.github/dependabot.yml` (weekly version updates) was removed on 2026-08-10, because nine PRs landed at once on a pre-release repository with one maintainer. Alerts are the half that carries the value; they surfaced 83 findings, 46 of them a single stale Next.js. Dependabot *security* updates remain forced on by the org security configuration `Parrow-Horrizon-Studio-org-config-1` (id 248228, `enforcement: enforced`), so vulnerability PRs can still appear until that configuration is edited
 - Secret scanning with push protection
 - Private vulnerability reporting
 - CodeQL analysis

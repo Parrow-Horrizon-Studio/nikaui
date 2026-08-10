@@ -260,7 +260,7 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 **E1 — now:**
 - Transfer to `Parrow-Horrizon-Studio/nikaui`; create `Rowee13/nikaui-pro` private scaffold
 - Branch protection on `main` with administrators excluded — implemented as a **repository ruleset**, not classic rules (see E3)
-- Security: Dependabot, secret scanning with push protection, private vulnerability reporting, CodeQL, read-only default `GITHUB_TOKEN`
+- Security: Dependabot **alerts** (automated PRs off — see E3), secret scanning with push protection, private vulnerability reporting, CodeQL, read-only default `GITHUB_TOKEN`
 - CI: `install → lint → check-types → build` on PR and push
 - Community files: `LICENSE` (**blocking**), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue and PR templates, `.nvmrc`, `.editorconfig`
 - npm identity: package `nikaui`, bins `nikaui` + `nika`, `@nikaui` org scope — ✅ **both reserved 2026-08-09** with `0.0.0` stubs; first real release is `0.1.0` after B
@@ -279,6 +279,8 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 | Reconcile the `pnpm` pin | **Next commit touching a lockfile** | `nikaui` declares `pnpm@9.0.0`, `nikaui-pro` declares `pnpm@9.15.3`. Both are pnpm 9 and both write lockfile 9.0, so this is cosmetic today |
 | `packages/cli/src/index.ts` hard-codes `.version("0.1.0")` | **First publish** | Duplicates `package.json`; correct today, will drift |
 | Decide `nikaui-pro`'s owner | **Before any secret is added to it** | It is on the personal account because a Free org cannot branch-protect private repos, yet its `LICENSE` names Parrow Horrizon Studio as copyright holder and it will hold `POLAR_ORG_TOKEN`. Transfer to the org, or record the decision to keep it personal |
+| Edit the org security configuration to stop Dependabot security PRs | **Whenever the noise becomes annoying** | `.github/dependabot.yml` is gone, so weekly version-update PRs are off. Dependabot *security* updates are still forced on by `Parrow-Horrizon-Studio-org-config-1` (id 248228, `enforcement: enforced`), which the repo-level API refuses to override. Set `dependabot_security_updates` to disabled in [that configuration](https://github.com/organizations/Parrow-Horrizon-Studio/settings/security_products/configurations/edit/248228), or detach this repo from it. Alerts stay on either way |
+| Consider `release-please` | **At the first real release (`0.1.0`, after B)** | It automates version bump, CHANGELOG and GitHub release from Conventional Commits, which `CONTRIBUTING.md` already mandates. It is not a Dependabot substitute — different problem entirely |
 
 ### F — Block and template lineup
 

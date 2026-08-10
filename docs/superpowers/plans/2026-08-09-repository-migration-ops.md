@@ -47,7 +47,7 @@ So where a step produces behaviour, it is verified by running it. Where a step p
 | File | Responsibility |
 |---|---|
 | `workflows/ci.yml` | `install → lint → check-types → build`, on PR and push to `main` |
-| `dependabot.yml` | Weekly updates for npm and GitHub Actions |
+| ~~`dependabot.yml`~~ | ~~Weekly updates for npm and GitHub Actions~~ — superseded, see Task 2 Step 3 |
 | `ISSUE_TEMPLATE/bug_report.yml` | Structured bug reports |
 | `ISSUE_TEMPLATE/feature_request.yml` | Structured feature requests |
 | `ISSUE_TEMPLATE/config.yml` | Routes security reports away from public issues |
@@ -394,6 +394,8 @@ jobs:
 
 - [ ] **Step 3: Write `.github/dependabot.yml`**
 
+> **Superseded 2026-08-10 — skip this step on a re-run.** This file was written, then removed the same day. It opened nine pull requests at once on a pre-release repository with one maintainer, and its grouping was wrong: only `dev-dependencies` was grouped, so runtime dependencies and Actions each got their own PR, including three overlapping `next` bumps. Dependabot **alerts** are kept and are the half that carries the value — they surfaced 83 findings. See MASTER-PLAN §E3.
+
 ```yaml
 version: 2
 updates:
@@ -533,7 +535,7 @@ The security URL points at `Rowee13/nikaui` because the transfer has not happene
 - [ ] **Step 6: Validate the YAML parses**
 
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && for f in .github/workflows/ci.yml .github/dependabot.yml .github/ISSUE_TEMPLATE/bug_report.yml .github/ISSUE_TEMPLATE/feature_request.yml .github/ISSUE_TEMPLATE/config.yml; do printf "%-45s " "$f"; node -e "const fs=require('fs');const s=fs.readFileSync('$f','utf8');if(!s.trim()){console.log('EMPTY');process.exit(1)};console.log('present, '+s.split('\n').length+' lines')"; done
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && for f in .github/workflows/ci.yml .github/ISSUE_TEMPLATE/bug_report.yml .github/ISSUE_TEMPLATE/feature_request.yml .github/ISSUE_TEMPLATE/config.yml; do printf "%-45s " "$f"; node -e "const fs=require('fs');const s=fs.readFileSync('$f','utf8');if(!s.trim()){console.log('EMPTY');process.exit(1)};console.log('present, '+s.split('\n').length+' lines')"; done
 ```
 
 Expected: five lines, each reporting a line count. Nothing `EMPTY`.
