@@ -7,7 +7,7 @@ import { listCommand } from "./commands/list.js";
 const program = new Command();
 
 program
-  .name("nika")
+  .name("nikaui")
   .description("Add Nika UI components to your project")
   .version("0.1.0");
 

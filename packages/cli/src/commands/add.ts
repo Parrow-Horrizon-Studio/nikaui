@@ -20,7 +20,7 @@ import { transformImports } from "../utils/transformer.js";
 
 // Base URL for fetching component source files from the registry
 const REGISTRY_BASE_URL =
-  "https://raw.githubusercontent.com/nicaui/nikaui/main/packages/registry/src";
+  "https://raw.githubusercontent.com/Parrow-Horrizon-Studio/nikaui/main/packages/registry/src";
 
 export const addCommand = new Command()
   .name("add")

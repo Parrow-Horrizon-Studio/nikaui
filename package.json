@@ -1,5 +1,5 @@
 {
-  "name": "nika-ui-monorepo",
+  "name": "nikaui-monorepo",
   "private": true,
   "scripts": {
     "build": "turbo run build",

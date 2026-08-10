@@ -1,13 +1,38 @@
 {
-  "name": "nika-ui",
+  "name": "nikaui",
   "version": "0.1.0",
   "description": "CLI for adding Nika UI components to your project",
-  "type": "module",
   "license": "MIT",
+  "author": "Parrow Horrizon Studio",
+  "type": "module",
   "bin": {
+    "nikaui": "./dist/index.js",
     "nika": "./dist/index.js"
   },
   "files": ["dist"],
+  "keywords": [
+    "react",
+    "tailwindcss",
+    "components",
+    "ui",
+    "motion",
+    "animation",
+    "design-system"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Parrow-Horrizon-Studio/nikaui.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/Parrow-Horrizon-Studio/nikaui/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsup src/index.ts --format esm --watch",
