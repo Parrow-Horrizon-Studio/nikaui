@@ -1,6 +1,9 @@
 /**
  * Nika UI theme tokens as CSS custom properties.
- * These are injected into the user's global CSS by `npx nikaui init`.
+ * This is the intended source of truth for the token layer components style
+ * against, but nothing currently imports it: `npx nikaui init` does not yet
+ * write these values into the user's global CSS. Tracked for a later
+ * sub-project — see docs/MASTER-PLAN.md.
  */
 export const nikaTheme = {
   light: {

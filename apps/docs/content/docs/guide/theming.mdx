@@ -3,9 +3,19 @@ title: Theming
 description: Customize colors, radius, and dark mode with CSS variables.
 ---
 
+<Callout type="warn" title="Pre-release">
+  The CLI is not yet published to npm — see the
+  [master plan](https://github.com/Parrow-Horrizon-Studio/nikaui/blob/main/docs/MASTER-PLAN.md)
+  for what's being built and in what order. `npx nikaui init` does not yet
+  write the CSS variables and `@theme inline` block described on this page —
+  nothing in the CLI ships them today. Until that layer lands, you need to add
+  the blocks below to your `globals.css` by hand, or components installed
+  with `add` will render unstyled.
+</Callout>
+
 ## How Theming Works
 
-Nika UI uses **CSS custom properties** (variables) for theming. Colors are defined as HSL values and mapped to Tailwind utility classes via `@theme inline`.
+Nika UI uses **CSS custom properties** (variables) for theming. Once the token layer below has been added to your project, colors defined as HSL values are mapped to Tailwind utility classes via `@theme inline`.
 
 ## Default Theme
 
@@ -35,7 +45,7 @@ Add the `dark` class to your `<html>` element to enable dark mode:
 
 ## Customizing Colors
 
-To change the theme, update the CSS variables in your `globals.css`:
+Once the CSS variables above have been added to your `globals.css`, change the theme by updating their values:
 
 ```css
 @layer base {
