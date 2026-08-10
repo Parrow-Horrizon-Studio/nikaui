@@ -48,6 +48,21 @@ The reasoning in spec A was that GitHub Free for organisations includes unlimite
 
 **Classic branch protection rules, not rulesets.** GitHub's documentation states rulesets are *"for customers on GitHub Team and GitHub Enterprise plans,"* while branch restrictions can be enabled *"in public repositories owned by a GitHub Free organization."* Confirm in the UI when applying, as GitHub moves this line periodically.
 
+> ⚠️ **Correction (2026-08-10).** The confirmation this hedge called for did
+> happen when Task 6 was executed, and it found the premise above false: a
+> repository ruleset (`main-branch-protection`, id `14501407`, created
+> 2026-03-30) was already active and enforcing on this Free-plan
+> organisation before Task 6 ever ran — rulesets are not gated behind a paid
+> plan, at least not as of that date. Classic branch protection was never
+> applied; GitHub enforces the union of classic protection and rulesets, so
+> adding it on top of an already-enforcing ruleset would have been a
+> redundant second gate, not a replacement. The human partner configured the
+> existing ruleset directly instead: repo-admin added to `bypass_actors`
+> (the ruleset's equivalent of "administrators excluded"),
+> `required_approving_review_count` dropped to `0`, and `ci` added as a
+> required status check. See the corrected Task 6 Step 4 in the
+> implementation plan for the actual mechanism.
+
 **Rationale for excluding administrators.** Sub-project B rewrites the className strings of all 27 components; self-merging that through pull requests adds real friction and produces no review benefit while the project has one contributor. Outside contributors hit the full gate from day one regardless. **Tighten to include administrators at v1.0 or the first outside pull request, whichever comes first.**
 
 ### E3 — Security settings

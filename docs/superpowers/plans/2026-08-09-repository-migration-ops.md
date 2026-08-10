@@ -234,13 +234,28 @@ conversations must be resolved before merge.
 
 - [ ] **Step 5: Fetch and adapt the Code of Conduct**
 
+> **Correction (2026-08-10):** the URL below originally read
+> `https://www.contributor-covenant.org/version/2/1/code_of_conduct.md`,
+> which returns HTTP 404 — that host does not serve the raw markdown. The
+> working canonical source is the GitHub raw file used here. It is Hugo
+> source with a TOML front-matter block (`+++ … +++`), which must be
+> **stripped before** substituting the contact placeholder:
+> `[INSERT CONTACT METHOD]` appears twice until then — once in the front
+> matter, once in the body — so the single-match expectation below was also
+> wrong.
+
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && curl -sL https://www.contributor-covenant.org/version/2/1/code_of_conduct.md -o CODE_OF_CONDUCT.md && grep -n "\[INSERT CONTACT METHOD\]" CODE_OF_CONDUCT.md
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && curl -sL https://raw.githubusercontent.com/EthicalSource/contributor_covenant/release/content/version/2/1/code_of_conduct.md -o CODE_OF_CONDUCT.md && grep -c "\[INSERT CONTACT METHOD\]" CODE_OF_CONDUCT.md
 ```
 
-Expected: one match showing the placeholder line.
+Expected: `2` — one inside the `+++ … +++` front matter, one in the body.
 
-Replace the literal string `[INSERT CONTACT METHOD]` with:
+Strip the front-matter block first: delete everything from the opening `+++`
+line through the closing `+++` line (inclusive). It is Hugo page metadata
+(title, front-matter placeholders), not part of the Code of Conduct text
+itself.
+
+Then replace the remaining literal string `[INSERT CONTACT METHOD]` with:
 
 ```
 the maintainers, via a private vulnerability report on this repository's Security tab
@@ -325,6 +340,18 @@ Expected: all three succeed. **If any fails, fix it before writing CI** — a wo
 
 - [ ] **Step 2: Write `.github/workflows/ci.yml`**
 
+> **Correction (2026-08-10):** the `pnpm/action-setup@v4` step originally
+> pinned `with: version: 9` below. That fails outright — the root
+> `package.json` already declares `packageManager`, and `pnpm/action-setup`
+> refuses to run with both a pinned `version` input and a `packageManager`
+> field present: `Error: Multiple versions of pnpm specified: version 9 in
+> the GitHub Action config with the key "version" and version pnpm@9.15.3 in
+> the package.json with the key "packageManager"`. Every run failed in
+> 8–14 seconds until the `with:` block was removed. `packageManager` is the
+> single source of truth for the pnpm version — both `corepack enable`
+> (invoked by `CONTRIBUTING.md`) and `pnpm/action-setup@v4` read it directly,
+> so it does not need to be repeated here.
+
 ```yaml
 name: CI
 
@@ -348,8 +375,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
 
       - uses: actions/setup-node@v4
         with:
@@ -917,7 +942,44 @@ Expected: `read`.
 
 This enforces the property spec A §D3 relies on — the public repository holds no secrets, and a read-only default token means a contributor's pull request cannot exfiltrate one even if that assumption later slips.
 
-- [ ] **Step 4: Protect `main`, with administrators excluded**
+- [ ] **Step 4: Configure the existing ruleset (not classic branch protection)**
+
+> **Correction (2026-08-10):** this step originally asserted that GitHub
+> rulesets are *"for customers on GitHub Team and GitHub Enterprise plans"*
+> and specified classic branch protection (below, struck through) instead.
+> That premise was false. A repository ruleset named
+> `main-branch-protection` (id `14501407`, created 2026-03-30) was already
+> active and enforcing on this Free-plan organisation, and it travelled
+> through the Task 5 transfer unchanged. Classic protection would not have
+> relaxed anything, either — GitHub enforces the union of whatever classic
+> protection and rulesets both specify, so layering classic protection on
+> top would only have added a second, redundant gate rather than replacing
+> the first. The human partner decided to configure the existing ruleset
+> directly instead of creating classic protection:
+>
+> - added the repo-admin role to `bypass_actors`
+> - dropped `required_approving_review_count` to `0` (same reasoning as
+>   below — a solo maintainer cannot approve their own pull request)
+> - added `ci` as a required status check
+>
+> Inspect the ruleset before changing it:
+>
+> ```bash
+> gh api repos/Parrow-Horrizon-Studio/nikaui/rulesets/14501407
+> ```
+>
+> Apply the three changes above via **Settings → Rules → Rulesets →
+> main-branch-protection** in the web UI, or with `gh api -X PUT
+> repos/Parrow-Horrizon-Studio/nikaui/rulesets/14501407 --input -` and a JSON
+> body setting `bypass_actors`, a `pull_request` rule with
+> `required_approving_review_count: 0`, and a `required_status_checks` rule
+> whose list includes `{"context": "ci"}`. The original classic-protection
+> call is left below for the record; **do not run it** — it targets an
+> endpoint (`branches/main/protection`) that plays no part in how this
+> repository is actually protected.
+
+<details>
+<summary>Original (superseded) step: classic branch protection</summary>
 
 ```bash
 gh api -X PUT repos/Parrow-Horrizon-Studio/nikaui/branches/main/protection \
@@ -941,28 +1003,38 @@ gh api -X PUT repos/Parrow-Horrizon-Studio/nikaui/branches/main/protection \
 JSON
 ```
 
-`enforce_admins: false` is the deliberate choice from spec E §E2 — contributors are bound by every rule while the maintainer can still push directly. `required_approving_review_count: 0` exists because a solo maintainer cannot approve their own pull request; raise it to `1` when a second contributor joins.
+`enforce_admins: false` was the intended parallel to the ruleset's
+`bypass_actors` — contributors bound by every rule while the maintainer can
+still push directly. It was never actually applied; the ruleset's
+`bypass_actors` achieves the same outcome.
 
-- [ ] **Step 5: Verify protection reads back as intended**
+</details>
+
+- [ ] **Step 5: Verify the ruleset reads back as intended**
+
+> **Correction (2026-08-10):** this step originally queried
+> `branches/main/protection`, which returns `404 Branch not protected` —
+> `main` is protected by the ruleset, not classic branch protection. Query
+> the ruleset instead.
 
 ```bash
-gh api repos/Parrow-Horrizon-Studio/nikaui/branches/main/protection --jq '{checks: .required_status_checks.contexts, admins_enforced: .enforce_admins.enabled, force_push: .allow_force_pushes.enabled, deletions: .allow_deletions.enabled, conversations: .required_conversation_resolution.enabled}'
+gh api repos/Parrow-Horrizon-Studio/nikaui/rulesets/14501407 --jq '{checks: [.rules[] | select(.type=="required_status_checks").parameters.required_status_checks[].context], reviews: [.rules[] | select(.type=="pull_request").parameters.required_approving_review_count], bypass: .bypass_actors, enforcement: .enforcement}'
 ```
 
-Expected exactly:
-```json
-{"checks":["ci"],"admins_enforced":false,"force_push":false,"deletions":false,"conversations":true}
-```
+Expected: `checks` is `["ci"]`, `reviews` is `[0]`, `bypass` is non-empty
+(contains the repo-admin role), `enforcement` is `"active"`.
 
 - [ ] **Step 6: Verify a maintainer push still works**
 
-This confirms `enforce_admins: false` took effect rather than silently locking you out of your own default branch.
+This confirms repo-admin's presence in `bypass_actors` took effect rather
+than silently locking you out of your own default branch.
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git commit --allow-empty -m "chore: verify maintainer push under branch protection" && git push origin main
 ```
 
-Expected: push succeeds. If it is rejected, `enforce_admins` is on — re-run Step 4.
+Expected: push succeeds. If it is rejected, repo-admin is missing from the
+ruleset's `bypass_actors` — re-run Step 4.
 
 - [ ] **Step 7: Enable CodeQL default setup**
 
@@ -1190,8 +1262,8 @@ Sub-project E is done when every one of these passes:
 # 1. Public repository lives in the organisation
 gh api repos/Parrow-Horrizon-Studio/nikaui --jq '.full_name, .visibility'
 
-# 2. main is protected, administrators excluded
-gh api repos/Parrow-Horrizon-Studio/nikaui/branches/main/protection --jq '.required_status_checks.contexts, .enforce_admins.enabled'
+# 2. main is protected via ruleset, repo-admin can bypass, ci required, 0 reviews required
+gh api repos/Parrow-Horrizon-Studio/nikaui/rulesets/14501407 --jq '{checks: [.rules[] | select(.type=="required_status_checks").parameters.required_status_checks[].context], reviews: [.rules[] | select(.type=="pull_request").parameters.required_approving_review_count], bypass: .bypass_actors, enforcement: .enforcement}'
 
 # 3. The registry URL resolves — for the first time ever
 curl -s -o /dev/null -w "%{http_code}\n" "https://raw.githubusercontent.com/Parrow-Horrizon-Studio/nikaui/main/packages/registry/src/ui/button.tsx"
@@ -1202,10 +1274,32 @@ npm view nikaui version && npm view @nikaui/cli version
 # 5. The private Pro repository exists and is private
 gh api repos/Rowee13/nikaui-pro --jq '.private'
 
-# 6. No stale command anywhere in the tree
-grep -rn "npx nika " --include="*.md" --include="*.tsx" --include="*.ts" . --exclude-dir=node_modules --exclude-dir=.git | grep -v "npx nikaui"
+# 6. No stale command anywhere in the tracked tree, outside docs/
+git grep -n "npx nika " -- . ':!docs' | grep -v "npx nikaui"
 ```
 
-Expected: `Parrow-Horrizon-Studio/nikaui` + `public`; `["ci"]` + `false`; `200`; `0.0.0` twice; `true`; and **no output at all** from the last command.
+Expected:
+1. `Parrow-Horrizon-Studio/nikaui` + `public`
+2. `{"checks":["ci"],"reviews":[0],"bypass":[...],"enforcement":"active"}` — `checks` exactly `["ci"]`, `reviews` exactly `[0]`, `bypass` non-empty, `enforcement` exactly `"active"`
+3. `200`
+4. `0.0.0` twice
+5. `true`
+6. no output at all (`git grep` and the pipe both exit non-zero on no match — that is success here, not failure)
 
-Check 6 is the one most likely to fail. Documentation copy in `apps/docs/content/` still advertises `npx nika`, and that copy is rewritten in sub-projects C and D — so a non-empty result here is expected until then. Record what it finds and carry it into D rather than fixing it ad hoc.
+> **Correction (2026-08-10):** check 2 originally queried
+> `branches/main/protection` and expected `["ci"]` + `false` — see the Task 6
+> Step 4/5 corrections above for why that endpoint is wrong for this
+> repository. Check 6 originally read `grep -rn "npx nika " ... .
+> --exclude-dir=node_modules --exclude-dir=.git | grep -v "npx nikaui"` and
+> its note warned that hits under `apps/docs/content/` were expected until
+> sub-projects C and D rewrote that copy. **That is no longer true: all 41
+> occurrences outside `docs/` were fixed** (verified 2026-08-10 — see fixes 1
+> and 4 of the E fix-wave report). The remaining hits live in `docs/` —
+> `docs/MASTER-PLAN.md` and `docs/superpowers/**` — which deliberately
+> *describe* the historical `npx nika` defect and its fix, and must not be
+> swept. The check above uses `git grep` with a `docs/` exclusion pathspec
+> rather than plain `grep -r`, which also has the side benefit of ignoring
+> untracked scratch files (e.g. `.superpowers/sdd/**`, which is
+> gitignored and independently contains prose describing the same historical
+> defect). A hit anywhere else — any tracked file outside `docs/` — is a real
+> regression, not an expected one.
