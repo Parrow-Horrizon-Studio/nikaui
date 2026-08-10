@@ -1,6 +1,6 @@
 /**
  * Nika UI theme tokens as CSS custom properties.
- * These are injected into the user's global CSS by `npx nika init`.
+ * These are injected into the user's global CSS by `npx nikaui init`.
  */
 export const nikaTheme = {
   light: {

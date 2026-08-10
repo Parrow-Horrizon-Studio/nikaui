@@ -75,8 +75,8 @@ export default function HomePage() {
             Initialize Nika UI in your project and start adding components.
           </p>
           <div className="mx-auto mt-8 max-w-md space-y-3">
-            <CodeBlock code="npx nika init" />
-            <CodeBlock code="npx nika add button card dialog" />
+            <CodeBlock code="npx nikaui init" />
+            <CodeBlock code="npx nikaui add button card dialog" />
           </div>
         </div>
       </section>

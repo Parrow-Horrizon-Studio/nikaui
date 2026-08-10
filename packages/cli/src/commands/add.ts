@@ -39,7 +39,7 @@ export const addCommand = new Command()
     } catch {
       console.error(
         chalk.red(
-          "\n  Could not find nika.config.ts. Run `npx nika init` first.\n"
+          "\n  Could not find nika.config.ts. Run `npx nikaui init` first.\n"
         )
       );
       process.exit(1);
@@ -51,7 +51,7 @@ export const addCommand = new Command()
       console.error(
         chalk.red(`\n  Unknown component(s): ${invalid.join(", ")}`)
       );
-      console.error(chalk.dim("  Run `npx nika list` to see available components.\n"));
+      console.error(chalk.dim("  Run `npx nikaui list` to see available components.\n"));
       process.exit(1);
     }
 
@@ -193,7 +193,7 @@ async function getFileContent(sourcePath: string): Promise<string> {
   const localPaths = [
     // Monorepo: cli/dist/../../../registry/src/
     path.resolve(cliDir, "..", "..", "registry", "src", sourcePath),
-    // Installed: node_modules/nika-ui/dist/../../../@nikaui/registry/src/
+    // Installed: node_modules/nikaui/dist/../../../@nikaui/registry/src/
     path.resolve(cliDir, "..", "..", "@nikaui", "registry", "src", sourcePath),
   ];
 

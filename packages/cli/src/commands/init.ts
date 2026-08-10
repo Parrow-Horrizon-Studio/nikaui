@@ -151,7 +151,7 @@ export function cn(...inputs: ClassValue[]) {
 
       console.log(
         chalk.dim("\n  Add components with:"),
-        chalk.cyan("npx nika add button\n")
+        chalk.cyan("npx nikaui add button\n")
       );
     } catch (error) {
       spinner.fail(chalk.red("Failed to initialize Nika UI"));

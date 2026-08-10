@@ -23,7 +23,7 @@ export function Header() {
 
           <div className="ml-auto flex items-center gap-2">
             <a
-              href="https://github.com/nicaui/nikaui"
+              href="https://github.com/Parrow-Horrizon-Studio/nikaui"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-fd-muted-foreground transition-colors hover:text-fd-foreground"

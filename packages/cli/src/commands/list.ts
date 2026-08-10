@@ -25,6 +25,6 @@ export const listCommand = new Command()
     );
     console.log(
       chalk.dim("  Add with:"),
-      chalk.cyan("npx nika add <component>\n")
+      chalk.cyan("npx nikaui add <component>\n")
     );
   });

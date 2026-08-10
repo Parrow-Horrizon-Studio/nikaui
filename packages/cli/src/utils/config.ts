@@ -34,7 +34,7 @@ export async function getConfig(cwd: string): Promise<NikaConfig> {
 
   if (!(await fs.pathExists(configPath))) {
     throw new Error(
-      "nika.config.ts not found. Run `npx nika init` first."
+      "nika.config.ts not found. Run `npx nikaui init` first."
     );
   }
 
