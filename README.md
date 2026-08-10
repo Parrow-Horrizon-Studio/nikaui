@@ -1,54 +1,64 @@
 # Nika UI
 
-Beautiful, animated components built with Tailwind CSS and Motion. Inspired by shadcn/ui — install components individually, own the code.
+Beautiful, animated React components built with Tailwind CSS and Motion.
+Install components individually via CLI — you own the code.
 
-## Monorepo Structure
+> **Pre-release.** The CLI is not yet published. See the
+> [master plan](docs/MASTER-PLAN.md) for what is being built and in what order.
+
+## Quick start
+
+```bash
+npx nikaui init
+npx nikaui add button card dialog
+```
+
+## Monorepo structure
 
 ### Apps
 
-- `apps/docs` — Documentation site (Next.js, port 3001)
-- `apps/showcase` — Marketing / demo site (Next.js, port 3000)
+- `apps/docs` — documentation site and landing page (Next.js + Fumadocs)
 
 ### Packages
 
-- `packages/registry` — Component source code (Button, Badge, Card, Input, Separator, etc.)
-- `packages/cli` — `npx nika` CLI tool for adding components to user projects
-- `packages/tailwind-config` — Tailwind CSS preset and theme tokens
-- `packages/eslint-config` — Shared ESLint configurations
-- `packages/typescript-config` — Shared TypeScript configurations
+- `packages/registry` — component source; what the CLI copies into your project
+- `packages/cli` — the `nikaui` CLI
+- `packages/eslint-config` — shared ESLint configuration
+- `packages/typescript-config` — shared TypeScript configuration
+- `packages/tailwind-config` — shared Tailwind CSS preset and theme tokens
 
 ## Development
 
+Requires **Node >= 20** and **pnpm 9**.
+
 ```bash
-# Install dependencies
+corepack enable
 pnpm install
 
-# Start all apps in dev mode
-pnpm dev
-
-# Build everything
-pnpm build
-
-# Lint
-pnpm lint
-
-# Type check
-pnpm check-types
+pnpm dev           # all apps in watch mode
+pnpm build         # build everything
+pnpm lint          # ESLint, zero warnings allowed
+pnpm check-types   # tsc --noEmit across the workspace
 ```
 
-## Tech Stack
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow.
 
-- **Turborepo** — Monorepo build system
-- **pnpm** — Package manager
-- **TypeScript** — Strict mode
-- **React 19** — UI framework
-- **Next.js 16** — App framework
-- **Tailwind CSS** — Styling
-- **Motion** — Animations
-- **Headless UI** — Accessible primitives
-- **class-variance-authority** — Component variants
-- **tailwind-merge + clsx** — Class composition
+## Tech stack
+
+- **Turborepo** + **pnpm** — monorepo and package management
+- **TypeScript** — strict mode
+- **React 19** and **Next.js 16**
+- **Tailwind CSS v4** — styling, themed through a CSS variable layer
+- **Motion** — animation
+- **Headless UI** — accessible primitives
+- **class-variance-authority** — component variants
+- **tailwind-merge** + **clsx** — class composition
+
+## Documentation
+
+- [Master plan](docs/MASTER-PLAN.md) — architecture, roadmap, decisions
+- [Specs](docs/superpowers/specs) — the reasoning behind each decision
 
 ## License
 
-MIT
+MIT © Parrow Horrizon Studio — see [LICENSE](LICENSE).
