@@ -27,10 +27,11 @@ body:
   - type: input
     id: version
     attributes:
-      label: Nika UI version
-      placeholder: 0.1.0
+      label: Nika UI version or commit SHA
+      description: Nothing is published yet, so a commit SHA (e.g. from `npx nikaui@<sha>`) or "main" is fine.
+      placeholder: "e.g. 1d449e8, or main"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: framework
