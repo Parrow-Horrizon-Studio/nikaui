@@ -51,8 +51,8 @@
     "@nikaui/typescript-config": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/prompts": "^2.4.9",
-    "eslint": "^9.39.1",
+    "eslint": "^10.8.0",
     "tsup": "^8.0.0",
-    "typescript": "5.9.2"
+    "typescript": "7.0.2"
   }
 }
