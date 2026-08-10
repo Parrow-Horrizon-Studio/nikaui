@@ -113,12 +113,12 @@ export const addCommand = new Command()
 
       // 7. Copy lib files (utils, motion presets)
       for (const lib of resolved.libs) {
-        await copyRegistryFiles(lib, libDir, config, cwd);
+        await copyRegistryFiles(lib, libDir, config);
       }
 
       // 8. Copy component files
       for (const component of resolved.components) {
-        await copyRegistryFiles(component, uiDir, config, cwd);
+        await copyRegistryFiles(component, uiDir, config);
       }
 
       // 9. Summary
@@ -165,8 +165,7 @@ export const addCommand = new Command()
 async function copyRegistryFiles(
   entry: RegistryEntry,
   targetDir: string,
-  config: NikaConfig,
-  cwd: string
+  config: NikaConfig
 ): Promise<void> {
   await fs.ensureDir(targetDir);
 

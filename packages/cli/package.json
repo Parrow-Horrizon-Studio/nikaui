@@ -9,7 +9,7 @@
     "nikaui": "./dist/index.js",
     "nika": "./dist/index.js"
   },
-  "files": ["dist"],
+  "files": ["dist", "LICENSE"],
   "keywords": [
     "react",
     "tailwindcss",
@@ -36,6 +36,7 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts",
     "dev": "tsup src/index.ts --format esm --watch",
+    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
@@ -46,9 +47,11 @@
     "ora": "^8.2.0"
   },
   "devDependencies": {
+    "@nikaui/eslint-config": "workspace:*",
     "@nikaui/typescript-config": "workspace:*",
     "@types/fs-extra": "^11.0.4",
     "@types/prompts": "^2.4.9",
+    "eslint": "^9.39.1",
     "tsup": "^8.0.0",
     "typescript": "5.9.2"
   }

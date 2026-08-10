@@ -8,10 +8,13 @@
     "./theme": "./src/theme.ts"
   },
   "scripts": {
+    "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@nikaui/eslint-config": "workspace:*",
     "@nikaui/typescript-config": "workspace:*",
+    "eslint": "^9.39.1",
     "typescript": "5.9.2"
   }
 }
