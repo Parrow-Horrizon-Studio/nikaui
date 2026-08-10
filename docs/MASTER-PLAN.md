@@ -259,7 +259,7 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 
 **E1 — now:**
 - Transfer to `Parrow-Horrizon-Studio/nikaui`; create `Rowee13/nikaui-pro` private scaffold
-- Branch protection on `main` with administrators excluded; classic rules, not rulesets
+- Branch protection on `main` with administrators excluded — implemented as a **repository ruleset**, not classic rules (see E3)
 - Security: Dependabot, secret scanning with push protection, private vulnerability reporting, CodeQL, read-only default `GITHUB_TOKEN`
 - CI: `install → lint → check-types → build` on PR and push
 - Community files: `LICENSE` (**blocking**), `SECURITY.md`, `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, issue and PR templates, `.nvmrc`, `.editorconfig`
@@ -267,6 +267,18 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 - Fix `REGISTRY_BASE_URL` and the stale `README.md` (§2.4)
 
 **E2 — deferred until C and D exist:** Coolify VPS, DNS, TLS, deploy pipeline. Nothing to deploy yet. Domains (`nikaui.dev`, `pro.nikaui.dev`) are purchased directly by the maintainer; `nikaui.pro` remains under consideration.
+
+**E3 — executed 2026-08-10.** Delivered as planned, with one substitution. `main` is protected by a pre-existing repository **ruleset** (`main-branch-protection`, id `14501407`, created 2026-03-30) rather than classic branch protection. The spec's premise that rulesets require a paid GitHub plan is **false** — the ruleset was already active and enforcing on this Free organisation and travelled through the transfer, and classic protection layered on top would not have relaxed it, because GitHub applies the most restrictive of both. It now carries `deletion`, `non_fast_forward`, `required_linear_history`, `pull_request`, and `required_status_checks (["ci"])`, with repo-admin in `bypass_actors` — the same intent E4 describes, by the mechanism GitHub actually enforces here.
+
+**Carried forward from E — these have no other home, so they live here:**
+
+| Item | Trigger | Detail |
+|---|---|---|
+| Raise `required_approving_review_count` back to `1` | **A second contributor joins** | It is `0` today because a solo maintainer cannot approve their own pull request. Blast radius is currently zero — one collaborator. This is the E4 tightening commitment, recorded here because nothing else tracks it |
+| `init` does not write the CSS token layer | **Sub-project B** | Components style entirely through token utilities that resolve only from `apps/docs/src/app/globals.css`. Nothing the CLI ships writes it, so `npx nikaui init && npx nikaui add button` renders unstyled. The docs now say so plainly; B closes the gap. `packages/tailwind-config` is a second, orphaned copy of those values and should be retired with it |
+| Reconcile the `pnpm` pin | **Next commit touching a lockfile** | `nikaui` declares `pnpm@9.0.0`, `nikaui-pro` declares `pnpm@9.15.3`. Both are pnpm 9 and both write lockfile 9.0, so this is cosmetic today |
+| `packages/cli/src/index.ts` hard-codes `.version("0.1.0")` | **First publish** | Duplicates `package.json`; correct today, will drift |
+| Decide `nikaui-pro`'s owner | **Before any secret is added to it** | It is on the personal account because a Free org cannot branch-protect private repos, yet its `LICENSE` names Parrow Horrizon Studio as copyright holder and it will hold `POLAR_ORG_TOKEN`. Transfer to the org, or record the decision to keep it personal |
 
 ### F — Block and template lineup
 
