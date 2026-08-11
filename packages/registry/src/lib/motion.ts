@@ -54,13 +54,7 @@ export interface NikaMotionConfigProps {
   preset?: MotionPreset;
   /** Per-component overrides, keyed by component name — e.g. { dialog: "none" }. */
   components?: Partial<Record<NikaComponent, MotionPreset>>;
-  /**
-   * Optional at the type level only so `React.createElement` calls (used by
-   * the .ts test file, which cannot contain JSX) type-check without
-   * threading children through the props object. JSX consumers pass
-   * children the normal way and are unaffected.
-   */
-  children?: React.ReactNode;
+  children: React.ReactNode;
 }
 
 /**

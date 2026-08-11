@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import * as React from "react";
-import { motionPresets, NikaMotionConfig, useMotionPreset } from "./motion";
+import {
+  motionPresets,
+  NikaMotionConfig,
+  useMotionPreset,
+  type NikaMotionConfigProps,
+} from "./motion";
 
 // Motion caches its reduced-motion state at MODULE scope, so mocking
 // window.matchMedia only takes effect for the first render in the file.
@@ -52,44 +57,52 @@ describe("useMotionPreset resolution order", () => {
 
   it("prefers a provider global default over the built-in default", () => {
     const { result } = renderHook(() => useMotionPreset("button"), {
-      wrapper: ({ children }) =>
-        React.createElement(NikaMotionConfig, { preset: "glide" }, children),
+      wrapper: ({ children }) => {
+        const props: NikaMotionConfigProps = { preset: "glide", children };
+        return React.createElement(NikaMotionConfig, props);
+      },
     });
     expect(result.current).toEqual(motionPresets.glide);
   });
 
   it("prefers a provider per-component override over the provider default", () => {
     const { result } = renderHook(() => useMotionPreset("dialog"), {
-      wrapper: ({ children }) =>
-        React.createElement(
-          NikaMotionConfig,
-          { preset: "glide", components: { dialog: "none" } },
-          children
-        ),
+      wrapper: ({ children }) => {
+        const props: NikaMotionConfigProps = {
+          preset: "glide",
+          components: { dialog: "none" },
+          children,
+        };
+        return React.createElement(NikaMotionConfig, props);
+      },
     });
     expect(result.current).toEqual(motionPresets.none);
   });
 
   it("prefers the instance prop over a provider per-component override", () => {
     const { result } = renderHook(() => useMotionPreset("dialog", "bounce"), {
-      wrapper: ({ children }) =>
-        React.createElement(
-          NikaMotionConfig,
-          { preset: "glide", components: { dialog: "none" } },
-          children
-        ),
+      wrapper: ({ children }) => {
+        const props: NikaMotionConfigProps = {
+          preset: "glide",
+          components: { dialog: "none" },
+          children,
+        };
+        return React.createElement(NikaMotionConfig, props);
+      },
     });
     expect(result.current).toEqual(motionPresets.bounce);
   });
 
   it("lets a per-component override apply only to its own component", () => {
     const { result } = renderHook(() => useMotionPreset("button"), {
-      wrapper: ({ children }) =>
-        React.createElement(
-          NikaMotionConfig,
-          { preset: "glide", components: { dialog: "none" } },
-          children
-        ),
+      wrapper: ({ children }) => {
+        const props: NikaMotionConfigProps = {
+          preset: "glide",
+          components: { dialog: "none" },
+          children,
+        };
+        return React.createElement(NikaMotionConfig, props);
+      },
     });
     expect(result.current).toEqual(motionPresets.glide);
   });
@@ -103,12 +116,14 @@ describe("useMotionPreset resolution order", () => {
   it("forces none under reduced motion, overriding the provider", () => {
     mocks.reducedMotion = true;
     const { result } = renderHook(() => useMotionPreset("dialog"), {
-      wrapper: ({ children }) =>
-        React.createElement(
-          NikaMotionConfig,
-          { preset: "bounce", components: { dialog: "bounce" } },
-          children
-        ),
+      wrapper: ({ children }) => {
+        const props: NikaMotionConfigProps = {
+          preset: "bounce",
+          components: { dialog: "bounce" },
+          children,
+        };
+        return React.createElement(NikaMotionConfig, props);
+      },
     });
     expect(result.current).toEqual(motionPresets.none);
   });
