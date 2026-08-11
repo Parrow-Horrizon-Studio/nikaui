@@ -27,7 +27,10 @@
   --nika-line:            oklch(0.905 0.006 75);
   --nika-line-strong:     oklch(0.845 0.008 70);
 
-  /* Code blocks stay dark in both themes — deliberate. */
+  /* Code blocks stay dark in both themes — deliberate. Reserved: no shipped
+     component consumes `bg-code`/`text-code` yet. It is mapped and
+     documented so a code block you write lands on the same layer as
+     everything else. */
   --nika-code:            oklch(0.215 0.008 60);
 
   --nika-shadow-color:    35deg 30% 55%;
@@ -122,10 +125,21 @@
 
 /* ---------- SEMANTIC, RADIUS, TYPE, MOTION ---------- */
 :root {
-  /* Status colours stay theme-invariant: one hue reads on both canvases, so there's no .dark override — deliberate. */
+  /* Status colours stay theme-invariant: one hue reads on both canvases, so there's no .dark override — deliberate.
+     They are safe as fills, borders and large icons. They are NOT body-text
+     colours on the light canvas: success measures 2.08:1 and warning 1.70:1
+     against it. Tint the surface and keep `text-content` for the body — the
+     treatment Alert and Toast both use. */
   --nika-success:   oklch(0.74 0.15 150);
   --nika-warning:   oklch(0.82 0.15 80);
-  --nika-danger:    oklch(0.635 0.2 25);
+
+  /* danger is the one status hue used as a filled surface, so it is the one
+     that has to carry --nika-danger-fg. At L 0.635 that pair measured
+     3.67:1 — under AA for the 14px font-medium label in a danger button.
+     L 0.575 takes it to 4.70:1. Lowering L is the only lever: contrast
+     against a near-white foreground is driven by luminance, not hue or
+     chroma. */
+  --nika-danger:    oklch(0.575 0.2 25);
   --nika-danger-fg: oklch(0.99 0 0);
   --nika-info:      oklch(0.7 0.13 235);
 
@@ -135,6 +149,10 @@
   --nika-radius-lg:    var(--nika-radius);
   --nika-radius-xl:    calc(var(--nika-radius) + 6px);
   --nika-radius-2xl:   calc(var(--nika-radius) + 14px);
+  /* Not spare: mapping --radius-full below overrides Tailwind v4's built-in
+     `rounded-full` (normally calc(infinity * 1px)), so this value is what
+     every pill and circle in the library actually renders — Avatar, Badge,
+     Progress, RadioGroup, Slider, Switch and the loading dots. */
   --nika-radius-full:  999px;
 
   /* System stacks by design. Nika does not download a font for you. */
