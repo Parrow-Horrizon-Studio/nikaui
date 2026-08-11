@@ -7,3 +7,39 @@ body {
   color: var(--nika-content);
   font-family: var(--nika-font-sans);
 }
+
+/* The prototype's stylesheets use their own variable names. Rather than
+   rewrite every ported rule, bind those names to the tokens the library
+   actually ships. One direction only: prototype names read from --nika-*,
+   never the reverse. These exist solely so ported CSS compiles; new code
+   uses Tailwind utilities or --nika-* directly. */
+:root {
+  --primary: var(--nika-primary);
+  --accent-2: var(--nika-accent);
+  --bg: var(--nika-canvas);
+  --bg-2: var(--nika-canvas-2);
+  --card: var(--nika-surface);
+  --card-2: var(--nika-surface-2);
+  --border: var(--nika-line);
+  --border-2: var(--nika-line-strong);
+  --fg: var(--nika-content);
+  --fg-muted: var(--nika-content-muted);
+  --fg-subtle: var(--nika-content-subtle);
+  --code-bg: var(--nika-code);
+  --font-mono: var(--nika-font-mono);
+  --r-lg: var(--nika-radius-lg);
+  --r-xl: var(--nika-radius-xl);
+  --r-2xl: var(--nika-radius-2xl);
+  --r-full: var(--nika-radius-full);
+  --shadow: var(--nika-shadow);
+  --shadow-lg: var(--nika-shadow-lg);
+  --t: var(--nika-duration);
+  --ease-out: var(--nika-ease-out);
+}
+
+/* The site's own typography. The registry ships system stacks on purpose —
+   forcing a font download on every consumer is not the library's call. */
+:root {
+  --nika-font-sans: var(--web-font-sans), ui-sans-serif, system-ui, sans-serif;
+  --nika-font-mono: var(--web-font-mono), ui-monospace, monospace;
+}
