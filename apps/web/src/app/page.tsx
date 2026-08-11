@@ -1,3 +1,9 @@
+import { Hero } from "@/components/landing/hero";
+
 export default function HomePage() {
-  return <main className="p-10">Nika UI</main>;
+  return (
+    <main>
+      <Hero />
+    </main>
+  );
 }

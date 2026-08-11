@@ -55,3 +55,82 @@ body {
   box-shadow: 0 0 18px -2px color-mix(in oklch, var(--nika-primary) 60%, transparent);
   flex: none;
 }
+
+/* Ported from the prototype: the hero's decorative sun disc and the
+   conic-gradient rays behind it. Rebound directly to --nika-* tokens (no
+   bridge entry needed — the prototype used --primary/--accent-2 here, which
+   already map 1:1 to --nika-primary/--nika-accent). Both retune with
+   [data-accent] since color-mix reads the live custom property, not a
+   frozen value. */
+.hero-sun {
+  position: absolute;
+  top: -340px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 760px;
+  height: 760px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--nika-primary) 40%, transparent) 0%,
+    color-mix(in oklch, var(--nika-accent) 14%, transparent) 32%,
+    transparent 64%
+  );
+  filter: blur(8px);
+}
+
+.hero-rays {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140%;
+  height: 700px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background: conic-gradient(
+    from 180deg at 50% 0%,
+    transparent 0deg,
+    color-mix(in oklch, var(--nika-primary) 22%, transparent) 8deg,
+    transparent 16deg,
+    transparent 30deg,
+    color-mix(in oklch, var(--nika-accent) 16%, transparent) 38deg,
+    transparent 46deg,
+    transparent 60deg,
+    color-mix(in oklch, var(--nika-primary) 18%, transparent) 68deg,
+    transparent 76deg,
+    transparent 104deg,
+    color-mix(in oklch, var(--nika-accent) 16%, transparent) 112deg,
+    transparent 120deg,
+    transparent 134deg,
+    color-mix(in oklch, var(--nika-primary) 22%, transparent) 142deg,
+    transparent 150deg,
+    transparent 164deg,
+    color-mix(in oklch, var(--nika-accent) 14%, transparent) 172deg,
+    transparent 180deg
+  );
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 70%);
+  animation: nika-rays-drift 24s var(--nika-ease-inout) infinite alternate;
+}
+
+@keyframes nika-rays-drift {
+  from {
+    transform: translateX(-50%) rotate(-1.5deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(1.5deg);
+  }
+}
+
+/* The library's own motion honours this through the resolver; these two
+   decorations are CSS and would otherwise keep moving for a visitor who
+   asked everything to stop. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-rays {
+    animation: none;
+  }
+}
