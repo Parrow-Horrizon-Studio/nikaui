@@ -12,6 +12,7 @@ import {
 import { getRegistryFile } from "../utils/registry-files.js";
 import { applyMotionPreset } from "../utils/motion-source.js";
 import { MOTION_PRESETS, type MotionPreset } from "../utils/config.js";
+import { isContainedPath } from "../utils/paths.js";
 
 const DEFAULTS = {
   componentsDir: "src/components/ui",
@@ -47,12 +48,11 @@ const motionChoices = [...MOTION_PRESETS]
  * project. An empty answer resolves `cssDir` to the project's parent
  * directory; a `../`-prefixed answer can escape `cwd` entirely — both
  * would otherwise write nika-tokens.css outside the project silently.
+ * `isContainedPath` carries the containment half of that check; this adds
+ * the `.css` requirement on top.
  */
 function isValidStylesheetPath(cwd: string, value: string): boolean {
-  if (!value || !value.endsWith(".css")) return false;
-  const resolved = path.resolve(cwd, value);
-  const rel = path.relative(cwd, resolved);
-  return rel !== "" && !rel.startsWith("..") && !path.isAbsolute(rel);
+  return !!value && value.endsWith(".css") && isContainedPath(cwd, value);
 }
 
 export const initCommand = new Command()
@@ -90,12 +90,18 @@ export const initCommand = new Command()
               name: "componentsDir",
               message: "Where should components be installed?",
               initial: DEFAULTS.componentsDir,
+              validate: (value: string) =>
+                isContainedPath(cwd, value) ||
+                "Must be a path inside the project",
             },
             {
               type: "text",
               name: "utilsDir",
               message: "Where should utilities be installed?",
               initial: DEFAULTS.utilsDir,
+              validate: (value: string) =>
+                isContainedPath(cwd, value) ||
+                "Must be a path inside the project",
             },
             {
               type: "text",
@@ -137,10 +143,29 @@ export const initCommand = new Command()
       process.exit(0);
     }
 
-    // Defense in depth: the `validate` on the prompt above only runs for
+    // Defense in depth: the `validate` on each prompt above only runs for
     // real interactive input. --yes and programmatically-injected answers
     // (as used in this project's own tests) both skip it, so re-check here
-    // — before any file is written — rather than trust the prompt alone.
+    // — before any directory is created or file written — rather than
+    // trust the prompts alone.
+    if (!isContainedPath(cwd, response.componentsDir)) {
+      console.error(
+        chalk.red(
+          `\n  Invalid components directory: "${response.componentsDir}". It must resolve inside the project.\n`
+        )
+      );
+      process.exit(1);
+    }
+
+    if (!isContainedPath(cwd, response.utilsDir)) {
+      console.error(
+        chalk.red(
+          `\n  Invalid utils directory: "${response.utilsDir}". It must resolve inside the project.\n`
+        )
+      );
+      process.exit(1);
+    }
+
     if (!isValidStylesheetPath(cwd, response.tailwindCss)) {
       console.error(
         chalk.red(

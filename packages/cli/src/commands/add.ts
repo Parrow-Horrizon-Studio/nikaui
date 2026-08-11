@@ -18,6 +18,7 @@ import {
 import { transformImports } from "../utils/transformer.js";
 import { getRegistryFile } from "../utils/registry-files.js";
 import { applyMotionPreset } from "../utils/motion-source.js";
+import { isContainedPath } from "../utils/paths.js";
 
 export const addCommand = new Command()
   .name("add")
@@ -237,5 +238,19 @@ function resolveTarget(target: string, cwd: string, config: NikaConfig): string 
     throw new Error(`Unknown registry alias "@${alias}" in target "${target}".`);
   }
 
-  return path.join(cwd, base, rest);
+  const resolved = path.join(cwd, base, rest);
+
+  // `rest` is the target verbatim past the alias, with no `..` rejection —
+  // a target like "@ui/../../../../etc/thing" would otherwise resolve
+  // outside the project and copyRegistryFiles would write there. Registry
+  // targets only ever come from the bundled registry.json today, but a
+  // custom-registry source is planned, at which point this stops being
+  // trusted input.
+  if (!isContainedPath(cwd, resolved)) {
+    throw new Error(
+      `Registry target "${target}" resolves outside the project.`
+    );
+  }
+
+  return resolved;
 }
