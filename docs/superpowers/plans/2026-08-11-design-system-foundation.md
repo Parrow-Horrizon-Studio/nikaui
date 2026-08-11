@@ -83,7 +83,7 @@ border-success/30 bg-success/10 text-content
 
 ### The completeness check
 
-This pattern is the gate for Tasks 7 and 8. It was validated against two fixtures before being written here: a correctly-migrated file (zero hits, including the `destructive:` CVA variant key and the five rows whose names survive) and a fixture containing all twenty-three stale names (every one caught).
+This pattern is the gate for Tasks 7 and 8. It was validated against two fixtures before being written here: a correctly-migrated file (zero hits, including the CVA variant key — `destructive:` at the time, `danger:` since the prop vocabulary was renamed to match the token — and the five rows whose names survive) and a fixture containing all twenty-three stale names (every one caught).
 
 ```bash
 grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/ || echo "PASS: no stale token utilities remain"
@@ -1479,12 +1479,13 @@ import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-fg hover:bg-primary-hover",
-        destructive: "bg-danger text-danger-fg hover:bg-danger/90",
+        default:
+          "bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-press",
+        danger: "bg-danger text-danger-fg hover:bg-danger/90",
         outline:
           "border border-line-strong bg-canvas hover:bg-muted hover:text-content",
         secondary: "bg-surface-2 text-content hover:bg-muted",
@@ -1909,7 +1910,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     <textarea
       ref={ref}
       className={cn(
-        "flex min-h-20 w-full rounded-md border border-line-strong bg-canvas-2 px-3 py-2 text-sm text-content transition-colors placeholder:text-content-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-20 w-full rounded-md border border-line-strong bg-canvas-2 px-3 py-2 text-sm text-content ring-offset-canvas transition-colors placeholder:text-content-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -1944,13 +1945,18 @@ export interface RadioGroupProps {
   children?: React.ReactNode;
 }
 
-function RadioGroup({ className, children, ...props }: RadioGroupProps) {
-  return (
-    <HeadlessRadioGroup className={cn("grid gap-2", className)} {...props}>
+const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
+  ({ className, children, ...props }, ref) => (
+    <HeadlessRadioGroup
+      ref={ref}
+      className={cn("grid gap-2", className)}
+      {...props}
+    >
       {children}
     </HeadlessRadioGroup>
-  );
-}
+  )
+);
+RadioGroup.displayName = "RadioGroup";
 
 export interface RadioGroupItemProps {
   value: string;
@@ -1961,38 +1967,37 @@ export interface RadioGroupItemProps {
   motion?: MotionPreset;
 }
 
-function RadioGroupItem({
-  className,
-  children,
-  motion: motionProp,
-  ...props
-}: RadioGroupItemProps) {
-  const feel = useMotionPreset("radio-group", motionProp);
+const RadioGroupItem = React.forwardRef<HTMLElement, RadioGroupItemProps>(
+  ({ className, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("radio-group", motionProp);
 
-  return (
-    <Radio
-      className={cn(
-        "group flex cursor-pointer items-center gap-3 text-sm text-content focus-visible:outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      {({ checked }) => (
-        <>
-          <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors group-data-[checked]:border-primary group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2">
-            <m.span
-              className="size-2 rounded-full bg-primary"
-              initial={false}
-              animate={{ scale: checked ? 1 : 0 }}
-              transition={feel.transition}
-            />
-          </span>
-          {children}
-        </>
-      )}
-    </Radio>
-  );
-}
+    return (
+      <Radio
+        ref={ref}
+        className={cn(
+          "group flex cursor-pointer items-center gap-3 text-sm text-content focus-visible:outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+          className
+        )}
+        {...props}
+      >
+        {({ checked }) => (
+          <>
+            <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong ring-offset-canvas transition-colors group-data-[checked]:border-primary group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2">
+              <m.span
+                className="size-2 rounded-full bg-primary"
+                initial={false}
+                animate={{ scale: checked ? 1 : 0 }}
+                transition={feel.transition}
+              />
+            </span>
+            {children}
+          </>
+        )}
+      </Radio>
+    );
+  }
+);
+RadioGroupItem.displayName = "RadioGroupItem";
 
 export { RadioGroup, RadioGroupItem };
 ```
@@ -2020,7 +2025,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
       ref={ref}
       type="range"
       className={cn(
-        "h-2 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none transition-colors",
+        "h-2 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none ring-offset-canvas transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm",

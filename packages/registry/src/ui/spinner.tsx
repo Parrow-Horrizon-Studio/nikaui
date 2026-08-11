@@ -6,12 +6,29 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
-// `animate-spin` is deliberately NOT in this base string. It is a CSS
-// keyframe loop, so it ignores the motion resolver entirely unless the
-// component gates the class itself — which is how a Spinner kept spinning
-// under `prefers-reduced-motion: reduce` while LoadingDots, twelve lines
-// below, honoured it. The class is applied in the component, on
-// `feel.enabled`.
+/**
+ * Size and colour only. **This does not include `animate-spin`.**
+ *
+ * `animate-spin` is a CSS keyframe loop, so it ignores the motion resolver
+ * entirely unless something gates the class — which is how a Spinner kept
+ * spinning under `prefers-reduced-motion: reduce` while `LoadingDots`,
+ * twelve lines below it in this same file, honoured the preference. Whether
+ * the icon animates is now the component's decision, taken from
+ * `feel.enabled`, so the class lives in `<Spinner>` and not in this base
+ * string.
+ *
+ * If you compose this onto your own element, you own that decision too —
+ * `spinnerVariants({ size })` alone renders a static icon. Resolve the feel
+ * and gate the class the way `<Spinner>` does:
+ *
+ * ```tsx
+ * const feel = useMotionPreset("spinner");
+ * <svg className={cn(feel.enabled && "animate-spin", spinnerVariants({ size }))} />
+ * ```
+ *
+ * Hard-coding `animate-spin` instead works, but opts that element out of
+ * reduced motion and out of the `motion` API.
+ */
 const spinnerVariants = cva("text-content-muted", {
   variants: {
     size: {

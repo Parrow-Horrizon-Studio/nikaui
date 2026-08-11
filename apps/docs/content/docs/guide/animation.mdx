@@ -48,7 +48,11 @@ export default function App({ children }) {
 
 `NikaMotionConfig` is optional. Components that land in a repository where nobody wrapped the app in it fall through to the built-in default in `motion.ts` and still work — that's a requirement of copy-paste distribution, not just a convenience.
 
-That built-in default is whichever preset you picked when you ran `npx nikaui init`; the answer is baked into the `motion.ts` written into your project, not read from `nika.config.ts` at runtime. It ships as `spring`. To change it later, edit the two defaults in your own `motion.ts` — the `preset` parameter on `NikaMotionConfig` and the final `return` in `useMotionPreset`.
+That built-in default is whichever preset you picked when you ran `npx nikaui init`. The answer is baked into the `motion.ts` written into your project — nothing reads `nika.config.ts` at runtime. It ships as `spring`.
+
+**To change it later, edit the `motion` field in `nika.config.ts`.** That is where the choice survives. Every animated component lists `motion.ts` as a registry dependency, so `nikaui add` rewrites that file from the registry — baking in whatever `nika.config.ts` currently says — each time you let it overwrite. Change the config, run `npx nikaui add <any component>`, and the new default is in place.
+
+Editing `motion.ts` by hand works until the next `add` regenerates it, and then it is gone. If you want a default that no CLI command can touch, set it on the provider instead: `<NikaMotionConfig preset="glide">` sits above the built-in default in the resolution order below and lives in your own application code.
 
 ## Resolution Order
 
@@ -58,7 +62,7 @@ Each component resolves its feel most-specific-first:
 2. The instance's own `motion` prop (`<Button motion="bounce">`).
 3. A per-component override on `NikaMotionConfig` (`components={{ button: "snap" }}`).
 4. The `NikaMotionConfig` provider's global `preset`.
-5. The built-in default baked into your `motion.ts` at `init` time (`spring` unless you chose otherwise).
+5. The built-in default baked into your `motion.ts` from `nika.config.ts` (`spring` unless you chose otherwise).
 
 Reduced motion sits above an explicit `motion` prop on purpose — a library selling itself on animation is the one that has to get that right.
 
