@@ -6,7 +6,8 @@
   "exports": {
     "./ui/*": "./src/ui/*.tsx",
     "./lib/*": "./src/lib/*.ts",
-    "./hooks/*": "./src/hooks/*.ts"
+    "./hooks/*": "./src/hooks/*.ts",
+    "./styles/tokens.css": "./src/styles/tokens.css"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

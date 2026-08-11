@@ -1,18 +1,20 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
-import localFont from "next/font/local";
+import { JetBrains_Mono, Manrope } from "next/font/google";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import { Header } from "@/components/header";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--docs-font-sans",
+  display: "swap",
 });
 
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--docs-font-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -26,11 +28,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-      >
-        <RootProvider>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${manrope.variable} ${jetbrainsMono.variable}`}
+    >
+      <body className="font-sans antialiased">
+        <RootProvider theme={{ defaultTheme: "dark" }}>
           <Header />
           {children}
         </RootProvider>
