@@ -928,7 +928,7 @@ In `packages/cli/src/utils/registry.ts`, widen the entry type to match the new s
   access: "free" | "pro";
 ```
 
-Add the `styles` group wherever `libs` and `components` are read, so `getComponent` and `resolveWithDependencies` can resolve a style entry by name.
+Add the `styles` group wherever `libs` and `components` are read, so a style entry can be resolved by name. Give it its own accessor — `getStyle` alongside `getComponent` — and extend `resolveWithDependencies` to carry a `styles` result set. Do **not** widen `getComponent` itself: `add.ts` validates installable component names through it, and a style entry answering that call would make `nikaui add tokens` look valid when the token layer is delivered by `init`, not by `add`.
 
 - [ ] **Step 8: Verify the gate**
 
