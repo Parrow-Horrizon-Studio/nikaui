@@ -43,3 +43,15 @@ body {
   --nika-font-sans: var(--web-font-sans), ui-sans-serif, system-ui, sans-serif;
   --nika-font-mono: var(--web-font-mono), ui-monospace, monospace;
 }
+
+/* Ported from the prototype: the brand mark, a radial-gradient disc. The
+   nav's translucent, blurred surface is plain Tailwind utilities on the
+   <header> in nav.tsx (bg-canvas/70 backdrop-blur), not a class here. */
+.sun-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--nika-accent), var(--nika-primary) 60%);
+  box-shadow: 0 0 18px -2px color-mix(in oklch, var(--nika-primary) 60%, transparent);
+  flex: none;
+}

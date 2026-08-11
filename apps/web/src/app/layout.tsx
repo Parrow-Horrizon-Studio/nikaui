@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { JetBrains_Mono, Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { AccentProvider, AccentScript } from "@/components/site/accent";
+import { Nav } from "@/components/site/nav";
+import { Footer } from "@/components/site/footer";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -31,7 +33,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider>
-          <AccentProvider>{children}</AccentProvider>
+          <AccentProvider>
+            <Nav />
+            {children}
+            <Footer />
+          </AccentProvider>
         </ThemeProvider>
       </body>
     </html>
