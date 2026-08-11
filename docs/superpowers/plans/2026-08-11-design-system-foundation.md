@@ -1065,8 +1065,14 @@ In `init.ts`, after the `nika.config.ts` write and before the `cn()` utility wri
       const tokensSource = await getRegistryFile("styles/tokens.css");
       await fs.writeFile(path.join(cssDir, "nika-tokens.css"), tokensSource);
 
-      // Prepend the import if it is not already there. Consumer overrides
-      // belong in globals.css *after* this line, where nothing clobbers them.
+      // Insert the import after `@import "tailwindcss";` if it is not
+      // already present, falling back to the end of the leading import
+      // block when that line is absent. This is convention, not necessity:
+      // Tailwind marks its own defaults `@theme default`, and its engine
+      // refuses to overwrite a key already set by a non-default block, so a
+      // project `@theme` wins in either order. Consumer overrides still
+      // belong after this line, where the ordinary later-wins rule between
+      // two project-level blocks does apply.
       const importLine = '@import "./nika-tokens.css";';
       let wroteImport = false;
       if (await fs.pathExists(cssPath)) {
