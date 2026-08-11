@@ -177,9 +177,18 @@ describe("Pricing", () => {
   });
 
   it("stays inert and never throws when onWaitlist is omitted — the documented default", () => {
-    render(<Pricing />);
-    const buttons = screen.getAllByRole("button", { name: "Join the waitlist" });
-    expect(buttons).toHaveLength(2);
+    // Scoped to the two tier cards' own CTA buttons via tierCard(), not a
+    // page-wide getAllByRole: since Task 9, <Pricing> also renders
+    // <WaitlistForm>, whose submit button is separately labelled "Join the
+    // waitlist" (see waitlist-form.tsx) and is not this test's concern —
+    // its own behaviour under a missing onWaitlist is that both CTAs drive
+    // that form's ref rather than throwing, which is exactly what this
+    // test still exercises.
+    const { container } = render(<Pricing />);
+    const buttons = [
+      tierCard(container, "personal").getByRole("button", { name: "Join the waitlist" }),
+      tierCard(container, "team").getByRole("button", { name: "Join the waitlist" }),
+    ];
     buttons.forEach((button) => {
       expect(() => fireEvent.click(button)).not.toThrow();
     });

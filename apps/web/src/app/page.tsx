@@ -10,8 +10,10 @@ export default function HomePage() {
       <Hero />
       <Features />
       <MotionShowcase />
-      {/* onWaitlist is left at its no-op default: Task 9 will supply the
-          real handler once the waitlist form exists (see pricing.tsx). */}
+      {/* onWaitlist is left at its default: this is a Server Component and
+          cannot pass a plain closure prop across to a Client Component.
+          The default lives inside pricing.tsx and drives the waitlist form
+          it renders directly beneath the grid (see waitlist-form.tsx). */}
       <Pricing />
       <CtaBand />
     </main>

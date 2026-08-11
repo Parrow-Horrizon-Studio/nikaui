@@ -14,24 +14,29 @@ import Link from "next/link";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { Button, buttonVariants } from "@nikaui/registry/ui/button";
 import { cn } from "@nikaui/registry/lib/utils";
+// Relative, not the "@/" alias: vitest.config.ts (untouched by this task)
+// has no path-alias resolution set up, so pricing.test.tsx — which renders
+// <Pricing>, which renders <WaitlistForm> — would fail to resolve an
+// "@/..." specifier even though Next's own build resolves it fine. See the
+// same note in cta-band.tsx.
+import { WaitlistForm, type WaitlistFormHandle } from "./waitlist-form";
 
 /** The two tiers whose call to action opens the waitlist rather than a purchase. */
 export type PricingTier = "personal" | "team";
 
 export interface PricingProps {
   /**
-   * Called with which paid tier's call to action was clicked. Task 9 wires
-   * this to scroll the waitlist form into view, focus its email field and
-   * record the tier in a hidden input. Defaults to a no-op so this section
-   * renders and behaves correctly on its own, before that form exists.
+   * Called with which paid tier's call to action was clicked. When omitted
+   * — the case for every real render, since page.tsx is a Server Component
+   * and can't pass a closure prop across the boundary — this scrolls the
+   * <WaitlistForm> rendered below into view, focuses its email field and
+   * records the tier, via the ref this component holds on that form. Tests
+   * that pass their own `onWaitlist` replace that behaviour entirely (e.g.
+   * to assert the tier argument without asserting on scroll/focus).
    *
-   * Task 9 modifies this file to render <WaitlistForm> directly beneath the
-   * grid (see the disclaimer <p> below, which is the last thing this file
-   * currently renders). Chosen anchor id for that form: `waitlist` — give
-   * its wrapping element `id="waitlist"` so it stays independently
-   * addressable (e.g. a future direct link), even though the scroll/focus
-   * itself is expected to go through a ref/imperative handle rather than
-   * `getElementById`.
+   * The anchor id this JSDoc used to promise before the form existed
+   * (`waitlist`) now lives on <WaitlistForm>'s own root element — see
+   * waitlist-form.tsx — not on anything in this file.
    */
   onWaitlist?: (tier: PricingTier) => void;
 }
@@ -103,7 +108,23 @@ const TIERS: readonly Tier[] = [
   },
 ] as const;
 
-export function Pricing({ onWaitlist = () => {} }: PricingProps) {
+export function Pricing({ onWaitlist }: PricingProps) {
+  // Holds the imperative handle <WaitlistForm> exposes below, so the
+  // default (no onWaitlist prop supplied) behaviour can reach across to a
+  // sibling that renders after this grid. Declared with useRef, not in the
+  // onWaitlist parameter default above, because a parameter default is
+  // evaluated before any hook in this body has run — it cannot reference a
+  // ref this component hasn't created yet.
+  const formRef = React.useRef<WaitlistFormHandle>(null);
+
+  function handleWaitlist(tier: PricingTier) {
+    if (onWaitlist) {
+      onWaitlist(tier);
+      return;
+    }
+    formRef.current?.openFor(tier);
+  }
+
   return (
     <section id="pricing" className="mx-auto w-full max-w-[1400px] px-6 py-24">
       <div className="mx-auto max-w-[60ch] text-center">
@@ -175,7 +196,7 @@ export function Pricing({ onWaitlist = () => {} }: PricingProps) {
                   <Button
                     variant={tier.highlighted ? "default" : "outline"}
                     className="w-full"
-                    onClick={() => onWaitlist(cta.tier)}
+                    onClick={() => handleWaitlist(cta.tier)}
                   >
                     {cta.label}
                   </Button>
@@ -199,6 +220,8 @@ export function Pricing({ onWaitlist = () => {} }: PricingProps) {
         Nika Pro is not on sale yet. Join the waitlist and you will hear first — and help decide
         which blocks get built.
       </p>
+
+      <WaitlistForm ref={formRef} />
     </section>
   );
 }
