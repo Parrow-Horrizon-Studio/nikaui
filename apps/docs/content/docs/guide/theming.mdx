@@ -97,7 +97,7 @@ Because the `@theme inline` block references `var(--nika-primary)` rather than c
 | `--nika-surface-2` | Secondary surface background |
 | `--nika-overlay` | Modal/popover backdrop surfaces |
 | `--nika-muted` | Muted/subdued backgrounds |
-| `--nika-code` | Code block background (stays dark in both themes) |
+| `--nika-code` | Code block background (stays dark in both themes) — reserved; no shipped component consumes `bg-code` yet |
 | `--nika-content` | Default text color |
 | `--nika-content-muted` | Secondary text color |
 | `--nika-content-subtle` | Tertiary/placeholder text color |
@@ -125,7 +125,23 @@ Because the `@theme inline` block references `var(--nika-primary)` rather than c
 | `--nika-danger-fg` | Text/icon color on top of danger |
 | `--nika-info` | Informational state |
 
-These don't change between light and dark — one hue reads correctly on both canvases.
+These don't change between light and dark — one value serves both canvases.
+
+They are safe as **fills, borders and large icons**. They are not body-text
+colors on the light canvas: `text-success` measures 2.08:1 against it and
+`text-warning` 1.70:1, both far below the 4.5:1 that normal text needs. For a
+status surface, tint the background and keep `text-content` for the copy —
+that is what `Alert` and `Toast` do:
+
+```tsx
+<div className="rounded-lg border border-success/30 bg-success/10 text-content p-4">
+  Saved.
+</div>
+```
+
+`--nika-danger` is the exception that carries a foreground partner, because it
+is the one status hue also used as a filled surface. `text-danger-fg` on
+`bg-danger` measures 4.70:1.
 
 ### Radius
 

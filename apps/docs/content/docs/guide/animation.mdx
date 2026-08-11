@@ -16,7 +16,7 @@ A preset is a *feel*, not a specific animation. Each component decides what it a
 | `none` | No animation — hover/tap scale is 1, entrance travel is 0 |
 | `snap` | Fast and tight, smallest travel |
 | `glide` | Smooth, no overshoot |
-| `spring` | Balanced with a slight overshoot — the built-in default |
+| `spring` | Balanced with a slight overshoot — the shipped default |
 | `bounce` | Pronounced overshoot, largest travel |
 
 ## Setting the Preset
@@ -46,7 +46,9 @@ export default function App({ children }) {
 }
 ```
 
-`NikaMotionConfig` is optional. Components that land in a repository where nobody wrapped the app in it fall through to the built-in `spring` default and animate normally — that's a requirement of copy-paste distribution, not just a convenience.
+`NikaMotionConfig` is optional. Components that land in a repository where nobody wrapped the app in it fall through to the built-in default in `motion.ts` and still work — that's a requirement of copy-paste distribution, not just a convenience.
+
+That built-in default is whichever preset you picked when you ran `npx nikaui init`; the answer is baked into the `motion.ts` written into your project, not read from `nika.config.ts` at runtime. It ships as `spring`. To change it later, edit the two defaults in your own `motion.ts` — the `preset` parameter on `NikaMotionConfig` and the final `return` in `useMotionPreset`.
 
 ## Resolution Order
 
@@ -56,7 +58,7 @@ Each component resolves its feel most-specific-first:
 2. The instance's own `motion` prop (`<Button motion="bounce">`).
 3. A per-component override on `NikaMotionConfig` (`components={{ button: "snap" }}`).
 4. The `NikaMotionConfig` provider's global `preset`.
-5. The built-in default, `spring`.
+5. The built-in default baked into your `motion.ts` at `init` time (`spring` unless you chose otherwise).
 
 Reduced motion sits above an explicit `motion` prop on purpose — a library selling itself on animation is the one that has to get that right.
 
