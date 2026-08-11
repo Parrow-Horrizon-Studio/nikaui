@@ -41,6 +41,14 @@ export const addCommand = new Command()
       process.exit(1);
     }
 
+    // --path overrides where ui/ components land, for this invocation only.
+    if (options.path) {
+      config = {
+        ...config,
+        aliases: { ...config.aliases, ui: options.path },
+      };
+    }
+
     // 2. Validate component names
     const invalid = componentNames.filter((name) => !getComponent(name));
     if (invalid.length > 0) {
@@ -54,18 +62,13 @@ export const addCommand = new Command()
     // 3. Resolve all dependencies
     const resolved = resolveWithDependencies(componentNames);
 
-    // 4. Determine target paths
-    const uiDir = path.join(cwd, options.path || resolveAliasPath(config.aliases.ui));
-    const libDir = path.join(cwd, resolveAliasPath(config.aliases.utils).replace(/\/utils$/, ""));
-
     // 5. Check for existing files
     const allEntries = [...resolved.libs, ...resolved.components];
     const existingFiles: string[] = [];
 
     for (const entry of allEntries) {
       for (const file of entry.files) {
-        const targetDir = entry.type === "lib" ? libDir : uiDir;
-        const targetPath = path.join(targetDir, path.basename(file.target));
+        const targetPath = resolveTarget(file.target, cwd, config);
         if (await fs.pathExists(targetPath)) {
           existingFiles.push(targetPath);
         }
@@ -109,12 +112,12 @@ export const addCommand = new Command()
 
       // 7. Copy lib files (utils, motion presets)
       for (const lib of resolved.libs) {
-        await copyRegistryFiles(lib, libDir, config);
+        await copyRegistryFiles(lib, cwd, config);
       }
 
       // 8. Copy component files
       for (const component of resolved.components) {
-        await copyRegistryFiles(component, uiDir, config);
+        await copyRegistryFiles(component, cwd, config);
       }
 
       // 9. Summary
@@ -156,24 +159,25 @@ export const addCommand = new Command()
   });
 
 /**
- * Copy registry files to the target directory, transforming imports.
+ * Copy registry files to the path their target declares, transforming imports.
  */
 async function copyRegistryFiles(
   entry: RegistryEntry,
-  targetDir: string,
+  cwd: string,
   config: NikaConfig
 ): Promise<void> {
-  await fs.ensureDir(targetDir);
-
   for (const file of entry.files) {
-    const targetPath = path.join(targetDir, path.basename(file.target));
+    const targetPath = resolveTarget(file.target, cwd, config);
+    await fs.ensureDir(path.dirname(targetPath));
 
-    // Try to read from local registry first (for development),
-    // then fall back to fetching from remote
     const content = await getRegistryFile(file.source);
-    const transformed = transformImports(content, config);
+    // CSS carries no imports to rewrite, and running the TS import
+    // transformer over it would corrupt @import lines.
+    const output = targetPath.endsWith(".css")
+      ? content
+      : transformImports(content, config);
 
-    await fs.writeFile(targetPath, transformed, "utf-8");
+    await fs.writeFile(targetPath, output, "utf-8");
   }
 }
 
@@ -182,4 +186,34 @@ function toPascalCase(str: string): string {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
+}
+
+/**
+ * Resolve an alias-relative registry target to an absolute path.
+ *
+ * Targets look like "@ui/button.tsx", "@lib/utils.ts", "@styles/tokens.css"
+ * or "@blocks/dashboard/stats-row.tsx". The alias maps to a configured
+ * directory; everything after it is preserved verbatim, including nesting.
+ */
+function resolveTarget(target: string, cwd: string, config: NikaConfig): string {
+  const [, alias, rest] = target.match(/^@([a-z]+)\/(.+)$/) ?? [];
+  if (!alias || !rest) {
+    throw new Error(
+      `Registry target "${target}" is not alias-relative. Expected a form like "@ui/button.tsx".`
+    );
+  }
+
+  const dirs: Record<string, string> = {
+    ui: resolveAliasPath(config.aliases.ui),
+    lib: resolveAliasPath(config.aliases.utils).replace(/\/utils$/, ""),
+    blocks: resolveAliasPath(config.aliases.blocks),
+    styles: path.dirname(config.tailwind.css.replace(/^\.\//, "")),
+  };
+
+  const base = dirs[alias];
+  if (!base) {
+    throw new Error(`Unknown registry alias "@${alias}" in target "${target}".`);
+  }
+
+  return path.join(cwd, base, rest);
 }
