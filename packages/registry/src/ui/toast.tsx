@@ -10,10 +10,18 @@ const toastVariants = cva(
   "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-lg border p-4 shadow-lg transition-all",
   {
     variants: {
+      // Status variants follow Alert: a tint of the hue for the surface, the
+      // hue at low alpha for the border, and `text-content` for the body.
+      // The hue itself is never the body text — `text-success` on
+      // `bg-success/10` measures 1.94:1 against the light canvas, because
+      // both the hue and a 10% wash of it over a near-white page sit at
+      // almost the same luminance. `text-content` on the same tint measures
+      // 14.9:1. The status hues are readable as fills, borders and large
+      // icons; they are not body-text colours on the light canvas.
       variant: {
         default: "border-line bg-canvas text-content",
-        destructive: "border-danger bg-danger text-danger-fg",
-        success: "border-success/50 bg-success/10 text-success",
+        danger: "border-danger/30 bg-danger/10 text-content",
+        success: "border-success/30 bg-success/10 text-content",
       },
     },
     defaultVariants: {
@@ -26,7 +34,7 @@ export interface Toast {
   id: string;
   title?: string;
   description?: string;
-  variant?: "default" | "destructive" | "success";
+  variant?: "default" | "danger" | "success";
   duration?: number;
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;

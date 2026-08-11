@@ -154,7 +154,8 @@
       ],
       "dependencies": [],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },

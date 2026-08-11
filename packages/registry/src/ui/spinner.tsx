@@ -6,7 +6,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
-const spinnerVariants = cva("animate-spin text-content-muted", {
+// `animate-spin` is deliberately NOT in this base string. It is a CSS
+// keyframe loop, so it ignores the motion resolver entirely unless the
+// component gates the class itself — which is how a Spinner kept spinning
+// under `prefers-reduced-motion: reduce` while LoadingDots, twelve lines
+// below, honoured it. The class is applied in the component, on
+// `feel.enabled`.
+const spinnerVariants = cva("text-content-muted", {
   variants: {
     size: {
       sm: "h-4 w-4",
@@ -22,25 +28,36 @@ const spinnerVariants = cva("animate-spin text-content-muted", {
 
 export interface SpinnerProps
   extends React.SVGAttributes<SVGSVGElement>,
-    VariantProps<typeof spinnerVariants> {}
+    VariantProps<typeof spinnerVariants> {
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
 
 const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
-  ({ className, size, ...props }, ref) => (
-    <svg
-      ref={ref}
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={cn(spinnerVariants({ size }), className)}
-      {...props}
-    >
-      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-    </svg>
-  )
+  ({ className, size, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("spinner", motionProp);
+
+    return (
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={cn(
+          feel.enabled && "animate-spin",
+          spinnerVariants({ size }),
+          className
+        )}
+        {...props}
+      >
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+      </svg>
+    );
+  }
 );
 Spinner.displayName = "Spinner";
 
