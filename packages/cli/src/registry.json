@@ -4,17 +4,32 @@
       "name": "utils",
       "type": "lib",
       "description": "Utility function for merging Tailwind CSS classes",
-      "files": [{ "source": "lib/utils.ts", "target": "lib/utils.ts" }],
-      "dependencies": ["clsx", "tailwind-merge"],
-      "registryDependencies": []
+      "files": [
+        {
+          "source": "lib/utils.ts",
+          "target": "@lib/utils.ts"
+        }
+      ],
+      "dependencies": [
+        "clsx",
+        "tailwind-merge"
+      ],
+      "registryDependencies": [],
+      "access": "free"
     },
     "motion": {
       "name": "motion",
       "type": "lib",
       "description": "Animation presets and spring configurations",
-      "files": [{ "source": "lib/motion.ts", "target": "lib/motion.ts" }],
+      "files": [
+        {
+          "source": "lib/motion.ts",
+          "target": "@lib/motion.ts"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": []
+      "registryDependencies": [],
+      "access": "free"
     }
   },
   "components": {
@@ -22,177 +37,417 @@
       "name": "button",
       "type": "ui",
       "description": "An animated button component with multiple variants",
-      "files": [{ "source": "ui/button.tsx", "target": "ui/button.tsx" }],
-      "dependencies": ["motion", "class-variance-authority"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/button.tsx",
+          "target": "@ui/button.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion",
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "badge": {
       "name": "badge",
       "type": "ui",
       "description": "A badge component for labels and statuses",
-      "files": [{ "source": "ui/badge.tsx", "target": "ui/badge.tsx" }],
-      "dependencies": ["class-variance-authority"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/badge.tsx",
+          "target": "@ui/badge.tsx"
+        }
+      ],
+      "dependencies": [
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "card": {
       "name": "card",
       "type": "ui",
       "description": "A card container with header, content, and footer sections",
-      "files": [{ "source": "ui/card.tsx", "target": "ui/card.tsx" }],
-      "dependencies": ["motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/card.tsx",
+          "target": "@ui/card.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "input": {
       "name": "input",
       "type": "ui",
       "description": "A styled text input component",
-      "files": [{ "source": "ui/input.tsx", "target": "ui/input.tsx" }],
+      "files": [
+        {
+          "source": "ui/input.tsx",
+          "target": "@ui/input.tsx"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": ["utils"]
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "separator": {
       "name": "separator",
       "type": "ui",
       "description": "A visual separator for dividing content",
-      "files": [{ "source": "ui/separator.tsx", "target": "ui/separator.tsx" }],
+      "files": [
+        {
+          "source": "ui/separator.tsx",
+          "target": "@ui/separator.tsx"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": ["utils"]
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "label": {
       "name": "label",
       "type": "ui",
       "description": "A label component for form fields",
-      "files": [{ "source": "ui/label.tsx", "target": "ui/label.tsx" }],
-      "dependencies": ["class-variance-authority"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/label.tsx",
+          "target": "@ui/label.tsx"
+        }
+      ],
+      "dependencies": [
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "skeleton": {
       "name": "skeleton",
       "type": "ui",
       "description": "A placeholder loading skeleton with pulse animation",
-      "files": [{ "source": "ui/skeleton.tsx", "target": "ui/skeleton.tsx" }],
+      "files": [
+        {
+          "source": "ui/skeleton.tsx",
+          "target": "@ui/skeleton.tsx"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": ["utils"]
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "spinner": {
       "name": "spinner",
       "type": "ui",
       "description": "Spinner and loading dots indicators with motion",
-      "files": [{ "source": "ui/spinner.tsx", "target": "ui/spinner.tsx" }],
-      "dependencies": ["motion", "class-variance-authority"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/spinner.tsx",
+          "target": "@ui/spinner.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion",
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "avatar": {
       "name": "avatar",
       "type": "ui",
       "description": "An avatar component with image and fallback support",
-      "files": [{ "source": "ui/avatar.tsx", "target": "ui/avatar.tsx" }],
+      "files": [
+        {
+          "source": "ui/avatar.tsx",
+          "target": "@ui/avatar.tsx"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": ["utils"]
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "aspect-ratio": {
       "name": "aspect-ratio",
       "type": "ui",
       "description": "A component for maintaining consistent aspect ratios",
-      "files": [{ "source": "ui/aspect-ratio.tsx", "target": "ui/aspect-ratio.tsx" }],
+      "files": [
+        {
+          "source": "ui/aspect-ratio.tsx",
+          "target": "@ui/aspect-ratio.tsx"
+        }
+      ],
       "dependencies": [],
-      "registryDependencies": ["utils"]
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "dialog": {
       "name": "dialog",
       "type": "ui",
       "description": "A modal dialog with animated overlay and panel",
-      "files": [{ "source": "ui/dialog.tsx", "target": "ui/dialog.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/dialog.tsx",
+          "target": "@ui/dialog.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "dropdown-menu": {
       "name": "dropdown-menu",
       "type": "ui",
       "description": "A dropdown menu with items, labels, and separators",
-      "files": [{ "source": "ui/dropdown-menu.tsx", "target": "ui/dropdown-menu.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/dropdown-menu.tsx",
+          "target": "@ui/dropdown-menu.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "popover": {
       "name": "popover",
       "type": "ui",
       "description": "A floating popover panel anchored to a trigger",
-      "files": [{ "source": "ui/popover.tsx", "target": "ui/popover.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/popover.tsx",
+          "target": "@ui/popover.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "tabs": {
       "name": "tabs",
       "type": "ui",
       "description": "Tabbed interface with animated content transitions",
-      "files": [{ "source": "ui/tabs.tsx", "target": "ui/tabs.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/tabs.tsx",
+          "target": "@ui/tabs.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "switch": {
       "name": "switch",
       "type": "ui",
       "description": "A toggle switch with spring-animated thumb",
-      "files": [{ "source": "ui/switch.tsx", "target": "ui/switch.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/switch.tsx",
+          "target": "@ui/switch.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "select": {
       "name": "select",
       "type": "ui",
       "description": "A select dropdown with animated options and checkmarks",
-      "files": [{ "source": "ui/select.tsx", "target": "ui/select.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/select.tsx",
+          "target": "@ui/select.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "combobox": {
       "name": "combobox",
       "type": "ui",
       "description": "An autocomplete combobox with search filtering",
-      "files": [{ "source": "ui/combobox.tsx", "target": "ui/combobox.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/combobox.tsx",
+          "target": "@ui/combobox.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "accordion": {
       "name": "accordion",
       "type": "ui",
       "description": "Collapsible accordion panels with animated open/close",
-      "files": [{ "source": "ui/accordion.tsx", "target": "ui/accordion.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/accordion.tsx",
+          "target": "@ui/accordion.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "tooltip": {
       "name": "tooltip",
       "type": "ui",
       "description": "A hover/focus tooltip with directional positioning",
-      "files": [{ "source": "ui/tooltip.tsx", "target": "ui/tooltip.tsx" }],
-      "dependencies": ["motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/tooltip.tsx",
+          "target": "@ui/tooltip.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "toast": {
       "name": "toast",
       "type": "ui",
       "description": "Toast notifications with provider, variants, and auto-dismiss",
-      "files": [{ "source": "ui/toast.tsx", "target": "ui/toast.tsx" }],
-      "dependencies": ["motion", "class-variance-authority"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/toast.tsx",
+          "target": "@ui/toast.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion",
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
     },
     "alert-dialog": {
       "name": "alert-dialog",
       "type": "ui",
       "description": "A confirmation dialog with action and cancel buttons",
-      "files": [{ "source": "ui/alert-dialog.tsx", "target": "ui/alert-dialog.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils", "button"]
+      "files": [
+        {
+          "source": "ui/alert-dialog.tsx",
+          "target": "@ui/alert-dialog.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils",
+        "button"
+      ],
+      "access": "free"
     },
     "checkbox": {
       "name": "checkbox",
       "type": "ui",
       "description": "A checkbox with animated checkmark",
-      "files": [{ "source": "ui/checkbox.tsx", "target": "ui/checkbox.tsx" }],
-      "dependencies": ["@headlessui/react", "motion"],
-      "registryDependencies": ["utils"]
+      "files": [
+        {
+          "source": "ui/checkbox.tsx",
+          "target": "@ui/checkbox.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
+    }
+  },
+  "styles": {
+    "tokens": {
+      "name": "tokens",
+      "type": "style",
+      "access": "free",
+      "description": "The Nika token layer — colours, radius, type and motion variables",
+      "files": [
+        {
+          "source": "styles/tokens.css",
+          "target": "@styles/nika-tokens.css"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": []
     }
   }
 }

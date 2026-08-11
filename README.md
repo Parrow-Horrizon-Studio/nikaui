@@ -25,7 +25,6 @@ npx nikaui add button card dialog
 - `packages/cli` — the `nikaui` CLI
 - `packages/eslint-config` — shared ESLint configuration
 - `packages/typescript-config` — shared TypeScript configuration
-- `packages/tailwind-config` — shared Tailwind CSS preset and theme tokens
 
 ## Development
 
