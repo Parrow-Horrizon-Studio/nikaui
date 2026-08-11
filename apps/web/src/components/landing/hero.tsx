@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { buttonVariants } from "@nikaui/registry/ui/button";
 import { cn } from "@nikaui/registry/lib/utils";
+import { HeroWindow } from "./hero-window";
 import { InstallBar } from "./install-bar";
 
 const STATS = [
@@ -58,8 +59,9 @@ export function Hero() {
           <InstallBar command="npx nikaui add button" />
         </div>
 
-        {/* Slot for Task 5's live component window. */}
-        <div className="mt-16 w-full max-w-3xl" />
+        <div className="mt-16 w-full">
+          <HeroWindow />
+        </div>
 
         <div className="mt-16 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-content-muted">
           {STATS.map((stat, index) => (

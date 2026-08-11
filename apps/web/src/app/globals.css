@@ -134,3 +134,22 @@ body {
     animation: none;
   }
 }
+
+/* Ported from the prototype: the chrome around Task 5's live component
+   window. Everything inside it (the title bar dots, the two-column body) is
+   Tailwind utilities in hero-window.tsx — this is only the outer frame,
+   whose glow needs a raw color-mix() a utility class can't express. */
+.hero-window {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 940px;
+  margin-inline: auto;
+  background: var(--nika-surface);
+  border: 1px solid var(--nika-line);
+  border-radius: var(--nika-radius-2xl);
+  box-shadow:
+    var(--nika-shadow-lg),
+    0 0 80px -20px color-mix(in oklch, var(--nika-primary) 30%, transparent);
+  overflow: hidden;
+}
