@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@nikaui/registry/styles/tokens.css";
+@source "../../../../packages/registry/src";
+
+body {
+  background: var(--nika-canvas);
+  color: var(--nika-content);
+  font-family: var(--nika-font-sans);
+}

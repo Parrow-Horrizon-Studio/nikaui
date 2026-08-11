@@ -1,0 +1,18 @@
+{
+  "extends": "@nikaui/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "plugins": [{ "name": "next" }],
+    "strictNullChecks": true,
+    "declaration": false,
+    "paths": { "@/*": ["./src/*"] }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mjs",
+    "next-env.d.ts",
+    "next.config.mjs",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": ["node_modules"]
+}
