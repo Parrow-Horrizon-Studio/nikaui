@@ -1,29 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { motion, type HTMLMotionProps } from "motion/react";
+import { motion as m, type HTMLMotionProps } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  HTMLMotionProps<"div"> & { animated?: boolean }
->(({ className, animated = false, ...props }, ref) => (
-  <motion.div
-    ref={ref}
-    {...(animated
-      ? {
-          initial: { opacity: 0, y: 20 },
-          animate: { opacity: 1, y: 0 },
-          transition: { type: "spring", stiffness: 300, damping: 30 },
-        }
-      : {})}
-    className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
-      className
-    )}
-    {...props}
-  />
-));
+export interface CardProps extends HTMLMotionProps<"div"> {
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("card", motionProp);
+
+    return (
+      <m.div
+        ref={ref}
+        initial={{ opacity: 0, y: 20 * (feel.scale.hover - 1) * 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={feel.transition}
+        className={cn(
+          "rounded-lg border border-line bg-surface text-content shadow-sm",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
 Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<
@@ -59,7 +64,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-content-muted", className)}
     {...props}
   />
 ));
