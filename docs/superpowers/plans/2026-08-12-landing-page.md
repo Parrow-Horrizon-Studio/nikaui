@@ -12,7 +12,9 @@
 
 ## Global Constraints
 
-- **Every CSS variable Nika defines is prefixed `--nika-`.** `apps/web` consumes them; it must not define token variables of its own outside the prototype bridge in Task 2, and that bridge assigns *from* `--nika-*`, never the reverse.
+- **Every CSS variable Nika defines is prefixed `--nika-`.** `apps/web` consumes them; it must not *invent* token variables of its own outside the prototype bridge in Task 2, and that bridge assigns *from* `--nika-*`, never the reverse.
+
+  **Amended 2026-08-12, during Task 2.** As first written, this line also forbade *overriding* an existing `--nika-*` token from the app — which contradicted Task 2's own Step 6, and would have made `apps/web` diverge from `apps/docs`, which has rebound `--nika-font-sans` / `--nika-font-mono` to its `next/font` variables since sub-project B. Overriding a published token in `:root` is the documented way to theme a CSS-variable design system, and the registry ships system font stacks precisely so consumers can. The prohibition is on *inventing* parallel tokens, not on retuning shipped ones. Ruled by the human partner; the Task 2 reviewer was right that the two clauses collided.
 - **Tailwind utilities are NOT prefixed.** `bg-primary`, not `bg-nika-primary`.
 - **Light/dark switches on the `.dark` class. Accent switches on `[data-accent]`.** Accents: `sun` (default, needs no attribute), `violet`, `emerald`, `azure`, `rose`.
 - **The theme default is `system`.** Not `dark`. `apps/docs` defaults to `dark` today; do not copy that.
@@ -950,6 +952,57 @@ Expected: **9**. If it is fewer, something was hand-rolled that should have been
 
 ```bash
 git add apps/web && git commit -m "feat(web): live component window in the hero"
+```
+
+---
+
+### Task 5b: Fix the registry's reduced-motion hydration mismatch
+
+**Added 2026-08-12, mid-execution, with the human partner's approval.** Not part of the plan as written. Task 5 discovered a real defect in `packages/registry` — sub-project B's shipped code — and two agents independently traced it to the same cause. It is fixed here rather than deferred because it blocks this sub-project: Task 7 renders `Card` five times, and Task 11's completion criteria require a clean console and that nothing animates under `prefers-reduced-motion: reduce`.
+
+**The diagnosis:**
+
+- `useMotionPreset` (`packages/registry/src/lib/motion.ts:120-134`) calls Motion's `useReducedMotion()` at render time, with no client-only gating.
+- `Card` (`packages/registry/src/ui/card.tsx:18-22`) sets an unconditional `initial={{ opacity: 0, y: 15 * feel.travel }}`.
+- On the server there is no `matchMedia`, so the hook cannot detect the preference. On the client's first render it reads `matchMedia` synchronously and can return `true`. The two renders therefore disagree, and React reports a hydration mismatch. The visitor also sees a brief pre-hydration animation flash — the exact thing their preference asked not to happen.
+- `Progress` is **not** affected: its `m.div` sets `initial={false}`, which sidesteps mount-time divergence entirely. That contrast is the clue to the shape of the fix.
+
+**Files:**
+- Modify: `packages/registry/src/lib/motion.ts` and/or `packages/registry/src/ui/card.tsx` — the implementer chooses, against the constraints below
+- Modify: whichever other `packages/registry/src/ui/*.tsx` share the pattern
+- Test: a regression test in `packages/registry`
+
+**This is a library change, not an application change.** It ships to every consumer who runs `nikaui add`, and `apps/docs` renders these components too.
+
+- [ ] **Step 1: Establish the true blast radius before fixing anything**
+
+Two reviewers checked exactly two components. There are 27. Enumerate every component that calls `useMotionPreset` **and** passes a non-`false` `initial` prop — those are precisely the ones with this bug. Report the list. Fixing `Card` alone while three siblings carry the same defect would be a worse outcome than not fixing it, because the next person will reasonably assume it was handled everywhere.
+
+- [ ] **Step 2: Write the failing test first**
+
+The test must fail against current `main` for the stated reason — a hydration mismatch under reduced motion — and pass after. Assert on observable behaviour, not on an implementation detail that a valid alternative fix would break.
+
+- [ ] **Step 3: Fix it, against these constraints**
+
+1. **No hydration mismatch under either preference.** Server and first client render must agree.
+2. **Under reduced motion, nothing animates** — not a shortened animation, not a faster one. Sub-project B already established this: `MotionFeel` carries `enabled: boolean`, and `none` sets it `false`.
+3. **Under normal motion, the entrance animation still plays.** A fix that disables the animation for everyone passes both prior constraints and defeats the component.
+4. **No new flash.** Deferring the reduced-motion check to a mount effect satisfies constraint 1 but lets the animation play for one frame before being switched off — which is the visible symptom this task exists to remove.
+
+Constraint 4 rules out the obvious fix. Say in your report which approach you took and how it satisfies all four.
+
+- [ ] **Step 4: Verify against the consumers**
+
+`apps/web` and `apps/docs` both render these components. Confirm the console is clean in both under reduced motion, and that normal-motion entrance animations still play. The browser in this session has `prefers-reduced-motion: reduce` **active**, which makes the reduced-motion half directly observable and the normal-motion half not — say plainly which half you could observe and what you substituted for the other.
+
+- [ ] **Step 5: Full gate, then commit**
+
+```bash
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm turbo run lint check-types build test --continue --force
+```
+
+```bash
+git add packages/registry && git commit -m "fix(registry): agree with the server on reduced motion"
 ```
 
 ---
