@@ -153,3 +153,43 @@ body {
     0 0 80px -20px color-mix(in oklch, var(--nika-primary) 30%, transparent);
   overflow: hidden;
 }
+
+/* Task 8: pricing.tsx's emphasised middle card. Ported from the prototype's
+   treatment of its Pro card. Paired in JSX with border-primary/50,
+   ring-1 ring-primary/30 and shadow-lg, all plain Tailwind utilities — this
+   class is only the gradient, which needs a raw color-mix() a utility class
+   can't express. Rebound directly to --nika-* (no bridge entry needed). */
+.pricing-highlight {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--nika-primary) 8%, var(--nika-surface)),
+    var(--nika-surface)
+  );
+}
+
+/* Task 8: cta-band.tsx's radial-gradient panel, ported verbatim from the
+   prototype. Rebound directly to --nika-* (no bridge entry needed). */
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: clamp(56px, 8vw, 96px) 32px;
+  border-radius: var(--nika-radius-2xl);
+  border: 1px solid var(--nika-line-strong);
+  background:
+    radial-gradient(
+      circle at 50% -40%,
+      color-mix(in oklch, var(--nika-primary) 30%, transparent),
+      transparent 60%
+    ),
+    var(--nika-surface);
+}
+
+/* A larger rendition of the brand mark for cta-band.tsx's standalone sun —
+   48px rather than the wordmark's 22px. Declared after .sun-mark so its
+   width/height win: both rules are unlayered (outside any @layer), so
+   equal-specificity conflicts fall back to source order. */
+.sun-mark--lg {
+  width: 48px;
+  height: 48px;
+}
