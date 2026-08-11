@@ -9,6 +9,7 @@ import {
   installDependencies,
   detectPackageManager,
 } from "../utils/dependencies.js";
+import { getRegistryFile } from "../utils/registry-files.js";
 
 export const initCommand = new Command()
   .name("init")
@@ -48,10 +49,23 @@ export const initCommand = new Command()
         initial: "src/lib",
       },
       {
-        type: "confirm",
+        type: "text",
+        name: "tailwindCss",
+        message: "Where is your global stylesheet?",
+        initial: "src/app/globals.css",
+      },
+      {
+        type: "select",
         name: "motion",
-        message: "Enable motion animations?",
-        initial: true,
+        message: "Default animation feel?",
+        choices: [
+          { title: "spring — lively, slight overshoot (recommended)", value: "spring" },
+          { title: "glide  — smooth, no overshoot", value: "glide" },
+          { title: "snap   — fast and tight", value: "snap" },
+          { title: "bounce — pronounced overshoot", value: "bounce" },
+          { title: "none   — no animation", value: "none" },
+        ],
+        initial: 0,
       },
     ]);
 
@@ -78,18 +92,45 @@ export const initCommand = new Command()
       const config = `export default {
   style: "default",
   tailwind: {
-    css: "./src/app/globals.css",
+    css: "./${response.tailwindCss}",
   },
   aliases: {
     components: "${componentsAlias}",
     ui: "${uiAlias}",
     utils: "${utilsAlias}",
     hooks: "${hooksAlias}",
+    blocks: "${componentsAlias}/blocks",
   },
-  motion: ${response.motion},
+  motion: "${response.motion}",
 } as const;
 `;
       await fs.writeFile(path.join(cwd, "nika.config.ts"), config);
+
+      // Write the token layer beside the consumer's global stylesheet.
+      // An isolated file keeps ownership intact — they may edit or delete
+      // it freely — while giving a future `update` a file it can replace
+      // wholesale, rather than diffing against hand-edited CSS.
+      const cssPath = path.join(cwd, response.tailwindCss);
+      const cssDir = path.dirname(cssPath);
+      await fs.ensureDir(cssDir);
+
+      const tokensSource = await getRegistryFile("styles/tokens.css");
+      await fs.writeFile(path.join(cssDir, "nika-tokens.css"), tokensSource);
+
+      // Prepend the import if it is not already there. Consumer overrides
+      // belong in globals.css *after* this line, where nothing clobbers them.
+      const importLine = '@import "./nika-tokens.css";';
+      let wroteImport = false;
+      if (await fs.pathExists(cssPath)) {
+        const existing = await fs.readFile(cssPath, "utf-8");
+        if (!existing.includes("nika-tokens.css")) {
+          await fs.writeFile(cssPath, importLine + "\n" + existing);
+          wroteImport = true;
+        }
+      } else {
+        await fs.writeFile(cssPath, importLine + "\n");
+        wroteImport = true;
+      }
 
       // Write cn() utility
       const utilsContent = `import { type ClassValue, clsx } from "clsx";
@@ -104,31 +145,17 @@ export function cn(...inputs: ClassValue[]) {
         utilsContent
       );
 
-      // Write motion presets if enabled
-      if (response.motion) {
-        const motionContent = `export const motionPresets = {
-  fadeIn: { initial: { opacity: 0 }, animate: { opacity: 1 } },
-  slideUp: { initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 } },
-  slideDown: { initial: { opacity: 0, y: -20 }, animate: { opacity: 1, y: 0 } },
-  scaleIn: { initial: { opacity: 0, scale: 0.95 }, animate: { opacity: 1, scale: 1 } },
-  tap: { whileTap: { scale: 0.98 } },
-  hover: { whileHover: { scale: 1.02 } },
-  spring: { type: "spring" as const, stiffness: 400, damping: 17 },
-  springBouncy: { type: "spring" as const, stiffness: 600, damping: 15 },
-  springSmooth: { type: "spring" as const, stiffness: 300, damping: 30 },
-} as const;
-`;
-        await fs.writeFile(
-          path.join(cwd, response.utilsDir, "motion.ts"),
-          motionContent
-        );
-      }
+      // Write motion presets. The motion module is registry source now;
+      // write it exactly as the tokens are written.
+      const motionContent = await getRegistryFile("lib/motion.ts");
+      await fs.writeFile(
+        path.join(cwd, response.utilsDir, "motion.ts"),
+        motionContent
+      );
 
-      // Install base dependencies
-      const baseDeps = ["clsx", "tailwind-merge"];
-      if (response.motion) {
-        baseDeps.push("motion");
-      }
+      // Install base dependencies — motion is always needed because every
+      // component imports the resolver.
+      const baseDeps = ["clsx", "tailwind-merge", "motion"];
 
       const missingDeps = await getMissingDependencies(cwd, baseDeps);
       if (missingDeps.length > 0) {
@@ -142,8 +169,10 @@ export function cn(...inputs: ClassValue[]) {
       console.log(chalk.dim("\n  Created:"));
       console.log(chalk.dim(`    - nika.config.ts`));
       console.log(chalk.dim(`    - ${response.utilsDir}/utils.ts`));
-      if (response.motion) {
-        console.log(chalk.dim(`    - ${response.utilsDir}/motion.ts`));
+      console.log(chalk.dim(`    - ${response.utilsDir}/motion.ts`));
+      console.log(chalk.dim(`    - ${path.relative(cwd, path.join(cssDir, "nika-tokens.css"))}`));
+      if (wroteImport) {
+        console.log(chalk.dim(`    - @import added to ${response.tailwindCss}`));
       }
       if (missingDeps.length > 0) {
         console.log(chalk.dim(`    - Installed: ${missingDeps.join(", ")}`));

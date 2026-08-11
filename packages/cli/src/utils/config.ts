@@ -1,6 +1,8 @@
 import fs from "fs-extra";
 import path from "path";
 
+export type MotionPreset = "none" | "snap" | "glide" | "spring" | "bounce";
+
 export interface NikaConfig {
   style: string;
   tailwind: {
@@ -11,8 +13,9 @@ export interface NikaConfig {
     ui: string;
     utils: string;
     hooks: string;
+    blocks: string;
   };
-  motion: boolean;
+  motion: MotionPreset;
 }
 
 const DEFAULT_CONFIG: NikaConfig = {
@@ -25,8 +28,9 @@ const DEFAULT_CONFIG: NikaConfig = {
     ui: "@/components/ui",
     utils: "@/lib/utils",
     hooks: "@/hooks",
+    blocks: "@/components/blocks",
   },
-  motion: true,
+  motion: "spring",
 };
 
 export async function getConfig(cwd: string): Promise<NikaConfig> {
@@ -56,8 +60,13 @@ export async function getConfig(cwd: string): Promise<NikaConfig> {
   const componentsMatch = content.match(/components:\s*"([^"]+)"/);
   if (componentsMatch) config.aliases.components = componentsMatch[1]!;
 
-  const motionMatch = content.match(/motion:\s*(true|false)/);
-  if (motionMatch) config.motion = motionMatch[1] === "true";
+  const motionMatch = content.match(
+    /motion:\s*"(none|snap|glide|spring|bounce)"/
+  );
+  if (motionMatch) config.motion = motionMatch[1] as MotionPreset;
+
+  const blocksMatch = content.match(/blocks:\s*"([^"]+)"/);
+  if (blocksMatch) config.aliases.blocks = blocksMatch[1]!;
 
   const cssMatch = content.match(/css:\s*"([^"]+)"/);
   if (cssMatch) config.tailwind.css = cssMatch[1]!;

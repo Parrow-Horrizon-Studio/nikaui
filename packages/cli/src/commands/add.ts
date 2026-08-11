@@ -3,7 +3,6 @@ import chalk from "chalk";
 import ora from "ora";
 import fs from "fs-extra";
 import path from "path";
-import { fileURLToPath } from "url";
 import prompts from "prompts";
 import { getConfig, resolveAliasPath, type NikaConfig } from "../utils/config.js";
 import {
@@ -17,10 +16,7 @@ import {
   detectPackageManager,
 } from "../utils/dependencies.js";
 import { transformImports } from "../utils/transformer.js";
-
-// Base URL for fetching component source files from the registry
-const REGISTRY_BASE_URL =
-  "https://raw.githubusercontent.com/Parrow-Horrizon-Studio/nikaui/main/packages/registry/src";
+import { getRegistryFile } from "../utils/registry-files.js";
 
 export const addCommand = new Command()
   .name("add")
@@ -174,45 +170,11 @@ async function copyRegistryFiles(
 
     // Try to read from local registry first (for development),
     // then fall back to fetching from remote
-    const content = await getFileContent(file.source);
+    const content = await getRegistryFile(file.source);
     const transformed = transformImports(content, config);
 
     await fs.writeFile(targetPath, transformed, "utf-8");
   }
-}
-
-/**
- * Get component source file content.
- * First tries the local registry (monorepo development),
- * then falls back to fetching from GitHub.
- */
-async function getFileContent(sourcePath: string): Promise<string> {
-  // Try local paths (monorepo dev, or installed via node_modules)
-  const cliDir = fileURLToPath(new URL(".", import.meta.url));
-  const localPaths = [
-    // Monorepo: cli/dist/../../../registry/src/
-    path.resolve(cliDir, "..", "..", "registry", "src", sourcePath),
-    // Installed: node_modules/nikaui/dist/../../../@nikaui/registry/src/
-    path.resolve(cliDir, "..", "..", "@nikaui", "registry", "src", sourcePath),
-  ];
-
-  for (const localPath of localPaths) {
-    if (await fs.pathExists(localPath)) {
-      return fs.readFile(localPath, "utf-8");
-    }
-  }
-
-  // Fall back to remote fetch
-  const url = `${REGISTRY_BASE_URL}/${sourcePath}`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch ${sourcePath} from registry (${response.status})`
-    );
-  }
-
-  return response.text();
 }
 
 function toPascalCase(str: string): string {
