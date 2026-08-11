@@ -68,7 +68,7 @@ export function Features() {
         {FEATURES.map((feature) => (
           <div
             key={feature.heading}
-            className="rounded-xl border border-line bg-surface p-[26px] transition hover:-translate-y-[3px] hover:border-line-strong hover:shadow"
+            className="rounded-xl border border-line bg-surface p-[26px] transition hover:-translate-y-[3px] hover:border-line-strong hover:shadow-md"
           >
             <div className="flex size-11 items-center justify-center rounded-lg bg-primary/14 text-primary">
               {feature.icon}
