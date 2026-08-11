@@ -1,8 +1,0 @@
-{
-  "extends": "@nikaui/typescript-config/base.json",
-  "include": ["src"],
-  "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
-  }
-}

@@ -3,7 +3,6 @@ import chalk from "chalk";
 import ora from "ora";
 import fs from "fs-extra";
 import path from "path";
-import { fileURLToPath } from "url";
 import prompts from "prompts";
 import { getConfig, resolveAliasPath, type NikaConfig } from "../utils/config.js";
 import {
@@ -17,10 +16,9 @@ import {
   detectPackageManager,
 } from "../utils/dependencies.js";
 import { transformImports } from "../utils/transformer.js";
-
-// Base URL for fetching component source files from the registry
-const REGISTRY_BASE_URL =
-  "https://raw.githubusercontent.com/Parrow-Horrizon-Studio/nikaui/main/packages/registry/src";
+import { getRegistryFile } from "../utils/registry-files.js";
+import { applyMotionPreset } from "../utils/motion-source.js";
+import { isContainedPath } from "../utils/paths.js";
 
 export const addCommand = new Command()
   .name("add")
@@ -45,6 +43,14 @@ export const addCommand = new Command()
       process.exit(1);
     }
 
+    // --path overrides where ui/ components land, for this invocation only.
+    if (options.path) {
+      config = {
+        ...config,
+        aliases: { ...config.aliases, ui: options.path },
+      };
+    }
+
     // 2. Validate component names
     const invalid = componentNames.filter((name) => !getComponent(name));
     if (invalid.length > 0) {
@@ -58,22 +64,27 @@ export const addCommand = new Command()
     // 3. Resolve all dependencies
     const resolved = resolveWithDependencies(componentNames);
 
-    // 4. Determine target paths
-    const uiDir = path.join(cwd, options.path || resolveAliasPath(config.aliases.ui));
-    const libDir = path.join(cwd, resolveAliasPath(config.aliases.utils).replace(/\/utils$/, ""));
-
     // 5. Check for existing files
     const allEntries = [...resolved.libs, ...resolved.components];
     const existingFiles: string[] = [];
 
-    for (const entry of allEntries) {
-      for (const file of entry.files) {
-        const targetDir = entry.type === "lib" ? libDir : uiDir;
-        const targetPath = path.join(targetDir, path.basename(file.target));
-        if (await fs.pathExists(targetPath)) {
-          existingFiles.push(targetPath);
+    // No spinner is running yet at this point in the command, so a bad
+    // target is reported the same way the missing-config case above is:
+    // a single formatted line, not a raw stack trace.
+    try {
+      for (const entry of allEntries) {
+        for (const file of entry.files) {
+          const targetPath = resolveTarget(file.target, cwd, config);
+          if (await fs.pathExists(targetPath)) {
+            existingFiles.push(targetPath);
+          }
         }
       }
+    } catch (error) {
+      console.error(
+        chalk.red(`\n  ${error instanceof Error ? error.message : String(error)}\n`)
+      );
+      process.exit(1);
     }
 
     if (existingFiles.length > 0 && !options.overwrite) {
@@ -113,12 +124,12 @@ export const addCommand = new Command()
 
       // 7. Copy lib files (utils, motion presets)
       for (const lib of resolved.libs) {
-        await copyRegistryFiles(lib, libDir, config);
+        await copyRegistryFiles(lib, cwd, config);
       }
 
       // 8. Copy component files
       for (const component of resolved.components) {
-        await copyRegistryFiles(component, uiDir, config);
+        await copyRegistryFiles(component, cwd, config);
       }
 
       // 9. Summary
@@ -160,59 +171,37 @@ export const addCommand = new Command()
   });
 
 /**
- * Copy registry files to the target directory, transforming imports.
+ * Copy registry files to the path their target declares, transforming imports.
  */
 async function copyRegistryFiles(
   entry: RegistryEntry,
-  targetDir: string,
+  cwd: string,
   config: NikaConfig
 ): Promise<void> {
-  await fs.ensureDir(targetDir);
-
   for (const file of entry.files) {
-    const targetPath = path.join(targetDir, path.basename(file.target));
+    const targetPath = resolveTarget(file.target, cwd, config);
+    await fs.ensureDir(path.dirname(targetPath));
 
-    // Try to read from local registry first (for development),
-    // then fall back to fetching from remote
-    const content = await getFileContent(file.source);
-    const transformed = transformImports(content, config);
+    let content = await getRegistryFile(file.source);
 
-    await fs.writeFile(targetPath, transformed, "utf-8");
-  }
-}
-
-/**
- * Get component source file content.
- * First tries the local registry (monorepo development),
- * then falls back to fetching from GitHub.
- */
-async function getFileContent(sourcePath: string): Promise<string> {
-  // Try local paths (monorepo dev, or installed via node_modules)
-  const cliDir = fileURLToPath(new URL(".", import.meta.url));
-  const localPaths = [
-    // Monorepo: cli/dist/../../../registry/src/
-    path.resolve(cliDir, "..", "..", "registry", "src", sourcePath),
-    // Installed: node_modules/nikaui/dist/../../../@nikaui/registry/src/
-    path.resolve(cliDir, "..", "..", "@nikaui", "registry", "src", sourcePath),
-  ];
-
-  for (const localPath of localPaths) {
-    if (await fs.pathExists(localPath)) {
-      return fs.readFile(localPath, "utf-8");
+    // `init` bakes the chosen preset into lib/motion.ts, because nothing
+    // reads `nika.config.ts` at runtime. `add` resolves the same file as a
+    // registry dependency, so without this it would write the raw registry
+    // source back over the baked copy and silently reset the project to
+    // `spring` — visible whenever `add` runs with --overwrite. The config
+    // field is where the answer survives between the two commands.
+    if (file.source === "lib/motion.ts") {
+      content = applyMotionPreset(content, config.motion);
     }
+
+    // CSS carries no imports to rewrite, and running the TS import
+    // transformer over it would corrupt @import lines.
+    const output = targetPath.endsWith(".css")
+      ? content
+      : transformImports(content, config);
+
+    await fs.writeFile(targetPath, output, "utf-8");
   }
-
-  // Fall back to remote fetch
-  const url = `${REGISTRY_BASE_URL}/${sourcePath}`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch ${sourcePath} from registry (${response.status})`
-    );
-  }
-
-  return response.text();
 }
 
 function toPascalCase(str: string): string {
@@ -220,4 +209,48 @@ function toPascalCase(str: string): string {
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join("");
+}
+
+/**
+ * Resolve an alias-relative registry target to an absolute path.
+ *
+ * Targets look like "@ui/button.tsx", "@lib/utils.ts", "@styles/tokens.css"
+ * or "@blocks/dashboard/stats-row.tsx". The alias maps to a configured
+ * directory; everything after it is preserved verbatim, including nesting.
+ */
+function resolveTarget(target: string, cwd: string, config: NikaConfig): string {
+  const [, alias, rest] = target.match(/^@([a-z]+)\/(.+)$/) ?? [];
+  if (!alias || !rest) {
+    throw new Error(
+      `Registry target "${target}" is not alias-relative. Expected a form like "@ui/button.tsx".`
+    );
+  }
+
+  const dirs: Record<string, string> = {
+    ui: resolveAliasPath(config.aliases.ui),
+    lib: resolveAliasPath(config.aliases.utils).replace(/\/utils$/, ""),
+    blocks: resolveAliasPath(config.aliases.blocks),
+    styles: path.dirname(config.tailwind.css.replace(/^\.\//, "")),
+  };
+
+  const base = dirs[alias];
+  if (!base) {
+    throw new Error(`Unknown registry alias "@${alias}" in target "${target}".`);
+  }
+
+  const resolved = path.join(cwd, base, rest);
+
+  // `rest` is the target verbatim past the alias, with no `..` rejection —
+  // a target like "@ui/../../../../etc/thing" would otherwise resolve
+  // outside the project and copyRegistryFiles would write there. Registry
+  // targets only ever come from the bundled registry.json today, but a
+  // custom-registry source is planned, at which point this stops being
+  // trusted input.
+  if (!isContainedPath(cwd, resolved)) {
+    throw new Error(
+      `Registry target "${target}" resolves outside the project.`
+    );
+  }
+
+  return resolved;
 }

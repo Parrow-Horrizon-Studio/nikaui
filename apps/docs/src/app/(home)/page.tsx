@@ -59,7 +59,7 @@ export default function HomePage() {
             description="Full type safety with strict TypeScript. Typed variants, props, and event handlers."
           />
           <FeatureCard
-            title="22+ Components"
+            title="27 Components"
             description="From buttons to dialogs, tabs to toasts. Everything you need to build modern interfaces."
           />
         </div>

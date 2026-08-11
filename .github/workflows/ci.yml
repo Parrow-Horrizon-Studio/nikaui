@@ -32,4 +32,6 @@ jobs:
 
       - run: pnpm check-types
 
+      - run: pnpm test
+
       - run: pnpm build

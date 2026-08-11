@@ -8,8 +8,9 @@ import {
   MenuItem,
   MenuSeparator,
 } from "@headlessui/react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const DropdownMenu = Menu;
 
@@ -21,31 +22,39 @@ const DropdownMenuTrigger = React.forwardRef<
 ));
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-const DropdownMenuContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & {
-    align?: "start" | "end";
+export interface DropdownMenuContentProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  align?: "start" | "end";
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenuContentProps>(
+  ({ className, align = "start", children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("dropdown-menu", motionProp);
+
+    return (
+      <MenuItems
+        ref={ref}
+        anchor={align === "end" ? "bottom end" : "bottom start"}
+        className={cn(
+          "z-50 min-w-[8rem] overflow-hidden rounded-md border border-line bg-overlay p-1 text-content shadow-md",
+          className
+        )}
+        {...props}
+      >
+        <m.div
+          initial={{ opacity: 0, scale: feel.scale.tap }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: feel.scale.tap }}
+          transition={feel.transition}
+        >
+          {children as React.ReactNode}
+        </m.div>
+      </MenuItems>
+    );
   }
->(({ className, align = "start", children, ...props }, ref) => (
-  <MenuItems
-    ref={ref}
-    anchor={align === "end" ? "bottom end" : "bottom start"}
-    className={cn(
-      "z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md",
-      className
-    )}
-    {...props}
-  >
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.15 }}
-    >
-      {children as React.ReactNode}
-    </motion.div>
-  </MenuItems>
-));
+);
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
 const DropdownMenuItem = React.forwardRef<
@@ -58,7 +67,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     as="button"
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[focus]:bg-accent data-[focus]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[focus]:bg-muted data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
     )}
@@ -73,7 +82,7 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <MenuSeparator
     ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-border", className)}
+    className={cn("-mx-1 my-1 h-px bg-line", className)}
     {...props}
   />
 ));

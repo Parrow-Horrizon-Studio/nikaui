@@ -1,6 +1,28 @@
 import fs from "fs-extra";
 import path from "path";
 
+/**
+ * The single source of truth for the preset vocabulary.
+ *
+ * The union type, the config parser's regex and `init`'s prompt choices are
+ * all derived from this array, so there is exactly one place to edit when a
+ * preset is added or removed. Previously all three were written out by hand
+ * and could drift apart silently — a preset present in the union but missing
+ * from the regex would parse as the default with no error.
+ *
+ * Order here is the vocabulary's own (ascending liveliness), not the order
+ * the prompt displays; `init` sorts for display.
+ */
+export const MOTION_PRESETS = [
+  "none",
+  "snap",
+  "glide",
+  "spring",
+  "bounce",
+] as const;
+
+export type MotionPreset = (typeof MOTION_PRESETS)[number];
+
 export interface NikaConfig {
   style: string;
   tailwind: {
@@ -11,8 +33,9 @@ export interface NikaConfig {
     ui: string;
     utils: string;
     hooks: string;
+    blocks: string;
   };
-  motion: boolean;
+  motion: MotionPreset;
 }
 
 const DEFAULT_CONFIG: NikaConfig = {
@@ -25,8 +48,9 @@ const DEFAULT_CONFIG: NikaConfig = {
     ui: "@/components/ui",
     utils: "@/lib/utils",
     hooks: "@/hooks",
+    blocks: "@/components/blocks",
   },
-  motion: true,
+  motion: "spring",
 };
 
 export async function getConfig(cwd: string): Promise<NikaConfig> {
@@ -56,8 +80,16 @@ export async function getConfig(cwd: string): Promise<NikaConfig> {
   const componentsMatch = content.match(/components:\s*"([^"]+)"/);
   if (componentsMatch) config.aliases.components = componentsMatch[1]!;
 
-  const motionMatch = content.match(/motion:\s*(true|false)/);
-  if (motionMatch) config.motion = motionMatch[1] === "true";
+  // Built from MOTION_PRESETS rather than spelled out, so the accepted set
+  // cannot fall behind the union. The names contain no regex metacharacters,
+  // so joining them directly is safe.
+  const motionMatch = content.match(
+    new RegExp(`motion:\\s*"(${MOTION_PRESETS.join("|")})"`)
+  );
+  if (motionMatch) config.motion = motionMatch[1] as MotionPreset;
+
+  const blocksMatch = content.match(/blocks:\s*"([^"]+)"/);
+  if (blocksMatch) config.aliases.blocks = blocksMatch[1]!;
 
   const cssMatch = content.match(/css:\s*"([^"]+)"/);
   if (cssMatch) config.tailwind.css = cssMatch[1]!;

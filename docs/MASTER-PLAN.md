@@ -232,6 +232,32 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-design-system-foundation.m
 
 **B is completion work, not refactoring.** `init` never writes the token layer and `REGISTRY_BASE_URL` points at a nonexistent account, so the CLI has never worked outside this monorepo (§2.4).
 
+#### B — executed 2026-08-11
+
+Plan: [`docs/superpowers/plans/2026-08-11-design-system-foundation.md`](superpowers/plans/2026-08-11-design-system-foundation.md). Branch `feat/design-system-foundation`, 29 commits, 11 planned tasks plus one unplanned documentation task.
+
+**The bar was met and independently reproduced.** A reviewer ran `init --yes` then `add` into its own scratch project outside the repository, compiled with Tailwind 4.3.3, and confirmed generated rule selectors — `.bg-canvas {`, `.bg-primary {` — backed by real OKLCH values, with two negative controls that both correctly failed. This is the first time in the project's history that a consumer outside the monorepo gets working, themed components.
+
+The plan itself was amended eight times during execution. A pre-flight scan found 13 defects in it before Task 1 ran, five of which were verifications that could not fail; the token mapping table, described as exhaustive, was found incomplete four separate times, each by someone enumerating the tree rather than trusting the table.
+
+**Carried forward — not done, and why:**
+
+| Item | Owner | Note |
+|---|---|---|
+| **Merge to `main` before publishing the CLI** | release | The published CLI's remote fallback points at `main`, where `lib/motion.ts` and `ui/button.tsx` still hold pre-migration content. Over a severed network `add button` succeeds and silently delivers stale files; after the anchor guard landed, `init` fails outright instead. Publishing before merging ships a broken CLI |
+| Violet, azure and rose fail AA for `primary-fg` on `primary` | **B follow-up** | 3.54 / 3.21 / 3.34 at rest, azure hover 2.69. Same defect class as `--nika-danger`, which was fixed to 4.74. Retuning three accents is a palette decision, not a mechanical fix |
+| Danger button hover still misses AA | **B follow-up** | `hover:bg-danger/90` measures 4.18:1. Rest is now 4.74 |
+| Five components ship undocumented | **Sub-project D** | `alert`, `textarea`, `radio-group`, `slider`, `progress` are registered and installable with no page. `nikaui list` reports 27; the docs index renders 22 cards |
+| Thirteen doc pages are one-prop stubs | **Sub-project D** | Task 10b gave each an `## API Reference` documenting only `motion`, replacing "Documentation coming soon." Honest, but not a prop table |
+| Toast lacks `warning` and `info` variants | **Sub-project D/F** | Alert has all five and the tokens exist. A missing feature, not a defect |
+| Danger toast composites over page content | **Sub-project D/F** | `bg-danger/10` on a fixed overlay with no opaque base. `success` behaved this way before B; fixing it needs a layering change, not a class swap |
+| `apps/docs` now fetches fonts at build time | **user decision** | `next/font/google` replaced local Geist files, so `ci` — a required status check — now depends on `fonts.googleapis.com` being reachable on a cold cache |
+| `packages/cli` has no test suite | **B follow-up** | `isValidStylesheetPath`, `onCancel`, `--yes` and the token guard are verified only by manual end-to-end runs. The registry suite now guards `init`'s three substitution anchors; nothing else in the CLI is tested |
+| `resolveTarget` does not sanitise `..` in a target | **Sub-project F/G** | Unreachable today — targets come only from the bundled first-party manifest. Must close before custom registries |
+| `access` and the `styles` resolution bucket are unused | **Sub-project F** | Schema v2 pre-wired both; `add` never reads either |
+| §5's "22 built" arithmetic | **MASTER-PLAN refresh** | Three references predate the five new components. Re-baselining belongs with a broader refresh, not a token migration |
+| Visual confirmation of theming, accents and motion feel | **user** | No browser was available in this environment. Structure and unit tests cover the mechanics; nobody has looked at it |
+
 ### C — Landing page
 
 **Goal:** port the prototype landing page onto real Next.js and React, using B's tokens.
@@ -275,7 +301,7 @@ Full spec: [`docs/superpowers/specs/2026-08-09-nikaui-repository-migration-ops.m
 | Item | Trigger | Detail |
 |---|---|---|
 | Raise `required_approving_review_count` back to `1` | **A second contributor joins** | It is `0` today because a solo maintainer cannot approve their own pull request. Blast radius is currently zero — one collaborator. This is the E4 tightening commitment, recorded here because nothing else tracks it |
-| `init` does not write the CSS token layer | **Sub-project B** | Components style entirely through token utilities that resolve only from `apps/docs/src/app/globals.css`. Nothing the CLI ships writes it, so `npx nikaui init && npx nikaui add button` renders unstyled. The docs now say so plainly; B closes the gap. `packages/tailwind-config` is a second, orphaned copy of those values and should be retired with it |
+| ~~`init` does not write the CSS token layer~~ — **closed by B, 2026-08-11** | — | `init` now copies `nika-tokens.css` beside the consumer's stylesheet and inserts the `@import` after `@import "tailwindcss"`, idempotently, refusing to overwrite a token file the user has edited. Verified end-to-end outside the monorepo. `packages/tailwind-config` was deleted in the same sub-project |
 | Reconcile the `pnpm` pin | **Next commit touching a lockfile** | `nikaui` declares `pnpm@9.0.0`, `nikaui-pro` declares `pnpm@9.15.3`. Both are pnpm 9 and both write lockfile 9.0, so this is cosmetic today |
 | `packages/cli/src/index.ts` hard-codes `.version("0.1.0")` | **First publish** | Duplicates `package.json`; correct today, will drift |
 | ~~Decide `nikaui-pro`'s owner~~ — **settled, no action** | — | It stays on the personal account: a Free organisation cannot branch-protect private repositories, and personal Pro can. Transfer to the organisation if and when PHS carries a paid plan; GitHub transfers configure redirects automatically, so this is deferred cost, not sunk cost. A `LICENSE` naming Parrow Horrizon Studio as copyright holder on a personally-hosted repository is ordinary and not a conflict — the host and the rights holder are different things |

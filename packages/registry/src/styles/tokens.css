@@ -1,0 +1,227 @@
+/* =====================================================================
+   Nika UI — token layer
+
+   Every visual value in Nika lives here. Components never hard-code a
+   colour; they use the utilities mapped at the bottom of this file.
+
+   Switch theme with the `.dark` class on <html>.
+   Switch accent with [data-accent="violet"] (or emerald, azure, rose).
+
+   You own this file. Edit it freely — or delete it and write your own,
+   as long as the @theme inline block still maps the same utility names.
+   ===================================================================== */
+
+/* ---------- LIGHT (default) ---------- */
+:root {
+  --nika-canvas:          oklch(0.985 0.004 85);
+  --nika-canvas-2:        oklch(0.965 0.005 80);
+  --nika-surface:         oklch(1 0 0);
+  --nika-surface-2:       oklch(0.975 0.004 85);
+  --nika-overlay:         oklch(1 0 0);
+  --nika-muted:           oklch(0.955 0.006 80);
+
+  --nika-content:         oklch(0.235 0.012 55);
+  --nika-content-muted:   oklch(0.44 0.012 60);
+  --nika-content-subtle:  oklch(0.56 0.012 62);
+
+  --nika-line:            oklch(0.905 0.006 75);
+  --nika-line-strong:     oklch(0.845 0.008 70);
+
+  /* Code blocks stay dark in both themes — deliberate. Reserved: no shipped
+     component consumes `bg-code`/`text-code` yet. It is mapped and
+     documented so a code block you write lands on the same layer as
+     everything else. */
+  --nika-code:            oklch(0.215 0.008 60);
+
+  --nika-shadow-color:    35deg 30% 55%;
+  --nika-shadow-sm:       0 1px 2px hsl(var(--nika-shadow-color) / 0.14);
+  --nika-shadow:          0 6px 22px -6px hsl(var(--nika-shadow-color) / 0.20);
+  --nika-shadow-lg:       0 22px 55px -14px hsl(var(--nika-shadow-color) / 0.26);
+
+  /* Applied directly as a box-shadow value, not through a mapped utility. */
+  --nika-glow:
+    0 0 0 1px color-mix(in oklch, var(--nika-primary) 28%, transparent),
+    0 10px 32px -8px color-mix(in oklch, var(--nika-primary) 38%, transparent);
+
+  color-scheme: light;
+}
+
+/* ---------- DARK ---------- */
+.dark {
+  --nika-canvas:          oklch(0.165 0.006 60);
+  --nika-canvas-2:        oklch(0.195 0.007 60);
+  --nika-surface:         oklch(0.205 0.008 60);
+  --nika-surface-2:       oklch(0.235 0.009 60);
+  --nika-overlay:         oklch(0.215 0.008 60);
+  --nika-muted:           oklch(0.255 0.009 60);
+
+  --nika-content:         oklch(0.965 0.005 85);
+  --nika-content-muted:   oklch(0.745 0.012 75);
+  --nika-content-subtle:  oklch(0.605 0.012 70);
+
+  --nika-line:            oklch(0.305 0.010 60);
+  --nika-line-strong:     oklch(0.375 0.013 60);
+
+  --nika-code:            oklch(0.185 0.007 60);
+
+  --nika-shadow-color:    0deg 0% 0%;
+  --nika-shadow-sm:       0 1px 2px hsl(var(--nika-shadow-color) / 0.28);
+  --nika-shadow:          0 4px 16px -4px hsl(var(--nika-shadow-color) / 0.42);
+  --nika-shadow-lg:       0 18px 50px -12px hsl(var(--nika-shadow-color) / 0.62);
+  --nika-glow:
+    0 0 0 1px color-mix(in oklch, var(--nika-primary) 30%, transparent),
+    0 8px 30px -6px color-mix(in oklch, var(--nika-primary) 45%, transparent);
+
+  color-scheme: dark;
+}
+
+/* ---------- ACCENTS ---------- */
+/* sun is the default: it applies with no attribute present. */
+:root,
+[data-accent="sun"] {
+  --nika-primary:        oklch(0.705 0.188 47);
+  --nika-primary-hover:  oklch(0.748 0.178 50);
+  --nika-primary-press:  oklch(0.655 0.193 44);
+  --nika-primary-fg:     oklch(0.18 0.03 50);
+  --nika-accent:         oklch(0.845 0.152 84);
+  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+}
+
+[data-accent="violet"] {
+  --nika-primary:        oklch(0.635 0.205 290);
+  --nika-primary-hover:  oklch(0.678 0.198 290);
+  --nika-primary-press:  oklch(0.59 0.205 288);
+  --nika-primary-fg:     oklch(0.985 0.01 290);
+  --nika-accent:         oklch(0.72 0.16 330);
+  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+}
+
+[data-accent="emerald"] {
+  --nika-primary:        oklch(0.695 0.155 162);
+  --nika-primary-hover:  oklch(0.735 0.148 162);
+  --nika-primary-press:  oklch(0.645 0.155 160);
+  --nika-primary-fg:     oklch(0.16 0.03 165);
+  --nika-accent:         oklch(0.82 0.13 190);
+  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+}
+
+[data-accent="azure"] {
+  --nika-primary:        oklch(0.64 0.165 248);
+  --nika-primary-hover:  oklch(0.685 0.158 248);
+  --nika-primary-press:  oklch(0.595 0.168 246);
+  --nika-primary-fg:     oklch(0.985 0.01 250);
+  --nika-accent:         oklch(0.78 0.13 210);
+  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+}
+
+[data-accent="rose"] {
+  --nika-primary:        oklch(0.655 0.205 18);
+  --nika-primary-hover:  oklch(0.70 0.196 18);
+  --nika-primary-press:  oklch(0.61 0.205 16);
+  --nika-primary-fg:     oklch(0.985 0.01 20);
+  --nika-accent:         oklch(0.80 0.15 50);
+  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+}
+
+/* ---------- SEMANTIC, RADIUS, TYPE, MOTION ---------- */
+:root {
+  /* Status colours stay theme-invariant: one hue reads on both canvases, so there's no .dark override — deliberate.
+     They are safe as fills, borders and large icons. They are NOT body-text
+     colours on the light canvas: success measures 2.08:1 and warning 1.70:1
+     against it. Tint the surface and keep `text-content` for the body — the
+     treatment Alert and Toast both use. */
+  --nika-success:   oklch(0.74 0.15 150);
+  --nika-warning:   oklch(0.82 0.15 80);
+
+  /* danger is the one status hue used as a filled surface, so it is the one
+     that has to carry --nika-danger-fg. At L 0.635 that pair measured
+     3.67:1 — under AA for the 14px font-medium label in a danger button.
+     L 0.575 takes it to 4.70:1. Lowering L is the only lever: contrast
+     against a near-white foreground is driven by luminance, not hue or
+     chroma. */
+  --nika-danger:    oklch(0.575 0.2 25);
+  --nika-danger-fg: oklch(0.99 0 0);
+  --nika-info:      oklch(0.7 0.13 235);
+
+  --nika-radius:       0.7rem;
+  --nika-radius-sm:    calc(var(--nika-radius) - 4px);
+  --nika-radius-md:    calc(var(--nika-radius) - 2px);
+  --nika-radius-lg:    var(--nika-radius);
+  --nika-radius-xl:    calc(var(--nika-radius) + 6px);
+  --nika-radius-2xl:   calc(var(--nika-radius) + 14px);
+  /* Not spare: mapping --radius-full below overrides Tailwind v4's built-in
+     `rounded-full` (normally calc(infinity * 1px)), so this value is what
+     every pill and circle in the library actually renders — Avatar, Badge,
+     Progress, RadioGroup, Slider, Switch and the loading dots. */
+  --nika-radius-full:  999px;
+
+  /* System stacks by design. Nika does not download a font for you. */
+  --nika-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --nika-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  --nika-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nika-ease-out:    cubic-bezier(0.22, 1, 0.36, 1);
+  --nika-ease-snap:   cubic-bezier(0.16, 1, 0.3, 1);
+  --nika-ease-inout:  cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Tailwind v4 has no duration theme namespace, so these aren't mapped in @theme inline — consumers read var(--nika-duration-*) directly. */
+  --nika-duration-fast:   140ms;
+  --nika-duration:        200ms;
+  --nika-duration-slow:   340ms;
+  --nika-duration-spring: 520ms;
+}
+
+/* ---------- TAILWIND MAPPING ----------
+   `inline` is required: it makes each utility reference the variable
+   rather than copy its value, which is what allows switching .dark or
+   [data-accent] at runtime to retune everything already rendered.      */
+@theme inline {
+  --color-canvas:          var(--nika-canvas);
+  --color-canvas-2:        var(--nika-canvas-2);
+  --color-surface:         var(--nika-surface);
+  --color-surface-2:       var(--nika-surface-2);
+  --color-overlay:         var(--nika-overlay);
+  --color-muted:           var(--nika-muted);
+  --color-code:            var(--nika-code);
+
+  --color-content:         var(--nika-content);
+  --color-content-muted:   var(--nika-content-muted);
+  --color-content-subtle:  var(--nika-content-subtle);
+
+  --color-line:            var(--nika-line);
+  --color-line-strong:     var(--nika-line-strong);
+
+  --color-primary:         var(--nika-primary);
+  --color-primary-hover:   var(--nika-primary-hover);
+  --color-primary-press:   var(--nika-primary-press);
+  --color-primary-fg:      var(--nika-primary-fg);
+  --color-accent:          var(--nika-accent);
+  --color-ring:            var(--nika-ring);
+
+  --color-success:         var(--nika-success);
+  --color-warning:         var(--nika-warning);
+  --color-danger:          var(--nika-danger);
+  --color-danger-fg:       var(--nika-danger-fg);
+  --color-info:            var(--nika-info);
+
+  --radius-sm:             var(--nika-radius-sm);
+  --radius-md:             var(--nika-radius-md);
+  --radius-lg:             var(--nika-radius-lg);
+  --radius-xl:             var(--nika-radius-xl);
+  --radius-2xl:            var(--nika-radius-2xl);
+  --radius-full:           var(--nika-radius-full);
+
+  --font-sans:             var(--nika-font-sans);
+  --font-mono:             var(--nika-font-mono);
+
+  --shadow-sm:             var(--nika-shadow-sm);
+  --shadow-md:             var(--nika-shadow);
+  --shadow-lg:             var(--nika-shadow-lg);
+
+  --ease-spring:           var(--nika-ease-spring);
+  --ease-out:              var(--nika-ease-out);
+  --ease-snap:             var(--nika-ease-snap);
+  --ease-inout:            var(--nika-ease-inout);
+}

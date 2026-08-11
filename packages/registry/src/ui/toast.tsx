@@ -1,19 +1,27 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion as m } from "motion/react";
 import { cva } from "class-variance-authority";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const toastVariants = cva(
   "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-lg border p-4 shadow-lg transition-all",
   {
     variants: {
+      // Status variants follow Alert: a tint of the hue for the surface, the
+      // hue at low alpha for the border, and `text-content` for the body.
+      // The hue itself is never the body text — `text-success` on
+      // `bg-success/10` measures 1.94:1 against the light canvas, because
+      // both the hue and a 10% wash of it over a near-white page sit at
+      // almost the same luminance. `text-content` on the same tint measures
+      // 14.9:1. The status hues are readable as fills, borders and large
+      // icons; they are not body-text colours on the light canvas.
       variant: {
-        default: "border bg-background text-foreground",
-        destructive:
-          "border-destructive bg-destructive text-destructive-foreground",
-        success: "border-green-500/50 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100",
+        default: "border-line bg-canvas text-content",
+        danger: "border-danger/30 bg-danger/10 text-content",
+        success: "border-success/30 bg-success/10 text-content",
       },
     },
     defaultVariants: {
@@ -26,8 +34,10 @@ export interface Toast {
   id: string;
   title?: string;
   description?: string;
-  variant?: "default" | "destructive" | "success";
+  variant?: "default" | "danger" | "success";
   duration?: number;
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
 }
 
 interface ToastContextValue {
@@ -77,45 +87,70 @@ function ToastViewport() {
     <div className="fixed bottom-0 right-0 z-[100] flex max-h-screen w-full flex-col-reverse gap-2 p-4 sm:max-w-[420px]">
       <AnimatePresence mode="popLayout">
         {toasts.map((toast) => (
-          <motion.div
+          <ToastItem
             key={toast.id}
-            layout
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 100, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className={cn(toastVariants({ variant: toast.variant }))}
-          >
-            <div className="flex-1">
-              {toast.title && (
-                <div className="text-sm font-semibold">{toast.title}</div>
-              )}
-              {toast.description && (
-                <div className="text-sm opacity-90">{toast.description}</div>
-              )}
-            </div>
-            <button
-              onClick={() => removeToast(toast.id)}
-              className="inline-flex shrink-0 items-center justify-center rounded-md h-6 w-6 text-foreground/50 hover:text-foreground transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-4 w-4"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </motion.div>
+            toast={toast}
+            onDismiss={() => removeToast(toast.id)}
+          />
         ))}
       </AnimatePresence>
     </div>
+  );
+}
+
+// One hook call per toast instance, resolved the same way every other
+// component resolves it — precedence (reduced-motion > instance prop >
+// provider override > provider default > built-in default) lives in
+// useMotionPreset alone, not restated here. This only exists as its own
+// component because AnimatePresence's children come from `toasts.map()`;
+// useMotionPreset is a hook and cannot be called inside that callback
+// directly, since the array — and so the number of hook calls — varies
+// across renders.
+function ToastItem({
+  toast,
+  onDismiss,
+}: {
+  toast: Toast;
+  onDismiss: () => void;
+}) {
+  const feel = useMotionPreset("toast", toast.motion);
+
+  return (
+    <m.div
+      layout
+      initial={{ opacity: 0, y: 50 * feel.travel, scale: feel.scale.tap }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, x: 100 * feel.travel, scale: feel.scale.tap }}
+      transition={feel.transition}
+      className={cn(toastVariants({ variant: toast.variant }))}
+    >
+      <div className="flex-1">
+        {toast.title && (
+          <div className="text-sm font-semibold">{toast.title}</div>
+        )}
+        {toast.description && (
+          <div className="text-sm opacity-90">{toast.description}</div>
+        )}
+      </div>
+      <button
+        onClick={onDismiss}
+        className="inline-flex shrink-0 items-center justify-center rounded-md h-6 w-6 text-content-subtle hover:text-content transition-colors"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="h-4 w-4"
+        >
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        </svg>
+      </button>
+    </m.div>
   );
 }
 

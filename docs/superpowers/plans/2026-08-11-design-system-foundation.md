@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace three coexisting token systems with one owned token layer, give motion a preset API with a five-step resolution order, and make `nika init` actually deliver the tokens — so that for the first time a consumer outside this monorepo gets working, themed components.
+**Goal:** Replace three coexisting token systems with one owned token layer, give motion a preset API with a five-step resolution order, and make `nikaui init` actually deliver the tokens — so that for the first time a consumer outside this monorepo gets working, themed components.
 
 **Architecture:** A single authored CSS file in the registry is the token source. Namespaced `--nika-*` variables carry the values; a `@theme inline` block maps them onto unprefixed Tailwind utilities, which is what lets runtime accent switching work. The CLI copies that file into the consumer's project and adds one `@import`. Motion becomes a *feel* (spring config + travel multiplier) resolved through an optional provider, not a boolean.
 
@@ -57,8 +57,39 @@ This table is the complete specification for the component migration in Tasks 7 
 | `bg-input` | `bg-canvas-2` | |
 | `bg-border` | `bg-line` | used for separators |
 | `ring-ring` | `ring-ring` | name survives, source changes |
+| `ring-offset-background` | `ring-offset-canvas` | the focus-ring offset must match the page, not Tailwind's white default |
 
 **Anything not in this table is not a token utility and must not be touched.** `rounded-md`, `h-10`, `px-4`, `text-sm`, `font-medium`, `transition-colors`, `disabled:opacity-50` and similar are layout and typography — leave them exactly as they are.
+
+### Four rules the table's rename rows cannot express
+
+These were found by enumerating every colour-bearing utility actually present in `packages/registry/src/ui/` after Task 7. They are part of the migration, not exceptions to it.
+
+**1. A border width with no border colour gets `border-line`.** `border`, `border-b`, `border-t` and friends resolve to `currentColor` in Tailwind v4 — so today these borders render in the *text* colour, which is never what was intended. Add `border-line` alongside the width utility wherever no border-colour utility is already present. Do not add it where one is (`border-line-strong`, `border-danger`, `border-primary`, `border-transparent`).
+
+**2. `toast.tsx`'s `success` variant stops hard-coding green.** It currently reads `border-green-500/50 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100`. `--nika-success` exists and is deliberately theme-invariant, so one set of utilities covers both themes and the `dark:` variants go away:
+
+```
+border-success/30 bg-success/10 text-content
+```
+
+**The hue is the surface, never the body text.** This rule originally specified `border-success/50 bg-success/10 text-success`, and that form is unreadable: `text-success` on a 10% wash of `--nika-success` over the light canvas measures **1.94:1**, because the hue and a tenth of it over a near-white page land at almost the same luminance. `text-content` on the same tint measures 14.9:1. The status hues are safe as fills, borders and large icons; they are not body-text colours on the light canvas (`--nika-success` alone is 2.08:1 against it, `--nika-warning` 1.70:1). `alert.tsx` uses the corrected form, and the same treatment applies to every status variant of every component.
+
+**3. `bg-black/50` on the dialog and alert-dialog scrims stays.** It is the one hard-coded colour that survives. There is no scrim token, a pure black at low alpha is correct on both canvases, and inventing `--nika-scrim` after the token layer has been reviewed and closed is a bigger change than this migration should carry. Leave both sites exactly as they are.
+
+**4. A `ring-offset-<width>` with no offset colour gets `ring-offset-canvas`.** Exactly the `border-line` situation in rule 1, one property over. Tailwind v4 defaults `--tw-ring-offset-color` to `#fff`, so `ring-offset-2` on its own draws a white band between the element and its focus ring — invisible on the light canvas and a bright halo on the dark one. Add `ring-offset-canvas` wherever an offset width appears with no offset colour, carrying the same variant prefix the width uses (`focus-visible:ring-offset-2` takes `focus-visible:ring-offset-canvas`). The mapping table's `ring-offset-background` → `ring-offset-canvas` row only covers the sites that already named a colour; these are the sites that never did.
+
+`bg-transparent`, `border-transparent`, `bg-current`, `outline-none` and every `shadow-*` are also not token utilities. Leave them. (`ring-offset-2` was listed here as well; rule 4 supersedes that — the width utility stays, but it no longer travels alone.)
+
+### The completeness check
+
+This pattern is the gate for Tasks 7 and 8. It was validated against two fixtures before being written here: a correctly-migrated file (zero hits, including the CVA variant key — `destructive:` at the time, `danger:` since the prop vocabulary was renamed to match the token — and the five rows whose names survive) and a fixture containing all twenty-three stale names (every one caught).
+
+```bash
+grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/ || echo "PASS: no stale token utilities remain"
+```
+
+It deliberately omits `bg-primary`, `text-primary`, `border-primary`, `bg-muted` and `ring-ring` — those names survive the migration, so their presence signals nothing, and including them produces substring false positives against `bg-primary-hover`.
 
 ## Already fixed — do not go looking for these
 
@@ -88,6 +119,7 @@ CSS token values and className strings are **not** unit-tested. Asserting that a
 | `packages/registry/src/ui/progress.tsx` | New component |
 | `packages/registry/vitest.config.ts` | Test runner configuration |
 | `packages/registry/src/lib/motion.test.ts` | Resolver tests |
+| `packages/cli/src/utils/registry-files.ts` | `REGISTRY_BASE_URL` and `getRegistryFile` — the one registry reader `add` and `init` share |
 
 **Modified**
 
@@ -99,7 +131,7 @@ CSS token values and className strings are **not** unit-tested. Asserting that a
 | `packages/cli/src/commands/add.ts` | Honours full relative targets instead of flattening to basename |
 | `packages/cli/src/utils/config.ts` | `motion: MotionPreset`; `aliases.blocks` |
 | `packages/cli/src/registry.json` | Schema v2: `access`, alias-relative targets, `styles` group |
-| `apps/docs/src/app/globals.css` | Imports the registry token layer; assigns `--fd-*` from `--nika-*` |
+| `apps/docs/src/app/globals.css` | Imports the registry token layer; assigns `--color-fd-*` from `--nika-*` |
 | `apps/docs/src/app/layout.tsx` | Loads Manrope and JetBrains Mono via `next/font`; `defaultTheme="dark"` |
 
 **Deleted**
@@ -183,7 +215,7 @@ describe("motion harness", () => {
 });
 ```
 
-- [ ] **Step 6: Run the test and watch it FAIL**
+- [ ] **Step 6: Run the test and watch it PASS**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter @nikaui/registry test
@@ -467,11 +499,18 @@ Expected: `braces balanced: true`, `missing tokens: none`, `accents present: 5`,
 
 - [ ] **Step 4: Verify no unprefixed variable was defined**
 
+`grep -E` is POSIX ERE and has no negative lookahead — `(?!…)` is not a
+lookahead there, it is a literal, and the check silently stops discriminating.
+Use a positive match for every declared variable, then filter out the allowed
+prefixes; whatever survives is a leak.
+
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -nE "^\s+--(?!nika-|color-|radius-|font-|shadow-|ease-)" packages/registry/src/styles/tokens.css || echo "PASS: every declared variable is namespaced or inside @theme inline"
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -nE "^[[:space:]]+--[a-z]" packages/registry/src/styles/tokens.css | grep -vE "^[0-9]+:[[:space:]]+--(nika|color|radius|font|shadow|ease)-" || echo "PASS: every declared variable is namespaced or inside @theme inline"
 ```
 
-Expected: the PASS line. Any output means an unprefixed variable leaked into `:root` and will collide in a consumer's project.
+Expected: the PASS line. Any output is the offending line, printed with its line number — an unprefixed variable leaked into `:root` and will collide in a consumer's project.
+
+The allowed prefixes are `--nika-` for the authored layer and `--color-`, `--radius-`, `--font-`, `--shadow-`, `--ease-` for the `@theme inline` block, which is Tailwind's namespace rather than ours.
 
 - [ ] **Step 5: Commit**
 
@@ -512,28 +551,29 @@ Written test-first: the five-step resolution order is real logic with real prece
 
 - [ ] **Step 1: Write the failing tests**
 
+Reduced motion is driven by a **module mock**, not by reassigning `window.matchMedia`. Motion caches its reduced-motion state at module scope — it reads the media query exactly once per module instance, i.e. once per test file — so the first render in the file latches the value for every test after it, and reassigning `matchMedia` between tests does nothing. Mocking the module is the only way to retarget it per case.
+
+`motion.ts` takes exactly one **value** import from `motion/react`: `useReducedMotion`. (`Transition` is a type-only import and is erased before runtime.) The factory below therefore supplies everything the module under test needs — if you ever add another value import from `motion/react` to `motion.ts`, add it to the factory too or the import will throw.
+
 Replace the entire contents of `packages/registry/src/lib/motion.test.ts`:
 
 ```ts
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { renderHook } from "@testing-library/react";
 import * as React from "react";
 import { motionPresets, NikaMotionConfig, useMotionPreset } from "./motion";
 
-// Motion's useReducedMotion reads this media query. jsdom returns false for
-// every query by default, so the un-mocked default is "motion allowed".
-function setReducedMotion(reduced: boolean) {
-  window.matchMedia = ((query: string) => ({
-    matches: reduced && query.includes("prefers-reduced-motion"),
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  })) as unknown as typeof window.matchMedia;
-}
+// Motion caches its reduced-motion state at MODULE scope, so mocking
+// window.matchMedia only takes effect for the first render in the file.
+// Mock the module and drive it from a hoisted, mutable flag instead.
+const mocks = vi.hoisted(() => ({ reducedMotion: false }));
+vi.mock("motion/react", () => ({
+  useReducedMotion: () => mocks.reducedMotion,
+}));
+
+beforeEach(() => {
+  mocks.reducedMotion = false;
+});
 
 describe("motionPresets", () => {
   it("defines exactly the five documented presets", () => {
@@ -561,19 +601,16 @@ describe("motionPresets", () => {
 
 describe("useMotionPreset resolution order", () => {
   it("falls back to spring when nothing is configured", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("button"));
     expect(result.current).toEqual(motionPresets.spring);
   });
 
   it("prefers the instance prop over the built-in default", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("button", "bounce"));
     expect(result.current).toEqual(motionPresets.bounce);
   });
 
   it("prefers a provider global default over the built-in default", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("button"), {
       wrapper: ({ children }) =>
         React.createElement(NikaMotionConfig, { preset: "glide" }, children),
@@ -582,7 +619,6 @@ describe("useMotionPreset resolution order", () => {
   });
 
   it("prefers a provider per-component override over the provider default", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("dialog"), {
       wrapper: ({ children }) =>
         React.createElement(
@@ -595,7 +631,6 @@ describe("useMotionPreset resolution order", () => {
   });
 
   it("prefers the instance prop over a provider per-component override", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("dialog", "bounce"), {
       wrapper: ({ children }) =>
         React.createElement(
@@ -608,7 +643,6 @@ describe("useMotionPreset resolution order", () => {
   });
 
   it("lets a per-component override apply only to its own component", () => {
-    setReducedMotion(false);
     const { result } = renderHook(() => useMotionPreset("button"), {
       wrapper: ({ children }) =>
         React.createElement(
@@ -621,13 +655,13 @@ describe("useMotionPreset resolution order", () => {
   });
 
   it("forces none under reduced motion, overriding an explicit prop", () => {
-    setReducedMotion(true);
+    mocks.reducedMotion = true;
     const { result } = renderHook(() => useMotionPreset("button", "bounce"));
     expect(result.current).toEqual(motionPresets.none);
   });
 
   it("forces none under reduced motion, overriding the provider", () => {
-    setReducedMotion(true);
+    mocks.reducedMotion = true;
     const { result } = renderHook(() => useMotionPreset("dialog"), {
       wrapper: ({ children }) =>
         React.createElement(
@@ -768,7 +802,7 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter @nikaui
 
 Expected: all 11 tests pass, output pristine — no warnings.
 
-If the reduced-motion tests fail, the likely cause is that `useReducedMotion` caches its subscription across renders; confirm `setReducedMotion` is called *before* `renderHook` in each test, as written.
+`mocks.reducedMotion` is module-scoped and shared by every test in the file; `beforeEach` resets it to `false`, so only the two tests that set it to `true` see reduced motion.
 
 - [ ] **Step 5: Verify the gate**
 
@@ -776,7 +810,7 @@ If the reduced-motion tests fail, the likely cause is that `useReducedMotion` ca
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm lint && pnpm check-types && pnpm build
 ```
 
-Expected: all pass. `motion.ts` is imported by 15 components that still reference the old preset names — if `check-types` fails here, note which components and fix them in Tasks 7 and 8, not now. If the failure is inside `motion.ts` itself, fix it now.
+Expected: all pass, cleanly. **Nothing currently imports `motion.ts`** — no file in `packages/registry/src/ui/` or `apps/docs/src/` references `../lib/motion` or `motionPresets` today, so this rewrite is strictly additive and has no downstream breakage to triage. (Fifteen components import `motion/react`, the npm package, which is unrelated; `button.tsx` hard-codes its spring inline rather than reading a preset.) Any failure here is inside `motion.ts` or its test — fix it now, not in Tasks 7 and 8.
 
 - [ ] **Step 6: Commit**
 
@@ -803,6 +837,7 @@ that never wrapped their app."
 - Delete: `packages/tailwind-config/` (entire package)
 - Modify: `packages/cli/src/registry.json`
 - Modify: `packages/cli/src/utils/registry.ts`
+- Modify: `README.md`
 
 **Interfaces:**
 - Consumes: `packages/registry/src/styles/tokens.css` from Task 2
@@ -810,11 +845,15 @@ that never wrapped their app."
 
 - [ ] **Step 1: Confirm nothing imports the package**
 
+Markdown is included, because prose that advertises a package the repository no longer ships is the same class of defect as code that imports it. `docs/` and `.superpowers/` are excluded: those trees hold the spec, this plan and the pre-flight notes, all of which legitimately describe this very deletion, and without the exclusions the step could never pass.
+
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rn "@nikaui/tailwind-config\|nikaTheme" --include="*.ts" --include="*.tsx" --include="*.json" --include="*.mjs" . --exclude-dir=node_modules --exclude-dir=.turbo --exclude-dir=dist | grep -v "^./packages/tailwind-config/"
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rn "@nikaui/tailwind-config\|nikaTheme" --include="*.ts" --include="*.tsx" --include="*.json" --include="*.mjs" --include="*.md" --include="*.mdx" . --exclude-dir=node_modules --exclude-dir=.turbo --exclude-dir=dist --exclude-dir=docs --exclude-dir=.superpowers | grep -v "^./packages/tailwind-config/"
 ```
 
 Expected: **no output.** If anything appears, stop and report — something depends on it and the deletion is not safe.
+
+Note that this grep does *not* catch `README.md`'s package listing, which names the directory `packages/tailwind-config` without either search term. Step 3 handles that.
 
 - [ ] **Step 2: Delete the package**
 
@@ -824,7 +863,25 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git rm -r -q packages
 
 Expected: `cli`, `eslint-config`, `registry`, `typescript-config`. Install succeeds and the lockfile drops the workspace entry.
 
-- [ ] **Step 3: Add the `styles` group and the tokens entry to `registry.json`**
+- [ ] **Step 3: Remove the package from the README's listing**
+
+`README.md` lists the monorepo's packages under a `### Packages` heading, and one bullet advertises the package Step 2 just deleted:
+
+```
+- `packages/tailwind-config` — shared Tailwind CSS preset and theme tokens
+```
+
+Delete that one line. Leave the four remaining bullets (`registry`, `cli`, `eslint-config`, `typescript-config`) exactly as they are, and change nothing else in the file.
+
+Verify:
+
+```bash
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -n "tailwind-config" README.md || echo "PASS: the README no longer advertises tailwind-config"
+```
+
+Expected: the PASS line.
+
+- [ ] **Step 4: Add the `styles` group and the tokens entry to `registry.json`**
 
 At the top level of `packages/cli/src/registry.json`, alongside the existing `libs` and `components` keys, add:
 
@@ -847,7 +904,7 @@ At the top level of `packages/cli/src/registry.json`, alongside the existing `li
   }
 ```
 
-- [ ] **Step 4: Convert every existing entry to alias-relative targets and add `access`**
+- [ ] **Step 5: Convert every existing entry to alias-relative targets and add `access`**
 
 Every entry in `libs` and `components` gains `"access": "free"`, and every `files[].target` is rewritten with an alias prefix. Apply this transformation with a script so all 24 entries change consistently:
 
@@ -873,7 +930,7 @@ console.log('libs:', Object.keys(r.libs).length, 'components:', Object.keys(r.co
 
 Expected: `libs: 2 components: 22 styles: 1`.
 
-- [ ] **Step 5: Verify every target now carries an alias prefix**
+- [ ] **Step 6: Verify every target now carries an alias prefix**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && node -e "
@@ -892,7 +949,7 @@ console.log(bad.length ? bad.join('\n') : 'PASS: all targets aliased, all entrie
 
 Expected: the PASS line.
 
-- [ ] **Step 6: Update the `RegistryEntry` type**
+- [ ] **Step 7: Update the `RegistryEntry` type**
 
 In `packages/cli/src/utils/registry.ts`, widen the entry type to match the new schema. Find the `RegistryEntry` interface and set its `type` and `access` fields to:
 
@@ -901,9 +958,9 @@ In `packages/cli/src/utils/registry.ts`, widen the entry type to match the new s
   access: "free" | "pro";
 ```
 
-Add the `styles` group wherever `libs` and `components` are read, so `getComponent` and `resolveWithDependencies` can resolve a style entry by name.
+Add the `styles` group wherever `libs` and `components` are read, so a style entry can be resolved by name. Give it its own accessor — `getStyle` alongside `getComponent` — and extend `resolveWithDependencies` to carry a `styles` result set. Do **not** widen `getComponent` itself: `add.ts` validates installable component names through it, and a style entry answering that call would make `nikaui add tokens` look valid when the token layer is delivered by `init`, not by `add`.
 
-- [ ] **Step 7: Verify the gate**
+- [ ] **Step 8: Verify the gate**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm lint && pnpm check-types && pnpm build
@@ -911,13 +968,14 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm lint && pnpm che
 
 Expected: all pass.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git add -A && git commit -m "refactor: retire tailwind-config, move the registry to schema v2
 
 The package exported a nikaTheme object nothing imported; an authored CSS
-file serves its stated purpose properly.
+file serves its stated purpose properly. The README's package listing is
+updated in the same commit so the front page stops advertising it.
 
 Registry entries now carry access and alias-relative targets (@ui/, @lib/,
 @styles/) so the CLI is written once against the shape blocks and
@@ -931,7 +989,9 @@ templates will need, rather than being reworked for them later."
 The defect that makes every component render unstyled outside this monorepo: `init` writes config, utils and motion presets, but never writes CSS — while `tailwind-config/src/theme.ts` documented that it did.
 
 **Files:**
+- Create: `packages/cli/src/utils/registry-files.ts`
 - Modify: `packages/cli/src/commands/init.ts`
+- Modify: `packages/cli/src/commands/add.ts` (loses its private copy of the registry reader)
 - Modify: `packages/cli/src/utils/config.ts`
 
 **Interfaces:**
@@ -1035,8 +1095,14 @@ In `init.ts`, after the `nika.config.ts` write and before the `cn()` utility wri
       const tokensSource = await getRegistryFile("styles/tokens.css");
       await fs.writeFile(path.join(cssDir, "nika-tokens.css"), tokensSource);
 
-      // Prepend the import if it is not already there. Consumer overrides
-      // belong in globals.css *after* this line, where nothing clobbers them.
+      // Insert the import after `@import "tailwindcss";` if it is not
+      // already present, falling back to the end of the leading import
+      // block when that line is absent. This is convention, not necessity:
+      // Tailwind marks its own defaults `@theme default`, and its engine
+      // refuses to overwrite a key already set by a non-default block, so a
+      // project `@theme` wins in either order. Consumer overrides still
+      // belong after this line, where the ordinary later-wins rule between
+      // two project-level blocks does apply.
       const importLine = '@import "./nika-tokens.css";';
       let wroteImport = false;
       if (await fs.pathExists(cssPath)) {
@@ -1072,22 +1138,35 @@ And use it in the generated config, replacing the hard-coded `"./src/app/globals
   },
 ```
 
-- [ ] **Step 6: Add the registry file reader**
+- [ ] **Step 6: Extract the registry file reader into a shared module**
 
-`init.ts` has no way to read registry source. Add this helper at the bottom of the file — it mirrors the resolution `add.ts` already uses, local first then remote:
+`init.ts` has no way to read registry source, and `add.ts` already has exactly the reader it needs — `REGISTRY_BASE_URL` plus a `getFileContent` that tries the local monorepo checkout first and falls back to the network. **Do not copy it.** Two copies of the registry base URL in one small package is the defect that produced the `nicaui` transposition already fixed once; the next URL change would land in one copy and be missed in the other, and `init` and `add` would silently read from different registries.
+
+Move it instead. `packages/cli/src/utils/` is already where this package keeps shared helpers (`config.ts`, `dependencies.ts`, `registry.ts`, `transformer.ts`), and the build is a single tsup bundle (`tsup src/index.ts --format esm`) emitting one `dist/index.js`, so `import.meta.url` resolves identically no matter which source file the code lives in — the local-path resolution is unaffected by the move.
+
+**6a. Create `packages/cli/src/utils/registry-files.ts`** with the body lifted verbatim from `add.ts`, renamed on the way out:
 
 ```ts
-const REGISTRY_BASE_URL =
+import fs from "fs-extra";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Base URL for fetching component source files from the registry
+export const REGISTRY_BASE_URL =
   "https://raw.githubusercontent.com/Parrow-Horrizon-Studio/nikaui/main/packages/registry/src";
 
 /**
- * Read a file from the registry: local monorepo checkout first, then the
- * published tree over the network.
+ * Get registry source file content.
+ * First tries the local registry (monorepo development),
+ * then falls back to fetching from GitHub.
  */
-async function getRegistryFile(sourcePath: string): Promise<string> {
+export async function getRegistryFile(sourcePath: string): Promise<string> {
+  // Try local paths (monorepo dev, or installed via node_modules)
   const cliDir = fileURLToPath(new URL(".", import.meta.url));
   const localPaths = [
+    // Monorepo: cli/dist/../../../registry/src/
     path.resolve(cliDir, "..", "..", "registry", "src", sourcePath),
+    // Installed: node_modules/nikaui/dist/../../../@nikaui/registry/src/
     path.resolve(cliDir, "..", "..", "@nikaui", "registry", "src", sourcePath),
   ];
 
@@ -1097,20 +1176,40 @@ async function getRegistryFile(sourcePath: string): Promise<string> {
     }
   }
 
-  const response = await fetch(`${REGISTRY_BASE_URL}/${sourcePath}`);
+  // Fall back to remote fetch
+  const url = `${REGISTRY_BASE_URL}/${sourcePath}`;
+  const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error(
       `Failed to fetch ${sourcePath} from registry (${response.status})`
     );
   }
+
   return response.text();
 }
 ```
 
-Add the matching import at the top of `init.ts`:
+**6b. Strip the copies out of `packages/cli/src/commands/add.ts`.** Delete the `REGISTRY_BASE_URL` constant near the top and the whole `getFileContent` function near the bottom, then add the import:
 
 ```ts
-import { fileURLToPath } from "url";
+import { getRegistryFile } from "../utils/registry-files.js";
+```
+
+`copyRegistryFiles` is the only caller; change its one call site from `getFileContent(file.source)` to `getRegistryFile(file.source)`. **Also delete `import { fileURLToPath } from "url";` from `add.ts`** — `getFileContent` was its only consumer, and `lint` runs with `--max-warnings 0`, so leaving it fails the gate.
+
+**6c. Import it in `init.ts`** — the same one line, and nothing else:
+
+```ts
+import { getRegistryFile } from "../utils/registry-files.js";
+```
+
+`init.ts` does *not* need `fileURLToPath`; the shared module owns that.
+
+Verify there is exactly one registry base URL in the package:
+
+```bash
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rn "raw.githubusercontent.com" packages/cli/src/ && echo "--- expect exactly one hit, in utils/registry-files.ts ---"
 ```
 
 - [ ] **Step 7: Update the generated config and the summary output**
@@ -1147,8 +1246,10 @@ Then extend the summary block so a user sees what actually landed:
 
 - [ ] **Step 8: Build and run `init` against a throwaway directory**
 
+**Use a Windows-absolute scratch path, never `/tmp`.** This machine is `win32`: Git Bash resolves `/tmp` to `C:\Users\<you>\AppData\Local\Temp`, but Node's `path.resolve("/tmp/x")` — which is what `init.ts` and `add.ts` both call on `--cwd` — resolves it to `C:\tmp\x`. The CLI would write to one directory while the shell inspected another, and the failure reads like a CLI bug. `C:/Users/rowee/AppData/Local/Temp/nika-scratch/` is understood identically by both.
+
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter nikaui build && rm -rf /tmp/nika-init-check && mkdir -p /tmp/nika-init-check/src/app && printf '@import "tailwindcss";\n\nbody { color: red; }\n' > /tmp/nika-init-check/src/app/globals.css && printf '{"name":"scratch","version":"1.0.0"}\n' > /tmp/nika-init-check/package.json && node packages/cli/dist/index.js init --cwd /tmp/nika-init-check
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter nikaui build && rm -rf "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check" && mkdir -p "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check/src/app" && printf '@import "tailwindcss";\n\nbody { color: red; }\n' > "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check/src/app/globals.css" && printf '{"name":"scratch","version":"1.0.0"}\n' > "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check/package.json" && node packages/cli/dist/index.js init --cwd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check"
 ```
 
 Answer the prompts with the defaults. Expected: it completes without error.
@@ -1156,7 +1257,7 @@ Answer the prompts with the defaults. Expected: it completes without error.
 - [ ] **Step 9: Verify what `init` actually produced**
 
 ```bash
-cd /tmp/nika-init-check && echo "--- files ---" && find . -type f -not -path "./node_modules/*" | sort && echo "--- globals.css head ---" && head -3 src/app/globals.css && echo "--- config ---" && cat nika.config.ts && echo "--- tokens present? ---" && grep -c "nika-primary" src/app/nika-tokens.css
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check" && echo "--- files ---" && find . -type f -not -path "./node_modules/*" | sort && echo "--- globals.css head ---" && head -3 src/app/globals.css && echo "--- config ---" && cat nika.config.ts && echo "--- tokens present? ---" && grep -c "nika-primary" src/app/nika-tokens.css
 ```
 
 Expected: `nika.config.ts`, `src/app/globals.css`, `src/app/nika-tokens.css`, `src/lib/utils.ts`, `src/lib/motion.ts`. The first line of `globals.css` is the `@import`, and the original `body { color: red; }` survives below it. The config shows `motion: "spring"` and a `blocks` alias. The token grep returns a non-zero count.
@@ -1164,7 +1265,7 @@ Expected: `nika.config.ts`, `src/app/globals.css`, `src/app/nika-tokens.css`, `s
 - [ ] **Step 10: Verify the import is not duplicated on re-run**
 
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && node packages/cli/dist/index.js init --cwd /tmp/nika-init-check && grep -c "nika-tokens.css" /tmp/nika-init-check/src/app/globals.css
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && node packages/cli/dist/index.js init --cwd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check" && grep -c "nika-tokens.css" "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check/src/app/globals.css"
 ```
 
 Answer `y` to the overwrite prompt. Expected: `1`. A `2` means the idempotency guard in Step 4 is broken.
@@ -1270,7 +1371,7 @@ async function copyRegistryFiles(
     const targetPath = resolveTarget(file.target, cwd, config);
     await fs.ensureDir(path.dirname(targetPath));
 
-    const content = await getFileContent(file.source);
+    const content = await getRegistryFile(file.source);
     // CSS carries no imports to rewrite, and running the TS import
     // transformer over it would corrupt @import lines.
     const output = targetPath.endsWith(".css")
@@ -1281,6 +1382,8 @@ async function copyRegistryFiles(
   }
 }
 ```
+
+`getRegistryFile` is the shared reader created in Task 5 Step 6; `add.ts` imports it from `../utils/registry-files.js` and no longer declares a reader of its own.
 
 - [ ] **Step 4: Update both call sites**
 
@@ -1325,7 +1428,7 @@ Expected: the PASS line.
 - [ ] **Step 7: Build and add components into the scratch project from Task 5**
 
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter nikaui build && node packages/cli/dist/index.js add button card dialog --cwd /tmp/nika-init-check && find /tmp/nika-init-check/src -type f | sort
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm --filter nikaui build && node packages/cli/dist/index.js add button card dialog --cwd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check" && find "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check/src" -type f | sort
 ```
 
 Expected: `src/components/ui/button.tsx`, `card.tsx`, `dialog.tsx`, plus `src/lib/utils.ts` and `src/lib/motion.ts`. Nothing landed flat in the wrong directory.
@@ -1376,12 +1479,13 @@ import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-fg hover:bg-primary-hover",
-        destructive: "bg-danger text-danger-fg hover:bg-danger/90",
+        default:
+          "bg-primary text-primary-fg hover:bg-primary-hover active:bg-primary-press",
+        danger: "bg-danger text-danger-fg hover:bg-danger/90",
         outline:
           "border border-line-strong bg-canvas hover:bg-muted hover:text-content",
         secondary: "bg-surface-2 text-content hover:bg-muted",
@@ -1582,6 +1686,10 @@ Mechanical application of the mapping table, plus the motion-prop pattern from T
 
 `accordion.tsx`, `alert-dialog.tsx`, `aspect-ratio.tsx`, `avatar.tsx`, `badge.tsx`, `checkbox.tsx`, `combobox.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, `input.tsx`, `label.tsx`, `popover.tsx`, `select.tsx`, `separator.tsx`, `skeleton.tsx`, `spinner.tsx`, `switch.tsx`, `tabs.tsx`, `toast.tsx`, `tooltip.tsx`
 
+**Files — also modify:**
+
+`packages/cli/src/registry.json`
+
 **Interfaces:**
 - Consumes: the mapping table; `useMotionPreset` from Task 3; the prop convention from Task 7
 - Produces: 22 components speaking one vocabulary. Task 10 and Task 11 depend on all of them.
@@ -1612,15 +1720,41 @@ Thirteen of these import `motion/react`. For each one:
 
 For components animating enter/exit rather than interaction — dialog, alert-dialog, popover, dropdown-menu, select, combobox, tooltip, toast, accordion — the scale multipliers still apply where a scale is part of the existing animation. Where the existing animation is opacity or height only, use `feel.transition` alone and leave `feel.scale` unused; that is correct, not an omission.
 
-- [ ] **Step 3: Verify the whole registry is free of the old vocabulary**
+- [ ] **Step 3: Declare the `motion` registry dependency on every animated entry**
 
-```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rnE "\b(bg|text|border|ring|from|to|via)-(background|foreground|card|card-foreground|popover|popover-foreground|primary-foreground|secondary|secondary-foreground|muted-foreground|accent|accent-foreground|destructive|destructive-foreground|input)\b" packages/registry/src/ui/ || echo "PASS: no old token utilities remain"
+After Steps 1 and 2, fifteen components import `../lib/motion`, but their registry entries still declare `"registryDependencies": ["utils"]`. `resolveWithDependencies` therefore never resolves the `motion` lib for them and `add` never copies `lib/motion.ts` — the copied component ships with a dangling import. It only appears to work because `init` writes that file unconditionally; the moment a consumer deletes it, or `add` is used against a project initialised elsewhere, it breaks. Task 9's new entries already declare it, so leaving these alone would put the two halves of the registry in disagreement.
+
+In `packages/cli/src/registry.json`, set `"registryDependencies": ["utils", "motion"]` on **exactly these fifteen `components` entries** — the complete set that imports `motion/react` today, verified against the working tree:
+
+`accordion`, `alert-dialog`, `button`, `card`, `checkbox`, `combobox`, `dialog`, `dropdown-menu`, `popover`, `select`, `spinner`, `switch`, `tabs`, `toast`, `tooltip`
+
+Leave every other entry at `["utils"]`. `aspect-ratio`, `avatar`, `badge`, `input`, `label`, `separator` and `skeleton` do not animate and must not gain the dependency.
+
+Then, in the same file, give the `motion` **lib** entry its npm package — it declares `"dependencies": []` today, while the module it ships imports `motion/react`:
+
+```json
+    "motion": {
+      "name": "motion",
+      "type": "lib",
+      "access": "free",
+      "description": "Animation presets and spring configurations",
+      "files": [{ "source": "lib/motion.ts", "target": "@lib/motion.ts" }],
+      "dependencies": ["motion"],
+      "registryDependencies": []
+    }
 ```
 
-Expected: the PASS line.
+- [ ] **Step 4: Verify the whole registry is free of the old vocabulary**
 
-- [ ] **Step 4: Verify no `animated` prop survives anywhere**
+`ring-offset` is in the prefix alternation deliberately: `ring-offset-background` is a token utility that six components carry, and a regex anchored on `\b(bg|text|border|ring|…)-` does not match it — `ring-offset` is a longer prefix, not a `ring-` utility. Without it this check reports PASS while every focused input keeps Tailwind's white default ring offset.
+
+```bash
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/ || echo "PASS: no old token utilities remain"
+```
+
+Expected: the PASS line. `ring-offset-canvas` — the migrated form — does not match, and neither does the layout utility `ring-offset-2`.
+
+- [ ] **Step 5: Verify no `animated` prop survives anywhere**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rn "animated" packages/registry/src/ || echo "PASS: animated prop fully retired"
@@ -1628,7 +1762,7 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rn "animated" p
 
 Expected: the PASS line.
 
-- [ ] **Step 5: Verify every animated component resolves a preset**
+- [ ] **Step 6: Verify every animated component resolves a preset**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && echo "import motion/react:" && grep -l "motion/react" packages/registry/src/ui/*.tsx | wc -l && echo "call useMotionPreset:" && grep -l "useMotionPreset" packages/registry/src/ui/*.tsx | wc -l
@@ -1636,7 +1770,25 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && echo "import motion/r
 
 Expected: the two counts are equal. A component that imports the animation library but never resolves a preset is one the provider and reduced-motion cannot reach.
 
-- [ ] **Step 6: Verify the gate**
+- [ ] **Step 7: Verify the registry declares `motion` everywhere it is needed**
+
+Task 4 rewrote `registry.json` with `JSON.stringify(r, null, 2)`, which explodes every array across several lines — so a text grep for `["utils", "motion"]` would find nothing regardless of correctness. Read the JSON instead:
+
+```bash
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && node -e "
+const r = require('./packages/cli/src/registry.json');
+const animated = ['accordion','alert-dialog','button','card','checkbox','combobox','dialog','dropdown-menu','popover','select','spinner','switch','tabs','toast','tooltip'];
+const missing = animated.filter(n => !(r.components[n]?.registryDependencies ?? []).includes('motion'));
+console.log('animated entries declaring the motion registry dependency:', animated.length - missing.length, 'of', animated.length);
+const libOk = (r.libs.motion.dependencies ?? []).includes('motion');
+console.log('libs.motion.dependencies includes motion:', libOk);
+console.log(missing.length === 0 && libOk ? 'PASS: every animated component resolves lib/motion, and the motion lib pulls its npm package' : 'FAIL: ' + (missing.length ? 'missing motion on ' + missing.join(', ') : '') + (libOk ? '' : ' libs.motion declares no npm dependency'));
+"
+```
+
+Expected: `15 of 15`, `true`, and the PASS line.
+
+- [ ] **Step 8: Verify the gate**
 
 ```bash
 cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm lint && pnpm check-types && pnpm build && pnpm --filter @nikaui/registry test
@@ -1644,15 +1796,19 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && pnpm lint && pnpm che
 
 Expected: all pass. Lint runs `--max-warnings 0`, so an unused import left behind by the migration fails the build — that is intended.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git add packages/registry/src/ui/ && git commit -m "feat: migrate the remaining 20 components to the token vocabulary
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git add packages/registry/src/ui/ packages/cli/src/registry.json && git commit -m "feat: migrate the remaining 20 components to the token vocabulary
 
 Every component now reads from the owned token layer and resolves its
 animation feel through the shared resolver, so a provider default, a
 per-component override, an instance prop and the reduced-motion setting
-all reach every one of them."
+all reach every one of them.
+
+The fifteen animated entries now declare motion as a registry dependency,
+so add copies lib/motion.ts for them instead of relying on init having
+written it, and the motion lib declares its npm package."
 ```
 
 ---
@@ -1754,7 +1910,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
     <textarea
       ref={ref}
       className={cn(
-        "flex min-h-20 w-full rounded-md border border-line-strong bg-canvas-2 px-3 py-2 text-sm text-content transition-colors placeholder:text-content-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-20 w-full rounded-md border border-line-strong bg-canvas-2 px-3 py-2 text-sm text-content ring-offset-canvas transition-colors placeholder:text-content-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -1789,13 +1945,18 @@ export interface RadioGroupProps {
   children?: React.ReactNode;
 }
 
-function RadioGroup({ className, children, ...props }: RadioGroupProps) {
-  return (
-    <HeadlessRadioGroup className={cn("grid gap-2", className)} {...props}>
+const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>(
+  ({ className, children, ...props }, ref) => (
+    <HeadlessRadioGroup
+      ref={ref}
+      className={cn("grid gap-2", className)}
+      {...props}
+    >
       {children}
     </HeadlessRadioGroup>
-  );
-}
+  )
+);
+RadioGroup.displayName = "RadioGroup";
 
 export interface RadioGroupItemProps {
   value: string;
@@ -1806,38 +1967,37 @@ export interface RadioGroupItemProps {
   motion?: MotionPreset;
 }
 
-function RadioGroupItem({
-  className,
-  children,
-  motion: motionProp,
-  ...props
-}: RadioGroupItemProps) {
-  const feel = useMotionPreset("radio-group", motionProp);
+const RadioGroupItem = React.forwardRef<HTMLElement, RadioGroupItemProps>(
+  ({ className, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("radio-group", motionProp);
 
-  return (
-    <Radio
-      className={cn(
-        "group flex cursor-pointer items-center gap-3 text-sm text-content focus-visible:outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
-        className
-      )}
-      {...props}
-    >
-      {({ checked }) => (
-        <>
-          <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors group-data-[checked]:border-primary group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2">
-            <m.span
-              className="size-2 rounded-full bg-primary"
-              initial={false}
-              animate={{ scale: checked ? 1 : 0 }}
-              transition={feel.transition}
-            />
-          </span>
-          {children}
-        </>
-      )}
-    </Radio>
-  );
-}
+    return (
+      <Radio
+        ref={ref}
+        className={cn(
+          "group flex cursor-pointer items-center gap-3 text-sm text-content focus-visible:outline-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
+          className
+        )}
+        {...props}
+      >
+        {({ checked }) => (
+          <>
+            <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong ring-offset-canvas transition-colors group-data-[checked]:border-primary group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2">
+              <m.span
+                className="size-2 rounded-full bg-primary"
+                initial={false}
+                animate={{ scale: checked ? 1 : 0 }}
+                transition={feel.transition}
+              />
+            </span>
+            {children}
+          </>
+        )}
+      </Radio>
+    );
+  }
+);
+RadioGroupItem.displayName = "RadioGroupItem";
 
 export { RadioGroup, RadioGroupItem };
 ```
@@ -1865,7 +2025,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
       ref={ref}
       type="range"
       className={cn(
-        "h-2 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none transition-colors",
+        "h-2 w-full cursor-pointer appearance-none rounded-full bg-muted outline-none ring-offset-canvas transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-sm",
@@ -2037,33 +2197,34 @@ The docs app currently defines its own shadcn-style HSL tokens in `@layer base` 
 
 - [ ] **Step 1: Rewrite `apps/docs/src/app/globals.css`**
 
-Read the existing file first to preserve any rule that is genuinely the docs site's own. Replace the `@layer base` token block and the existing `@theme inline` block with:
+Read the existing file first to preserve any rule that is genuinely the docs site's own. Replace the `@layer base` token block and the existing `@theme inline` block with the following — and note that the `@source` line is **not** new: it already sits in the file, immediately below the imports, and it is load-bearing. `component-previews.tsx` imports 22 components straight from `@nikaui/registry/ui/*`, which lives outside the docs app's automatic source-detection root, so dropping that directive makes Tailwind stop scanning the registry and every component preview renders with no classes generated — while the build stays green and the grep in Step 5 still prints PASS. Keep it.
 
 ```css
 @import "tailwindcss";
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "@nikaui/registry/styles/tokens.css";
+@source "../../../../packages/registry/src";
 
-/* Fumadocs chrome inherits the Nika accent. One way only: --fd-* is
+/* Fumadocs chrome inherits the Nika accent. One way only: --color-fd-* is
    assigned from --nika-*, never the reverse, and never in the registry. */
 :root {
-  --fd-background: var(--nika-canvas);
-  --fd-foreground: var(--nika-content);
-  --fd-muted: var(--nika-muted);
-  --fd-muted-foreground: var(--nika-content-muted);
-  --fd-popover: var(--nika-overlay);
-  --fd-popover-foreground: var(--nika-content);
-  --fd-card: var(--nika-surface);
-  --fd-card-foreground: var(--nika-content);
-  --fd-border: var(--nika-line);
-  --fd-primary: var(--nika-primary);
-  --fd-primary-foreground: var(--nika-primary-fg);
-  --fd-secondary: var(--nika-surface-2);
-  --fd-secondary-foreground: var(--nika-content);
-  --fd-accent: var(--nika-muted);
-  --fd-accent-foreground: var(--nika-content);
-  --fd-ring: var(--nika-ring);
+  --color-fd-background: var(--nika-canvas);
+  --color-fd-foreground: var(--nika-content);
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+  --color-fd-popover: var(--nika-overlay);
+  --color-fd-popover-foreground: var(--nika-content);
+  --color-fd-card: var(--nika-surface);
+  --color-fd-card-foreground: var(--nika-content);
+  --color-fd-border: var(--nika-line);
+  --color-fd-primary: var(--nika-primary);
+  --color-fd-primary-foreground: var(--nika-primary-fg);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-secondary-foreground: var(--nika-content);
+  --color-fd-accent: var(--nika-muted);
+  --color-fd-accent-foreground: var(--nika-content);
+  --color-fd-ring: var(--nika-ring);
 }
 
 body {
@@ -2073,7 +2234,13 @@ body {
 }
 ```
 
-If Fumadocs' preset requires the `--fd-*` values in a specific colour format rather than raw OKLCH, the build or the rendered page will show it. Report what you find rather than guessing at a conversion.
+**Two details in that block are load-bearing, and both fail silently if you get them wrong.**
+
+*The `@source` path is four levels up, not three.* It is resolved relative to the file it sits in, `apps/docs/src/app/globals.css`. Three levels from `apps/docs/src/app/` is `apps/`, so `../../../packages/registry/src` points at `apps/packages/registry/src`, which does not exist. Tailwind does not error on a missing `@source`; it just scans nothing, the component previews render unstyled, and the build stays green.
+
+*The variables are `--color-fd-*`, not `--fd-*`.* Fumadocs 16 registers its Tailwind colour tokens under the `--color-fd-*` namespace (see `fumadocs-ui/css/lib/default-colors.css`); utilities like `bg-fd-primary` and Fumadocs' own component CSS read that name. The bare `--fd-*` properties are reserved for layout dimensions such as `--fd-sidebar-width` and `--fd-header-height`, and Fumadocs 16 has zero consumers of a bare `--fd-background`. Assigning the bare name compiles, passes every check in this task, and themes nothing — every Fumadocs colour utility keeps rendering with Fumadocs' own default palette.
+
+If Fumadocs' preset requires the values in a specific colour format rather than raw OKLCH, the build or the rendered page will show it. Report what you find rather than guessing at a conversion.
 
 - [ ] **Step 2: Make the registry's CSS importable**
 
@@ -2157,8 +2324,8 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git add -A && git com
 
 The docs app defined its own shadcn-style HSL set and mapped it
 separately. It now imports the registry's tokens and assigns Fumadocs'
---fd-* variables from --nika-*, one way only, so the chrome inherits the
-accent while the library stays independent of Fumadocs.
+--color-fd-* variables from --nika-*, one way only, so the chrome inherits
+the accent while the library stays independent of Fumadocs.
 
 Manrope and JetBrains Mono are loaded here via next/font and override the
 Nika defaults for this site only. The library itself ships system stacks."
@@ -2178,8 +2345,10 @@ The spec's §6 bar. Steps 1 and 2 are the ones that have never passed in this pr
 
 - [ ] **Step 1: Create a clean scratch project with Tailwind v4**
 
+**Every path in this task is Windows-absolute, never `/tmp` and never MSYS-style `/f/…`.** This machine is `win32`: Git Bash resolves `/tmp` to `C:\Users\<you>\AppData\Local\Temp`, while Node's `path.resolve("/tmp/x")` — which `init.ts` and `add.ts` both call on `--cwd` — gives `C:\tmp\x`. The CLI would write to one directory while the shell inspected another. `C:/Users/rowee/AppData/Local/Temp/nika-scratch/` and `F:/dev/…` are read identically by both.
+
 ```bash
-rm -rf /tmp/nika-e2e && mkdir -p /tmp/nika-e2e && cd /tmp/nika-e2e && pnpm init && pnpm add react@^19 react-dom@^19 && pnpm add -D tailwindcss@^4 @tailwindcss/cli@^4 typescript && mkdir -p src/app && printf '@import "tailwindcss";\n' > src/app/globals.css && ls -R src
+rm -rf "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && mkdir -p "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && pnpm init && pnpm add react@^19 react-dom@^19 && pnpm add -D tailwindcss@^4 @tailwindcss/cli@^4 typescript && mkdir -p src/app && printf '@import "tailwindcss";\n' > src/app/globals.css && ls -R src
 ```
 
 Expected: `src/app/globals.css` exists containing only the Tailwind import.
@@ -2189,13 +2358,13 @@ Expected: `src/app/globals.css` exists containing only the Tailwind import.
 The CLI prefers a local monorepo checkout over the network. Prove the network path works by running from a directory where no such checkout is reachable:
 
 ```bash
-cd /tmp/nika-e2e && npx --yes --package=file:/f/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui/packages/cli nikaui init
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && npx --yes --package=file:F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui/packages/cli nikaui init
 ```
 
 If the local-path fallback still resolves (because npx links the workspace), instead pack and install the tarball, which severs the monorepo relationship:
 
 ```bash
-cd /f/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui/packages/cli && pnpm pack --pack-destination /tmp && cd /tmp/nika-e2e && pnpm add -D /tmp/nikaui-0.1.0.tgz && ./node_modules/.bin/nikaui init
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui/packages/cli" && pnpm pack --pack-destination "C:/Users/rowee/AppData/Local/Temp/nika-scratch" && cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && pnpm add -D "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nikaui-0.1.0.tgz" && ./node_modules/.bin/nikaui init
 ```
 
 Expected: `nika.config.ts`, `src/app/nika-tokens.css`, an `@import` at the top of `src/app/globals.css`, `src/lib/utils.ts`, `src/lib/motion.ts`.
@@ -2205,7 +2374,7 @@ Expected: `nika.config.ts`, `src/app/nika-tokens.css`, an `@import` at the top o
 - [ ] **Step 3: Confirm the token file came over the network, not from disk**
 
 ```bash
-cd /tmp/nika-e2e && grep -c "nika-primary" src/app/nika-tokens.css && grep -c "data-accent" src/app/nika-tokens.css && head -1 src/app/globals.css
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && grep -c "nika-primary" src/app/nika-tokens.css && grep -c "data-accent" src/app/nika-tokens.css && head -1 src/app/globals.css
 ```
 
 Expected: a non-zero token count, 5 or more `data-accent` matches, and the first line of `globals.css` is the `@import`.
@@ -2213,25 +2382,31 @@ Expected: a non-zero token count, 5 or more `data-accent` matches, and the first
 - [ ] **Step 4: Add components over the network**
 
 ```bash
-cd /tmp/nika-e2e && ./node_modules/.bin/nikaui add button card dialog alert progress && find src -type f | sort
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && ./node_modules/.bin/nikaui add button card dialog alert progress && find src -type f | sort
 ```
 
 Expected: five component files under `src/components/ui/`, plus `src/lib/utils.ts` and `src/lib/motion.ts`. Nothing flattened into the wrong directory.
 
 - [ ] **Step 5: Compile the CSS and confirm the utilities actually resolve**
 
-This is the check that would have caught the original defect. Build the stylesheet and confirm a token-derived utility emits real CSS:
+This is the check that would have caught the original defect, and it has to assert that **utilities were generated**, not that variables passed through. `globals.css` pulls in `nika-tokens.css`, whose `:root` rules are plain CSS that Tailwind copies to the output verbatim — so `--nika-canvas` appears in `out.css` whether or not a single utility class resolved. Grepping for the variable can never fail. Grep for the generated rule selector instead.
+
+Two other things the naive form gets wrong: Tailwind v4 has no `--content` flag (v4 replaced the `content` concept with automatic detection plus `@source`, and the CLI rejects unknown options), and piping the build through `tail` hands the chain `tail`'s exit status, so a failed build still advances to the assertion and greps a stale file. Build through a small probe stylesheet with an explicit `@source`, chained with plain `&&`, leaving the project's own `globals.css` exactly as `init` wrote it:
 
 ```bash
-cd /tmp/nika-e2e && printf '<div class="bg-canvas text-content border-line bg-primary text-primary-fg rounded-md"></div>\n' > src/probe.html && ./node_modules/.bin/tailwindcss -i src/app/globals.css -o /tmp/nika-e2e/out.css --content "src/**/*.{html,tsx}" 2>&1 | tail -3 && grep -c "nika-canvas\|nika-primary" /tmp/nika-e2e/out.css
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && printf '<div class="bg-canvas text-content border-line bg-primary text-primary-fg rounded-md"></div>\n' > src/probe.html && printf '@import "./src/app/globals.css";\n@source "./src";\n' > tw-probe.css && ./node_modules/.bin/tailwindcss -i tw-probe.css -o out.css && canvas=$(grep -cE '\.bg-canvas[[:space:]]*\{' out.css || true) && primary=$(grep -cE '\.bg-primary[[:space:]]*\{' out.css || true) && vars=$(grep -cE -- '--nika-(canvas|primary):' out.css || true) && echo "generated .bg-canvas rules: $canvas / .bg-primary rules: $primary / secondary signal, --nika-* declarations: $vars" && { [ "$canvas" -ge 1 ] && [ "$primary" -ge 1 ] && echo "PASS: token-derived utilities emitted real CSS" || echo "FAIL: a token utility compiled to nothing"; }
 ```
 
-Expected: the build succeeds and the grep returns a **non-zero** count. Zero means the utilities compiled to nothing — exactly the failure mode this whole sub-project exists to fix.
+Expected: the `PASS` line, with both rule counts at 1 or more. Tailwind v4 emits `  .bg-canvas {` — selector, space, brace — so those greps match the generated rule and not the declaration; `--nika-*` is reported only as a secondary signal and proves nothing on its own.
+
+A `FAIL` alongside a non-zero `--nika-*` count is precisely the failure this sub-project exists to fix: the token file arrived, and nothing consumed it. If the build itself errors, the `&&` chain stops there rather than asserting against a stale `out.css`.
+
+The explicit `@source "./src"` is not optional. Building `src/app/globals.css` directly leaves the detection root at `src/app/`, `src/probe.html` falls outside it, and no utility is generated — a false FAIL that looks exactly like a real one.
 
 - [ ] **Step 6: Verify theme and accent switching**
 
 ```bash
-cd /tmp/nika-e2e && node -e "
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && node -e "
 const css = require('fs').readFileSync('src/app/nika-tokens.css','utf8');
 console.log('.dark block present:', /\.dark\s*{/.test(css));
 console.log('accent blocks:', (css.match(/\[data-accent=/g)||[]).length);
@@ -2245,7 +2420,7 @@ Expected: `.dark` present, 5 accent blocks (4 named plus `sun` sharing the `:roo
 - [ ] **Step 7: Verify the motion resolution order in the copied source**
 
 ```bash
-cd /tmp/nika-e2e && grep -n "useMotionPreset\|NikaMotionConfig\|useReducedMotion" src/lib/motion.ts | head && grep -n "motion?" src/components/ui/button.tsx
+cd "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" && grep -n "useMotionPreset\|NikaMotionConfig\|useReducedMotion" src/lib/motion.ts | head && grep -n "motion?" src/components/ui/button.tsx
 ```
 
 Expected: the copied `motion.ts` contains all three symbols, and the copied `button.tsx` declares the `motion?: MotionPreset` prop. The consumer got the real resolver, not a stub.
@@ -2257,7 +2432,7 @@ Write down, for each of the spec's five verification criteria, whether it passed
 - [ ] **Step 9: Clean up**
 
 ```bash
-rm -rf /tmp/nika-e2e /tmp/nika-init-check /tmp/nikaui-0.1.0.tgz && echo "scratch projects removed"
+rm -rf "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-e2e" "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nika-init-check" "C:/Users/rowee/AppData/Local/Temp/nika-scratch/nikaui-0.1.0.tgz" && echo "scratch projects removed"
 ```
 
 - [ ] **Step 10: Final gate and commit any fixes**
@@ -2279,7 +2454,9 @@ Sub-project B is done when every one of these holds:
 grep -c "^\s*--nika-" packages/registry/src/styles/tokens.css
 
 # 2. No component references the old vocabulary
-grep -rnE "\b(bg|text|border)-(background|foreground|card|popover|primary-foreground|secondary|muted-foreground|accent|destructive|input)\b" packages/registry/src/ui/
+#    ring-offset is in the prefix list on purpose: ring-offset-background is a
+#    token utility, and (bg|text|border|ring)- does not match it.
+grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/
 
 # 3. The animated boolean is gone
 grep -rn "animated" packages/registry/src/

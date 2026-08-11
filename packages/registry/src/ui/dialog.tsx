@@ -8,45 +8,54 @@ import {
   DialogBackdrop,
   Description,
 } from "@headlessui/react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Dialog = HeadlessDialog;
 
-const DialogContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof DialogPanel> & {
-    overlayClassName?: string;
+export interface DialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPanel> {
+  overlayClassName?: string;
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
+  ({ className, overlayClassName, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("dialog", motionProp);
+
+    return (
+      <DialogBackdrop className={cn("fixed inset-0 z-50", overlayClassName)}>
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50"
+        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <DialogPanel
+            ref={ref}
+            className={cn(
+              "w-full max-w-lg rounded-lg border border-line bg-canvas p-6 shadow-lg",
+              className
+            )}
+            {...props}
+          >
+            <m.div
+              initial={{ opacity: 0, scale: feel.scale.tap, y: 10 * feel.travel }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: feel.scale.tap, y: 10 * feel.travel }}
+              transition={feel.transition}
+            >
+              {children as React.ReactNode}
+            </m.div>
+          </DialogPanel>
+        </div>
+      </DialogBackdrop>
+    );
   }
->(({ className, overlayClassName, children, ...props }, ref) => (
-  <DialogBackdrop className={cn("fixed inset-0 z-50", overlayClassName)}>
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50"
-    />
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <DialogPanel
-        ref={ref}
-        className={cn(
-          "w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg",
-          className
-        )}
-        {...props}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {children as React.ReactNode}
-        </motion.div>
-      </DialogPanel>
-    </div>
-  </DialogBackdrop>
-));
+);
 DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
@@ -87,7 +96,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-content-muted", className)}
     {...props}
   />
 ));

@@ -41,13 +41,15 @@ export default function Example() {
 
 ## Animation
 
-Enable entrance animation with the `animated` prop:
+Card animates in on mount by default — a fade combined with a slide up, using the `spring` preset. Pass `motion="none"` to turn that off, or another preset to change the feel:
 
 ```tsx
-<Card animated>
-  Animates in with a spring slide-up effect.
+<Card motion="none">
+  No entrance animation.
 </Card>
 ```
+
+See [Animation](/docs/guide/animation) for the full list of presets and how to set a default globally with `NikaMotionConfig`.
 
 ## API Reference
 
@@ -55,7 +57,7 @@ Enable entrance animation with the `animated` prop:
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `animated` | `boolean` | `false` | Enable entrance animation |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the entrance transition |
 
 ### Sub-components
 

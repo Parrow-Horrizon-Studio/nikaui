@@ -16,7 +16,7 @@ Nika UI uses a **copy-paste model** — you install components individually via 
 - **Headless UI** — Accessible primitives from the Tailwind Labs team.
 - **TypeScript** — Full type safety with strict mode.
 - **CLI** — Install components individually with `npx nikaui add`.
-- **22+ Components** — From buttons to dialogs, tabs to toasts.
+- **27 Components** — From buttons to dialogs, tabs to toasts.
 
 ## Quick Start
 
@@ -35,7 +35,7 @@ import { Button } from "@/components/ui/button"
 
 Every Nika UI component follows these principles:
 
-1. **Animation by default** — Components come with motion built in, but every animation can be disabled with `animated={false}`.
+1. **Animation by default** — Components come with motion built in, tunable per component with a `motion` prop, or `motion="none"` to disable it. See [Animation](/docs/guide/animation).
 2. **Own the code** — Components are copied into your project, not installed as dependencies. Customize everything.
 3. **Tailwind-native** — No CSS-in-JS. No external stylesheets. Just Tailwind classes and CSS variables.
 4. **Accessible** — Interactive components use Headless UI for keyboard navigation, focus management, and screen reader support.

@@ -8,8 +8,9 @@ import {
   ComboboxOptions,
   ComboboxOption,
 } from "@headlessui/react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Combobox = HeadlessCombobox;
 
@@ -21,7 +22,7 @@ const ComboboxTrigger = React.forwardRef<
     <ComboboxInput
       ref={ref}
       className={cn(
-        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md border border-line-strong bg-canvas px-3 py-2 text-sm ring-offset-canvas placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -45,29 +46,38 @@ const ComboboxTrigger = React.forwardRef<
 ));
 ComboboxTrigger.displayName = "ComboboxTrigger";
 
-const ComboboxContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => (
-  <ComboboxOptions
-    ref={ref}
-    anchor="bottom start"
-    className={cn(
-      "z-50 max-h-60 w-[var(--input-width)] overflow-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md empty:hidden",
-      className
-    )}
-    {...props}
-  >
-    <motion.div
-      initial={{ opacity: 0, y: -4 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -4 }}
-      transition={{ duration: 0.15 }}
-    >
-      {children as React.ReactNode}
-    </motion.div>
-  </ComboboxOptions>
-));
+export interface ComboboxContentProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const ComboboxContent = React.forwardRef<HTMLDivElement, ComboboxContentProps>(
+  ({ className, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("combobox", motionProp);
+
+    return (
+      <ComboboxOptions
+        ref={ref}
+        anchor="bottom start"
+        className={cn(
+          "z-50 max-h-60 w-[var(--input-width)] overflow-auto rounded-md border border-line bg-overlay p-1 text-content shadow-md empty:hidden",
+          className
+        )}
+        {...props}
+      >
+        <m.div
+          initial={{ opacity: 0, y: -4 * feel.travel }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 * feel.travel }}
+          transition={feel.transition}
+        >
+          {children as React.ReactNode}
+        </m.div>
+      </ComboboxOptions>
+    );
+  }
+);
 ComboboxContent.displayName = "ComboboxContent";
 
 const ComboboxItem = React.forwardRef<
@@ -77,7 +87,7 @@ const ComboboxItem = React.forwardRef<
   <ComboboxOption
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[focus]:bg-accent data-[focus]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[focus]:bg-muted data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
