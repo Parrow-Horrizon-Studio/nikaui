@@ -8,44 +8,54 @@ import {
   DialogBackdrop,
   Description,
 } from "@headlessui/react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
 import { buttonVariants } from "./button";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const AlertDialog = HeadlessDialog;
 
-const AlertDialogContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof DialogPanel>
->(({ className, children, ...props }, ref) => (
-  <DialogBackdrop className="fixed inset-0 z-50">
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50"
-    />
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <DialogPanel
-        ref={ref}
-        className={cn(
-          "w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg",
-          className
-        )}
-        {...props}
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        >
-          {children as React.ReactNode}
-        </motion.div>
-      </DialogPanel>
-    </div>
-  </DialogBackdrop>
-));
+export interface AlertDialogContentProps
+  extends React.ComponentPropsWithoutRef<typeof DialogPanel> {
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const AlertDialogContent = React.forwardRef<HTMLDivElement, AlertDialogContentProps>(
+  ({ className, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("alert-dialog", motionProp);
+
+    return (
+      <DialogBackdrop className="fixed inset-0 z-50">
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50"
+        />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <DialogPanel
+            ref={ref}
+            className={cn(
+              "w-full max-w-lg rounded-lg border border-line bg-canvas p-6 shadow-lg",
+              className
+            )}
+            {...props}
+          >
+            <m.div
+              initial={{ opacity: 0, scale: feel.scale.tap }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: feel.scale.tap }}
+              transition={feel.transition}
+            >
+              {children as React.ReactNode}
+            </m.div>
+          </DialogPanel>
+        </div>
+      </DialogBackdrop>
+    );
+  }
+);
 AlertDialogContent.displayName = "AlertDialogContent";
 
 const AlertDialogHeader = ({
@@ -83,7 +93,7 @@ const AlertDialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-sm text-content-muted", className)}
     {...props}
   />
 ));

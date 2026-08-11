@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion as m } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 interface TooltipContextValue {
   open: boolean;
@@ -58,12 +59,16 @@ function TooltipContent({
   children,
   className,
   side = "top",
+  motion: motionProp,
 }: {
   children: React.ReactNode;
   className?: string;
   side?: "top" | "bottom" | "left" | "right";
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
 }) {
   const { open } = useTooltip();
+  const feel = useMotionPreset("tooltip", motionProp);
 
   const positionClasses = {
     top: "bottom-full left-1/2 -translate-x-1/2 mb-2",
@@ -82,20 +87,20 @@ function TooltipContent({
   return (
     <AnimatePresence>
       {open && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, ...motionOrigin[side] }}
           animate={{ opacity: 1, x: 0, y: 0 }}
           exit={{ opacity: 0, ...motionOrigin[side] }}
-          transition={{ duration: 0.15 }}
+          transition={feel.transition}
           className={cn(
-            "absolute z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md whitespace-nowrap",
+            "absolute z-50 overflow-hidden rounded-md border border-line bg-overlay px-3 py-1.5 text-sm text-content shadow-md whitespace-nowrap",
             positionClasses[side],
             className
           )}
           role="tooltip"
         >
           {children}
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

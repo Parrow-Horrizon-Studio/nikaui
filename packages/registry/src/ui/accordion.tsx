@@ -6,8 +6,9 @@ import {
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Accordion = ({
   className,
@@ -20,7 +21,7 @@ const AccordionItem = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
-  <Disclosure as="div" className={cn("border-b", className)} {...props} />
+  <Disclosure as="div" className={cn("border-b border-line", className)} {...props} />
 );
 
 const AccordionTrigger = React.forwardRef<
@@ -52,22 +53,31 @@ const AccordionTrigger = React.forwardRef<
 ));
 AccordionTrigger.displayName = "AccordionTrigger";
 
-const AccordionContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof DisclosurePanel>
->(({ className, children, ...props }, ref) => (
-  <DisclosurePanel ref={ref} {...props}>
-    <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="overflow-hidden"
-    >
-      <div className={cn("pb-4 pt-0 text-sm", className)}>{children as React.ReactNode}</div>
-    </motion.div>
-  </DisclosurePanel>
-));
+export interface AccordionContentProps
+  extends React.ComponentPropsWithoutRef<typeof DisclosurePanel> {
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
+const AccordionContent = React.forwardRef<HTMLDivElement, AccordionContentProps>(
+  ({ className, children, motion: motionProp, ...props }, ref) => {
+    const feel = useMotionPreset("accordion", motionProp);
+
+    return (
+      <DisclosurePanel ref={ref} {...props}>
+        <m.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={feel.transition}
+          className="overflow-hidden"
+        >
+          <div className={cn("pb-4 pt-0 text-sm", className)}>{children as React.ReactNode}</div>
+        </m.div>
+      </DisclosurePanel>
+    );
+  }
+);
 AccordionContent.displayName = "AccordionContent";
 
 export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };

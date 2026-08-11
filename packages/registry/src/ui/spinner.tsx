@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "motion/react";
+import { motion as m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
+import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
-const spinnerVariants = cva("animate-spin text-muted-foreground", {
+const spinnerVariants = cva("animate-spin text-content-muted", {
   variants: {
     size: {
       sm: "h-4 w-4",
@@ -43,22 +44,29 @@ const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
 );
 Spinner.displayName = "Spinner";
 
+export interface LoadingDotsProps {
+  className?: string;
+  /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
+  motion?: MotionPreset;
+}
+
 /**
  * A motion-enhanced loading dots indicator.
  */
-function LoadingDots({ className }: { className?: string }) {
+function LoadingDots({ className, motion: motionProp }: LoadingDotsProps) {
+  const feel = useMotionPreset("spinner", motionProp);
+
   return (
     <div className={cn("flex items-center gap-1", className)}>
       {[0, 1, 2].map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="h-2 w-2 rounded-full bg-current"
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
-            duration: 1,
+            ...feel.transition,
             repeat: Infinity,
             delay: i * 0.2,
-            ease: "easeInOut",
           }}
         />
       ))}

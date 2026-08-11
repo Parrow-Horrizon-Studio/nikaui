@@ -27,7 +27,9 @@
           "target": "@lib/motion.ts"
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        "motion"
+      ],
       "registryDependencies": [],
       "access": "free"
     }
@@ -48,7 +50,8 @@
         "class-variance-authority"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -84,7 +87,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -169,7 +173,8 @@
         "class-variance-authority"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -220,7 +225,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -239,7 +245,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -258,7 +265,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -277,7 +285,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -296,7 +305,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -315,7 +325,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -334,7 +345,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -353,7 +365,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -371,7 +384,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -390,7 +404,8 @@
         "class-variance-authority"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     },
@@ -410,6 +425,7 @@
       ],
       "registryDependencies": [
         "utils",
+        "motion",
         "button"
       ],
       "access": "free"
@@ -429,7 +445,8 @@
         "motion"
       ],
       "registryDependencies": [
-        "utils"
+        "utils",
+        "motion"
       ],
       "access": "free"
     }
