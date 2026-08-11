@@ -4,7 +4,9 @@ description: How to install and set up Nika UI in your project.
 ---
 
 <Callout type="warn" title="Pre-release">
-  The CLI is not yet published to npm — see the
+  `nikaui` exists on npm today only as a placeholder that reserves the name —
+  running it prints an in-development notice and installs nothing. The CLI
+  described on this page hasn't shipped yet; see the
   [master plan](https://github.com/Parrow-Horrizon-Studio/nikaui/blob/main/docs/MASTER-PLAN.md)
   for what's being built and in what order.
 </Callout>
@@ -30,8 +32,9 @@ This will:
 1. Ask where to install components (default: `src/components/ui`)
 2. Ask where to install utilities (default: `src/lib`)
 3. Create `nika.config.ts` with your settings
-4. Install base dependencies (`clsx`, `tailwind-merge`, `motion`)
+4. Copy the token layer (`nika-tokens.css`) next to your global stylesheet and add an `@import` for it
 5. Create the `cn()` utility and motion presets
+6. Install base dependencies (`clsx`, `tailwind-merge`, `motion`)
 
 ## Add Components
 
@@ -86,7 +89,8 @@ export default {
     ui: "@/components/ui",
     utils: "@/lib/utils",
     hooks: "@/hooks",
+    blocks: "@/components/blocks",
   },
-  motion: true,
+  motion: "spring",
 } as const;
 ```
