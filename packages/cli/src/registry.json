@@ -449,6 +449,95 @@
         "motion"
       ],
       "access": "free"
+    },
+    "alert": {
+      "name": "alert",
+      "type": "ui",
+      "description": "A callout for status, warnings and errors",
+      "files": [
+        {
+          "source": "ui/alert.tsx",
+          "target": "@ui/alert.tsx"
+        }
+      ],
+      "dependencies": [
+        "class-variance-authority"
+      ],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
+    },
+    "textarea": {
+      "name": "textarea",
+      "type": "ui",
+      "description": "A multi-line text input",
+      "files": [
+        {
+          "source": "ui/textarea.tsx",
+          "target": "@ui/textarea.tsx"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
+    },
+    "radio-group": {
+      "name": "radio-group",
+      "type": "ui",
+      "description": "A set of mutually exclusive options",
+      "files": [
+        {
+          "source": "ui/radio-group.tsx",
+          "target": "@ui/radio-group.tsx"
+        }
+      ],
+      "dependencies": [
+        "@headlessui/react",
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils",
+        "motion"
+      ],
+      "access": "free"
+    },
+    "slider": {
+      "name": "slider",
+      "type": "ui",
+      "description": "A range input for selecting a value along a track",
+      "files": [
+        {
+          "source": "ui/slider.tsx",
+          "target": "@ui/slider.tsx"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "utils"
+      ],
+      "access": "free"
+    },
+    "progress": {
+      "name": "progress",
+      "type": "ui",
+      "description": "A determinate or indeterminate progress bar",
+      "files": [
+        {
+          "source": "ui/progress.tsx",
+          "target": "@ui/progress.tsx"
+        }
+      ],
+      "dependencies": [
+        "motion"
+      ],
+      "registryDependencies": [
+        "utils",
+        "motion"
+      ],
+      "access": "free"
     }
   },
   "styles": {
