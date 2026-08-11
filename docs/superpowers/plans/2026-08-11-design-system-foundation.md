@@ -61,7 +61,7 @@ This table is the complete specification for the component migration in Tasks 7 
 
 **Anything not in this table is not a token utility and must not be touched.** `rounded-md`, `h-10`, `px-4`, `text-sm`, `font-medium`, `transition-colors`, `disabled:opacity-50` and similar are layout and typography — leave them exactly as they are.
 
-### Three rules the table's rename rows cannot express
+### Four rules the table's rename rows cannot express
 
 These were found by enumerating every colour-bearing utility actually present in `packages/registry/src/ui/` after Task 7. They are part of the migration, not exceptions to it.
 
@@ -70,12 +70,16 @@ These were found by enumerating every colour-bearing utility actually present in
 **2. `toast.tsx`'s `success` variant stops hard-coding green.** It currently reads `border-green-500/50 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100`. `--nika-success` exists and is deliberately theme-invariant, so one set of utilities covers both themes and the `dark:` variants go away:
 
 ```
-border-success/50 bg-success/10 text-success
+border-success/30 bg-success/10 text-content
 ```
+
+**The hue is the surface, never the body text.** This rule originally specified `border-success/50 bg-success/10 text-success`, and that form is unreadable: `text-success` on a 10% wash of `--nika-success` over the light canvas measures **1.94:1**, because the hue and a tenth of it over a near-white page land at almost the same luminance. `text-content` on the same tint measures 14.9:1. The status hues are safe as fills, borders and large icons; they are not body-text colours on the light canvas (`--nika-success` alone is 2.08:1 against it, `--nika-warning` 1.70:1). `alert.tsx` uses the corrected form, and the same treatment applies to every status variant of every component.
 
 **3. `bg-black/50` on the dialog and alert-dialog scrims stays.** It is the one hard-coded colour that survives. There is no scrim token, a pure black at low alpha is correct on both canvases, and inventing `--nika-scrim` after the token layer has been reviewed and closed is a bigger change than this migration should carry. Leave both sites exactly as they are.
 
-`bg-transparent`, `border-transparent`, `bg-current`, `outline-none`, `ring-offset-2` and every `shadow-*` are also not token utilities. Leave them.
+**4. A `ring-offset-<width>` with no offset colour gets `ring-offset-canvas`.** Exactly the `border-line` situation in rule 1, one property over. Tailwind v4 defaults `--tw-ring-offset-color` to `#fff`, so `ring-offset-2` on its own draws a white band between the element and its focus ring — invisible on the light canvas and a bright halo on the dark one. Add `ring-offset-canvas` wherever an offset width appears with no offset colour, carrying the same variant prefix the width uses (`focus-visible:ring-offset-2` takes `focus-visible:ring-offset-canvas`). The mapping table's `ring-offset-background` → `ring-offset-canvas` row only covers the sites that already named a colour; these are the sites that never did.
+
+`bg-transparent`, `border-transparent`, `bg-current`, `outline-none` and every `shadow-*` are also not token utilities. Leave them. (`ring-offset-2` was listed here as well; rule 4 supersedes that — the width utility stays, but it no longer travels alone.)
 
 ### The completeness check
 
@@ -127,7 +131,7 @@ CSS token values and className strings are **not** unit-tested. Asserting that a
 | `packages/cli/src/commands/add.ts` | Honours full relative targets instead of flattening to basename |
 | `packages/cli/src/utils/config.ts` | `motion: MotionPreset`; `aliases.blocks` |
 | `packages/cli/src/registry.json` | Schema v2: `access`, alias-relative targets, `styles` group |
-| `apps/docs/src/app/globals.css` | Imports the registry token layer; assigns `--fd-*` from `--nika-*` |
+| `apps/docs/src/app/globals.css` | Imports the registry token layer; assigns `--color-fd-*` from `--nika-*` |
 | `apps/docs/src/app/layout.tsx` | Loads Manrope and JetBrains Mono via `next/font`; `defaultTheme="dark"` |
 
 **Deleted**
@@ -2195,27 +2199,27 @@ Read the existing file first to preserve any rule that is genuinely the docs sit
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "@nikaui/registry/styles/tokens.css";
-@source "../../../packages/registry/src";
+@source "../../../../packages/registry/src";
 
-/* Fumadocs chrome inherits the Nika accent. One way only: --fd-* is
+/* Fumadocs chrome inherits the Nika accent. One way only: --color-fd-* is
    assigned from --nika-*, never the reverse, and never in the registry. */
 :root {
-  --fd-background: var(--nika-canvas);
-  --fd-foreground: var(--nika-content);
-  --fd-muted: var(--nika-muted);
-  --fd-muted-foreground: var(--nika-content-muted);
-  --fd-popover: var(--nika-overlay);
-  --fd-popover-foreground: var(--nika-content);
-  --fd-card: var(--nika-surface);
-  --fd-card-foreground: var(--nika-content);
-  --fd-border: var(--nika-line);
-  --fd-primary: var(--nika-primary);
-  --fd-primary-foreground: var(--nika-primary-fg);
-  --fd-secondary: var(--nika-surface-2);
-  --fd-secondary-foreground: var(--nika-content);
-  --fd-accent: var(--nika-muted);
-  --fd-accent-foreground: var(--nika-content);
-  --fd-ring: var(--nika-ring);
+  --color-fd-background: var(--nika-canvas);
+  --color-fd-foreground: var(--nika-content);
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+  --color-fd-popover: var(--nika-overlay);
+  --color-fd-popover-foreground: var(--nika-content);
+  --color-fd-card: var(--nika-surface);
+  --color-fd-card-foreground: var(--nika-content);
+  --color-fd-border: var(--nika-line);
+  --color-fd-primary: var(--nika-primary);
+  --color-fd-primary-foreground: var(--nika-primary-fg);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-secondary-foreground: var(--nika-content);
+  --color-fd-accent: var(--nika-muted);
+  --color-fd-accent-foreground: var(--nika-content);
+  --color-fd-ring: var(--nika-ring);
 }
 
 body {
@@ -2225,7 +2229,13 @@ body {
 }
 ```
 
-If Fumadocs' preset requires the `--fd-*` values in a specific colour format rather than raw OKLCH, the build or the rendered page will show it. Report what you find rather than guessing at a conversion.
+**Two details in that block are load-bearing, and both fail silently if you get them wrong.**
+
+*The `@source` path is four levels up, not three.* It is resolved relative to the file it sits in, `apps/docs/src/app/globals.css`. Three levels from `apps/docs/src/app/` is `apps/`, so `../../../packages/registry/src` points at `apps/packages/registry/src`, which does not exist. Tailwind does not error on a missing `@source`; it just scans nothing, the component previews render unstyled, and the build stays green.
+
+*The variables are `--color-fd-*`, not `--fd-*`.* Fumadocs 16 registers its Tailwind colour tokens under the `--color-fd-*` namespace (see `fumadocs-ui/css/lib/default-colors.css`); utilities like `bg-fd-primary` and Fumadocs' own component CSS read that name. The bare `--fd-*` properties are reserved for layout dimensions such as `--fd-sidebar-width` and `--fd-header-height`, and Fumadocs 16 has zero consumers of a bare `--fd-background`. Assigning the bare name compiles, passes every check in this task, and themes nothing — every Fumadocs colour utility keeps rendering with Fumadocs' own default palette.
+
+If Fumadocs' preset requires the values in a specific colour format rather than raw OKLCH, the build or the rendered page will show it. Report what you find rather than guessing at a conversion.
 
 - [ ] **Step 2: Make the registry's CSS importable**
 
@@ -2309,8 +2319,8 @@ cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && git add -A && git com
 
 The docs app defined its own shadcn-style HSL set and mapped it
 separately. It now imports the registry's tokens and assigns Fumadocs'
---fd-* variables from --nika-*, one way only, so the chrome inherits the
-accent while the library stays independent of Fumadocs.
+--color-fd-* variables from --nika-*, one way only, so the chrome inherits
+the accent while the library stays independent of Fumadocs.
 
 Manrope and JetBrains Mono are loaded here via next/font and override the
 Nika defaults for this site only. The library itself ships system stacks."
