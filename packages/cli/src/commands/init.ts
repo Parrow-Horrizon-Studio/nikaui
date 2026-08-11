@@ -12,7 +12,7 @@ import {
 import { getRegistryFile } from "../utils/registry-files.js";
 import { applyMotionPreset } from "../utils/motion-source.js";
 import { MOTION_PRESETS, type MotionPreset } from "../utils/config.js";
-import { isContainedPath } from "../utils/paths.js";
+import { checkContainment, isContainedPath } from "../utils/paths.js";
 
 const DEFAULTS = {
   componentsDir: "src/components/ui",
@@ -55,6 +55,25 @@ function isValidStylesheetPath(cwd: string, value: string): boolean {
   return !!value && value.endsWith(".css") && isContainedPath(cwd, value);
 }
 
+/**
+ * The clause completing "Must …" (prompt) / "It must …" (guard) for a
+ * rejected componentsDir/utilsDir answer, or `null` if it's fine.
+ *
+ * Distinguishes `checkContainment`'s "root" result from "outside": an
+ * answer that resolves to `cwd` itself (e.g. "", ".", or enough `../` to
+ * cancel back to the start) didn't escape anywhere, so "resolve inside the
+ * project" reads like an escape complaint for an answer that just named
+ * the project itself. The real objection there is narrower — it has to be
+ * a subdirectory.
+ */
+function dirContainmentError(cwd: string, value: string): string | null {
+  const result = checkContainment(cwd, value);
+  if (result === "ok") return null;
+  return result === "root"
+    ? "be a subdirectory of the project, not the project root itself"
+    : "resolve inside the project";
+}
+
 export const initCommand = new Command()
   .name("init")
   .description("Initialize Nika UI in your project")
@@ -90,18 +109,20 @@ export const initCommand = new Command()
               name: "componentsDir",
               message: "Where should components be installed?",
               initial: DEFAULTS.componentsDir,
-              validate: (value: string) =>
-                isContainedPath(cwd, value) ||
-                "Must be a path inside the project",
+              validate: (value: string) => {
+                const error = dirContainmentError(cwd, value);
+                return error === null || `Must ${error}`;
+              },
             },
             {
               type: "text",
               name: "utilsDir",
               message: "Where should utilities be installed?",
               initial: DEFAULTS.utilsDir,
-              validate: (value: string) =>
-                isContainedPath(cwd, value) ||
-                "Must be a path inside the project",
+              validate: (value: string) => {
+                const error = dirContainmentError(cwd, value);
+                return error === null || `Must ${error}`;
+              },
             },
             {
               type: "text",
@@ -148,19 +169,21 @@ export const initCommand = new Command()
     // (as used in this project's own tests) both skip it, so re-check here
     // — before any directory is created or file written — rather than
     // trust the prompts alone.
-    if (!isContainedPath(cwd, response.componentsDir)) {
+    const componentsDirError = dirContainmentError(cwd, response.componentsDir);
+    if (componentsDirError) {
       console.error(
         chalk.red(
-          `\n  Invalid components directory: "${response.componentsDir}". It must resolve inside the project.\n`
+          `\n  Invalid components directory: "${response.componentsDir}". It must ${componentsDirError}.\n`
         )
       );
       process.exit(1);
     }
 
-    if (!isContainedPath(cwd, response.utilsDir)) {
+    const utilsDirError = dirContainmentError(cwd, response.utilsDir);
+    if (utilsDirError) {
       console.error(
         chalk.red(
-          `\n  Invalid utils directory: "${response.utilsDir}". It must resolve inside the project.\n`
+          `\n  Invalid utils directory: "${response.utilsDir}". It must ${utilsDirError}.\n`
         )
       );
       process.exit(1);

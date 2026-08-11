@@ -23,6 +23,14 @@ describe("isContainedPath", () => {
     expect(isContainedPath(cwd, "../../../../etc/passwd")).toBe(false);
   });
 
+  it("accepts a path that escapes and returns inside the project", () => {
+    // "subdir" then two levels up cancels back to `cwd` (whose basename is
+    // "project"), then back down into it — net effect is a normal path
+    // inside the project, and should be accepted. This is the case a naive
+    // "reject anything containing `..`" fix would wrongly break.
+    expect(isContainedPath(cwd, "subdir/../../project/file.txt")).toBe(true);
+  });
+
   it("accepts an absolute path inside the project", () => {
     expect(isContainedPath(cwd, path.join(cwd, "src", "lib"))).toBe(true);
   });
@@ -44,11 +52,15 @@ describe("isContainedPath", () => {
   // `path.relative` returns a `..`-prefixed path for anything outside `cwd`
   // in the common case — except when the two paths are on different
   // drives, where Windows returns an *absolute* path instead (neither
-  // `..`-prefixed nor `""`). Only meaningful on win32; POSIX has no drive
-  // letters to cross.
-  describe.runIf(process.platform === "win32")("different-drive escape (win32)", () => {
-    it("rejects a target on a different drive than cwd", () => {
-      expect(isContainedPath("C:\\Users\\me\\project", "D:\\evil")).toBe(false);
-    });
+  // `..`-prefixed nor `""`). `isContainedPath` takes an optional platform
+  // implementation (defaulting to the host's `path`) precisely so this
+  // branch can be exercised deterministically on every CI runner — passing
+  // `path.win32` here reproduces Windows drive semantics even when this
+  // suite runs on Linux, where the default `path` would never take the
+  // absolute-`rel` branch at all (POSIX has no drive letters to cross).
+  it("rejects a target on a different drive than cwd, under win32 semantics", () => {
+    expect(isContainedPath("C:\\Users\\me\\project", "D:\\evil", path.win32)).toBe(
+      false
+    );
   });
 });
