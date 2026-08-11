@@ -38,9 +38,32 @@ describe("motionPresets", () => {
     expect(damping).toEqual([...damping].sort((a, b) => b - a));
   });
 
-  it("makes none a true no-op", () => {
+  it("orders travel multipliers the same way as the scale, ascending from snap to bounce", () => {
+    const travel = (["snap", "glide", "spring", "bounce"] as const).map(
+      (k) => motionPresets[k].travel
+    );
+    expect(travel).toEqual([...travel].sort((a, b) => a - b));
+  });
+
+  it("makes none a true no-op: no scale, no travel, and explicitly disabled", () => {
     expect(motionPresets.none.scale.hover).toBe(1);
     expect(motionPresets.none.scale.tap).toBe(1);
+    expect(motionPresets.none.travel).toBe(0);
+    expect(motionPresets.none.enabled).toBe(false);
+  });
+
+  it("enables every preset except none", () => {
+    expect(motionPresets.none.enabled).toBe(false);
+    for (const key of ["snap", "glide", "spring", "bounce"] as const) {
+      expect(motionPresets[key].enabled).toBe(true);
+    }
+  });
+
+  it("gives spring — the built-in default — a travel multiplier of exactly 1", () => {
+    // A component multiplying its base travel distance by feel.travel must
+    // render identically to before this field existed when the resolver
+    // falls through to its built-in default.
+    expect(motionPresets.spring.travel).toBe(1);
   });
 });
 

@@ -63,9 +63,9 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
         {...props}
       >
         <m.div
-          initial={{ opacity: 0, y: -4 }}
+          initial={{ opacity: 0, y: -4 * feel.travel }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
+          exit={{ opacity: 0, y: -4 * feel.travel }}
           transition={feel.transition}
         >
           {children as React.ReactNode}

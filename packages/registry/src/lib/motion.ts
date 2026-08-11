@@ -8,33 +8,58 @@ import { useReducedMotion, type Transition } from "motion/react";
  *
  * Each component decides what it animates — a Button scales on hover, a
  * Dialog fades and lifts on enter, an Accordion animates height. The preset
- * decides how any of that feels: a spring configuration plus a travel
- * multiplier. That is what lets one name stay coherent across components
- * that animate entirely different properties.
+ * decides how any of that feels: a spring configuration, a travel
+ * multiplier, and a scale multiplier. That is what lets one name stay
+ * coherent across components that animate entirely different properties.
  *
- * The scale is ordered by descending damping: snap and glide never
- * overshoot, spring overshoots slightly, bounce pronouncedly.
+ * `enabled` is the explicit "should this animate at all" bit. `none` needs
+ * it because `transition: { duration: 0 }` alone does not mean "off" — a
+ * component that also sets `repeat: Infinity` (a continuous loop, not an
+ * enter/exit) combines with a zero duration into a loop that never settles.
+ * Components with a `repeat` must branch on `feel.enabled` and render a
+ * static state instead of animating with a zero-length transition.
+ *
+ * `travel` is the distance multiplier for components that translate on
+ * enter/exit (a Dialog lifting, a Popover dropping in). Each component keeps
+ * its own base distance and direction (`y: 10`, `y: -4`, …) and multiplies
+ * it by `feel.travel`, the same way `feel.scale.hover` / `feel.scale.tap`
+ * scale a hover/tap transform. `travel: 0` under `none` collapses entrance
+ * travel to nothing, which is the correct reduced-motion behaviour.
+ *
+ * The scale and travel columns are both ordered by descending damping: snap
+ * and glide are the smallest and tightest, spring is the built-in default,
+ * bounce is the largest and loosest.
  */
 export const motionPresets = {
   none: {
     transition: { duration: 0 } as Transition,
     scale: { hover: 1, tap: 1 },
+    travel: 0,
+    enabled: false,
   },
   snap: {
     transition: { type: "spring", stiffness: 700, damping: 40 } as Transition,
     scale: { hover: 1.01, tap: 0.99 },
+    travel: 0.5,
+    enabled: true,
   },
   glide: {
     transition: { type: "spring", stiffness: 220, damping: 32 } as Transition,
     scale: { hover: 1.02, tap: 0.98 },
+    travel: 0.8,
+    enabled: true,
   },
   spring: {
     transition: { type: "spring", stiffness: 420, damping: 22 } as Transition,
     scale: { hover: 1.03, tap: 0.97 },
+    travel: 1,
+    enabled: true,
   },
   bounce: {
     transition: { type: "spring", stiffness: 520, damping: 13 } as Transition,
     scale: { hover: 1.05, tap: 0.94 },
+    travel: 1.4,
+    enabled: true,
   },
 } as const;
 

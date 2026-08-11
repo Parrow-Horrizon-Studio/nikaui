@@ -58,7 +58,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         {...props}
       >
         <m.div
-          initial={{ opacity: 0, y: 4 }}
+          initial={{ opacity: 0, y: 4 * feel.travel }}
           animate={{ opacity: 1, y: 0 }}
           transition={feel.transition}
         >

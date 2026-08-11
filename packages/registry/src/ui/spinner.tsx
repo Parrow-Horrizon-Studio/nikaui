@@ -52,6 +52,14 @@ export interface LoadingDotsProps {
 
 /**
  * A motion-enhanced loading dots indicator.
+ *
+ * `repeat: Infinity` makes this a continuous loop, not an enter/exit — a
+ * zero-length transition (feel.transition under "none") does not stop a
+ * looping animation, it just restarts it every frame. So this branches on
+ * `feel.enabled` explicitly: disabled renders all three dots at a fixed,
+ * fully-opaque state (still a visible "loading" affordance — three solid
+ * dots read as active/pending — without motion), rather than animating with
+ * duration 0 or freezing at whatever the last keyframe happened to be.
  */
 function LoadingDots({ className, motion: motionProp }: LoadingDotsProps) {
   const feel = useMotionPreset("spinner", motionProp);
@@ -62,12 +70,12 @@ function LoadingDots({ className, motion: motionProp }: LoadingDotsProps) {
         <m.div
           key={i}
           className="h-2 w-2 rounded-full bg-current"
-          animate={{ opacity: [0.3, 1, 0.3] }}
-          transition={{
-            ...feel.transition,
-            repeat: Infinity,
-            delay: i * 0.2,
-          }}
+          animate={feel.enabled ? { opacity: [0.3, 1, 0.3] } : { opacity: 1 }}
+          transition={
+            feel.enabled
+              ? { ...feel.transition, repeat: Infinity, delay: i * 0.2 }
+              : feel.transition
+          }
         />
       ))}
     </div>

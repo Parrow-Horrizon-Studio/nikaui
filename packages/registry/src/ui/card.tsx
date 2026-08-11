@@ -17,7 +17,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     return (
       <m.div
         ref={ref}
-        initial={{ opacity: 0, y: 20 * (feel.scale.hover - 1) * 25 }}
+        initial={{ opacity: 0, y: 15 * feel.travel }}
         animate={{ opacity: 1, y: 0 }}
         transition={feel.transition}
         className={cn(

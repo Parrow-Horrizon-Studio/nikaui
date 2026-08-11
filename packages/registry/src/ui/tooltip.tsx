@@ -78,10 +78,10 @@ function TooltipContent({
   };
 
   const motionOrigin = {
-    top: { y: 4 },
-    bottom: { y: -4 },
-    left: { x: 4 },
-    right: { x: -4 },
+    top: { y: 4 * feel.travel },
+    bottom: { y: -4 * feel.travel },
+    left: { x: 4 * feel.travel },
+    right: { x: -4 * feel.travel },
   };
 
   return (

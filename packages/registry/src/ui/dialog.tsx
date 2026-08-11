@@ -43,9 +43,9 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
             {...props}
           >
             <m.div
-              initial={{ opacity: 0, scale: feel.scale.tap, y: 10 }}
+              initial={{ opacity: 0, scale: feel.scale.tap, y: 10 * feel.travel }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: feel.scale.tap, y: 10 }}
+              exit={{ opacity: 0, scale: feel.scale.tap, y: 10 * feel.travel }}
               transition={feel.transition}
             >
               {children as React.ReactNode}
