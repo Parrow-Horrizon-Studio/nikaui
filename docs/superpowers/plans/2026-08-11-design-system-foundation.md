@@ -61,6 +61,32 @@ This table is the complete specification for the component migration in Tasks 7 
 
 **Anything not in this table is not a token utility and must not be touched.** `rounded-md`, `h-10`, `px-4`, `text-sm`, `font-medium`, `transition-colors`, `disabled:opacity-50` and similar are layout and typography — leave them exactly as they are.
 
+### Three rules the table's rename rows cannot express
+
+These were found by enumerating every colour-bearing utility actually present in `packages/registry/src/ui/` after Task 7. They are part of the migration, not exceptions to it.
+
+**1. A border width with no border colour gets `border-line`.** `border`, `border-b`, `border-t` and friends resolve to `currentColor` in Tailwind v4 — so today these borders render in the *text* colour, which is never what was intended. Add `border-line` alongside the width utility wherever no border-colour utility is already present. Do not add it where one is (`border-line-strong`, `border-danger`, `border-primary`, `border-transparent`).
+
+**2. `toast.tsx`'s `success` variant stops hard-coding green.** It currently reads `border-green-500/50 bg-green-50 text-green-900 dark:bg-green-950 dark:text-green-100`. `--nika-success` exists and is deliberately theme-invariant, so one set of utilities covers both themes and the `dark:` variants go away:
+
+```
+border-success/50 bg-success/10 text-success
+```
+
+**3. `bg-black/50` on the dialog and alert-dialog scrims stays.** It is the one hard-coded colour that survives. There is no scrim token, a pure black at low alpha is correct on both canvases, and inventing `--nika-scrim` after the token layer has been reviewed and closed is a bigger change than this migration should carry. Leave both sites exactly as they are.
+
+`bg-transparent`, `border-transparent`, `bg-current`, `outline-none`, `ring-offset-2` and every `shadow-*` are also not token utilities. Leave them.
+
+### The completeness check
+
+This pattern is the gate for Tasks 7 and 8. It was validated against two fixtures before being written here: a correctly-migrated file (zero hits, including the `destructive:` CVA variant key and the five rows whose names survive) and a fixture containing all twenty-three stale names (every one caught).
+
+```bash
+grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/ || echo "PASS: no stale token utilities remain"
+```
+
+It deliberately omits `bg-primary`, `text-primary`, `border-primary`, `bg-muted` and `ring-ring` — those names survive the migration, so their presence signals nothing, and including them produces substring false positives against `bg-primary-hover`.
+
 ## Already fixed — do not go looking for these
 
 The spec's §3 lists three defects for B. **One of them is already gone.**
@@ -1718,7 +1744,7 @@ Then, in the same file, give the `motion` **lib** entry its npm package — it d
 `ring-offset` is in the prefix alternation deliberately: `ring-offset-background` is a token utility that six components carry, and a regex anchored on `\b(bg|text|border|ring|…)-` does not match it — `ring-offset` is a longer prefix, not a `ring-` utility. Without it this check reports PASS while every focused input keeps Tailwind's white default ring offset.
 
 ```bash
-cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rnE "\b(bg|text|border|ring|ring-offset|from|to|via)-(background|foreground|card|card-foreground|popover|popover-foreground|primary-foreground|secondary|secondary-foreground|muted-foreground|accent|accent-foreground|destructive|destructive-foreground|input)\b" packages/registry/src/ui/ || echo "PASS: no old token utilities remain"
+cd "F:/dev/00_Parrow-Horrizon-Studio/01_nika-ui/nikaui" && grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/ || echo "PASS: no old token utilities remain"
 ```
 
 Expected: the PASS line. `ring-offset-canvas` — the migrated form — does not match, and neither does the layout utility `ring-offset-2`.
@@ -2415,7 +2441,7 @@ grep -c "^\s*--nika-" packages/registry/src/styles/tokens.css
 # 2. No component references the old vocabulary
 #    ring-offset is in the prefix list on purpose: ring-offset-background is a
 #    token utility, and (bg|text|border|ring)- does not match it.
-grep -rnE "\b(bg|text|border|ring-offset)-(background|foreground|card|popover|primary-foreground|secondary|muted-foreground|accent|destructive|input)\b" packages/registry/src/ui/
+grep -rnE '\b(bg-background|text-foreground|bg-card|text-card-foreground|bg-popover|text-popover-foreground|bg-primary/90|text-primary-foreground|bg-secondary|text-secondary-foreground|text-muted-foreground|bg-accent|text-accent-foreground|bg-destructive|text-destructive-foreground|border-destructive|border-input|bg-input|bg-border|ring-offset-background)\b' packages/registry/src/ui/
 
 # 3. The animated boolean is gone
 grep -rn "animated" packages/registry/src/
