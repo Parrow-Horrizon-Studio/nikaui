@@ -15,9 +15,9 @@ export async function getRegistryFile(sourcePath: string): Promise<string> {
   // Try local paths (monorepo dev, or installed via node_modules)
   const cliDir = fileURLToPath(new URL(".", import.meta.url));
   const localPaths = [
-    // Monorepo: cli/dist/../../../registry/src/
+    // Monorepo: cli/dist/../../registry/src/
     path.resolve(cliDir, "..", "..", "registry", "src", sourcePath),
-    // Installed: node_modules/nikaui/dist/../../../@nikaui/registry/src/
+    // Installed: node_modules/nikaui/dist/../../@nikaui/registry/src/
     path.resolve(cliDir, "..", "..", "@nikaui", "registry", "src", sourcePath),
   ];
 
