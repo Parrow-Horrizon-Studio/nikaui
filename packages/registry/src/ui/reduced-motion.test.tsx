@@ -18,8 +18,11 @@ import { Skeleton } from "./skeleton";
 describe("keyframe animations obey the motion resolver", () => {
   it("Spinner spins by default", () => {
     const { container } = render(<Spinner />);
+    // motion-safe:, not a bare animate-spin — the visitor's half of the gate
+    // is CSS, because this class list is server-rendered. See
+    // useConfiguredMotion and ui/hydration.test.tsx.
     expect(container.querySelector("svg")!.className.baseVal).toContain(
-      "animate-spin"
+      "motion-safe:animate-spin"
     );
   });
 
@@ -54,7 +57,9 @@ describe("keyframe animations obey the motion resolver", () => {
 
   it("Skeleton pulses by default", () => {
     const { container } = render(<Skeleton data-testid="s" />);
-    expect(container.firstElementChild!.className).toContain("animate-pulse");
+    expect(container.firstElementChild!.className).toContain(
+      "motion-safe:animate-pulse"
+    );
   });
 
   it("Skeleton stops when the instance prop says none", () => {

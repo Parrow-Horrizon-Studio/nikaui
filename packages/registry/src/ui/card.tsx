@@ -3,7 +3,11 @@
 import * as React from "react";
 import { motion as m, type HTMLMotionProps } from "motion/react";
 import { cn } from "../lib/utils";
-import { useMotionPreset, type MotionPreset } from "../lib/motion";
+import {
+  useConfiguredMotion,
+  useMotionPreset,
+  type MotionPreset,
+} from "../lib/motion";
 
 export interface CardProps extends HTMLMotionProps<"div"> {
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
@@ -13,15 +17,24 @@ export interface CardProps extends HTMLMotionProps<"div"> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("card", motionProp);
+    // The from-state is server-rendered, so it must not depend on a
+    // preference only the client can read — see useConfiguredMotion.
+    const configured = useConfiguredMotion("card", motionProp);
 
     return (
       <m.div
         ref={ref}
-        initial={{ opacity: 0, y: 15 * feel.travel }}
+        initial={
+          configured.enabled ? { opacity: 0, y: 15 * configured.travel } : false
+        }
         animate={{ opacity: 1, y: 0 }}
         transition={feel.transition}
         className={cn(
           "rounded-lg border border-line bg-surface text-content shadow-sm",
+          // Pins the card to its resting state for a reduced-motion visitor
+          // from the first paint, so the server-rendered from-state is never
+          // the thing they see. Overrides Motion's inline style, hence `!`.
+          "motion-reduce:opacity-100! motion-reduce:transform-none!",
           className
         )}
         {...props}

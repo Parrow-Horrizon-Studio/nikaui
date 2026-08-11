@@ -4,30 +4,40 @@ import * as React from "react";
 import { motion as m } from "motion/react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
-import { useMotionPreset, type MotionPreset } from "../lib/motion";
+import {
+  useConfiguredMotion,
+  useMotionPreset,
+  type MotionPreset,
+} from "../lib/motion";
 
 /**
- * Size and colour only. **This does not include `animate-spin`.**
+ * Size and colour only. **This does not include the spin class.**
  *
- * `animate-spin` is a CSS keyframe loop, so it ignores the motion resolver
+ * A spin class is a CSS keyframe loop, so it ignores the motion resolver
  * entirely unless something gates the class — which is how a Spinner kept
  * spinning under `prefers-reduced-motion: reduce` while `LoadingDots`,
  * twelve lines below it in this same file, honoured the preference. Whether
- * the icon animates is now the component's decision, taken from
- * `feel.enabled`, so the class lives in `<Spinner>` and not in this base
- * string.
+ * the icon animates is now the component's decision, so the class lives in
+ * `<Spinner>` and not in this base string.
+ *
+ * Two things gate it, and both are needed. The `motion` API gates whether
+ * the class is rendered at all, from `useConfiguredMotion`. The visitor's
+ * reduced-motion preference gates whether the browser runs it, through the
+ * `motion-safe:` variant — a plain `animate-spin` gated in JavaScript spins
+ * in the server-rendered HTML until hydration catches up, and disagrees with
+ * the server about the class list when it does.
  *
  * If you compose this onto your own element, you own that decision too —
- * `spinnerVariants({ size })` alone renders a static icon. Resolve the feel
- * and gate the class the way `<Spinner>` does:
+ * `spinnerVariants({ size })` alone renders a static icon. Gate the class
+ * the way `<Spinner>` does:
  *
  * ```tsx
- * const feel = useMotionPreset("spinner");
- * <svg className={cn(feel.enabled && "animate-spin", spinnerVariants({ size }))} />
+ * const configured = useConfiguredMotion("spinner");
+ * <svg className={cn(configured.enabled && "motion-safe:animate-spin", spinnerVariants({ size }))} />
  * ```
  *
- * Hard-coding `animate-spin` instead works, but opts that element out of
- * reduced motion and out of the `motion` API.
+ * Hard-coding a bare `animate-spin` instead works, but opts that element out
+ * of reduced motion and out of the `motion` API.
  */
 const spinnerVariants = cva("text-content-muted", {
   variants: {
@@ -52,7 +62,10 @@ export interface SpinnerProps
 
 const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
   ({ className, size, motion: motionProp, ...props }, ref) => {
-    const feel = useMotionPreset("spinner", motionProp);
+    // The class list is server-rendered, so the reduced-motion half of the
+    // gate is CSS (`motion-safe:`) and not this hook — see
+    // useConfiguredMotion.
+    const configured = useConfiguredMotion("spinner", motionProp);
 
     return (
       <svg
@@ -65,7 +78,7 @@ const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
         strokeLinecap="round"
         strokeLinejoin="round"
         className={cn(
-          feel.enabled && "animate-spin",
+          configured.enabled && "motion-safe:animate-spin",
           spinnerVariants({ size }),
           className
         )}

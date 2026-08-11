@@ -4,7 +4,11 @@ import * as React from "react";
 import { TabGroup, TabList, Tab, TabPanel } from "@headlessui/react";
 import { motion as m } from "motion/react";
 import { cn } from "../lib/utils";
-import { useMotionPreset, type MotionPreset } from "../lib/motion";
+import {
+  useConfiguredMotion,
+  useMotionPreset,
+  type MotionPreset,
+} from "../lib/motion";
 
 const Tabs = TabGroup;
 
@@ -47,6 +51,10 @@ export interface TabsContentProps
 const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
   ({ className, children, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("tabs", motionProp);
+    // The selected panel is server-rendered, so its from-state must not
+    // depend on a preference only the client can read — see
+    // useConfiguredMotion.
+    const configured = useConfiguredMotion("tabs", motionProp);
 
     return (
       <TabPanel
@@ -58,9 +66,16 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         {...props}
       >
         <m.div
-          initial={{ opacity: 0, y: 4 * feel.travel }}
+          initial={
+            configured.enabled
+              ? { opacity: 0, y: 4 * configured.travel }
+              : false
+          }
           animate={{ opacity: 1, y: 0 }}
           transition={feel.transition}
+          // Pins the panel to its resting state for a reduced-motion visitor
+          // from the first paint. Overrides Motion's inline style, hence `!`.
+          className="motion-reduce:opacity-100! motion-reduce:transform-none!"
         >
           {children as React.ReactNode}
         </m.div>
