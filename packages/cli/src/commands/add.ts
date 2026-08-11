@@ -66,13 +66,23 @@ export const addCommand = new Command()
     const allEntries = [...resolved.libs, ...resolved.components];
     const existingFiles: string[] = [];
 
-    for (const entry of allEntries) {
-      for (const file of entry.files) {
-        const targetPath = resolveTarget(file.target, cwd, config);
-        if (await fs.pathExists(targetPath)) {
-          existingFiles.push(targetPath);
+    // No spinner is running yet at this point in the command, so a bad
+    // target is reported the same way the missing-config case above is:
+    // a single formatted line, not a raw stack trace.
+    try {
+      for (const entry of allEntries) {
+        for (const file of entry.files) {
+          const targetPath = resolveTarget(file.target, cwd, config);
+          if (await fs.pathExists(targetPath)) {
+            existingFiles.push(targetPath);
+          }
         }
       }
+    } catch (error) {
+      console.error(
+        chalk.red(`\n  ${error instanceof Error ? error.message : String(error)}\n`)
+      );
+      process.exit(1);
     }
 
     if (existingFiles.length > 0 && !options.overwrite) {
