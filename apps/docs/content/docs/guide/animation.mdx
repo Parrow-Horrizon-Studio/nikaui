@@ -5,51 +5,60 @@ description: Motion presets and animation customization.
 
 ## Motion Integration
 
-Nika UI uses [Motion](https://motion.dev) (formerly Framer Motion) for animations. Every interactive component has smooth spring-based animations enabled by default.
+Nika UI uses [Motion](https://motion.dev) (formerly Framer Motion) for animations. Every animated component resolves its animation through a shared `motion` prop backed by five presets, rather than a plain on/off boolean.
 
-## Disabling Animation
+A preset is a *feel*, not a specific animation. Each component decides what it animates — a Button scales on hover, a Card fades and slides up on mount, a Dialog fades and lifts — and the preset decides how that feels: a spring configuration, a travel distance multiplier, and a hover/tap scale multiplier. That's what keeps one preset name coherent across components that animate entirely different properties.
 
-All animated components accept an `animated` prop:
+## Presets
+
+| Preset | Feel |
+| --- | --- |
+| `none` | No animation — hover/tap scale is 1, entrance travel is 0 |
+| `snap` | Fast and tight, smallest travel |
+| `glide` | Smooth, no overshoot |
+| `spring` | Balanced with a slight overshoot — the built-in default |
+| `bounce` | Pronounced overshoot, largest travel |
+
+## Setting the Preset
+
+### Per component
+
+Every animated component accepts a `motion` prop:
 
 ```tsx
-<Button animated={false}>No animation</Button>
+<Button motion="bounce">Bouncy</Button>
+<Card motion="none">No entrance animation</Card>
 ```
 
-## Motion Presets
+### Globally, with `NikaMotionConfig`
 
-When you run `npx nikaui init`, a `motion.ts` file is created with reusable presets:
+When you run `npx nikaui init`, a `motion.ts` file is created in your utils directory. It exports `NikaMotionConfig`, a provider you can wrap around your app (or any subtree) to set a default preset for every component beneath it, and optionally override individual components by name:
 
-```ts
-import { motionPresets } from "@/lib/motion";
+```tsx
+import { NikaMotionConfig } from "@/lib/motion";
 
-// Use in your own components
-<motion.div {...motionPresets.fadeIn}>
-  Content fades in
-</motion.div>
-
-<motion.div {...motionPresets.slideUp}>
-  Content slides up
-</motion.div>
+export default function App({ children }) {
+  return (
+    <NikaMotionConfig preset="glide" components={{ dialog: "none" }}>
+      {children}
+    </NikaMotionConfig>
+  );
+}
 ```
 
-### Available Presets
+`NikaMotionConfig` is optional. Components that land in a repository where nobody wrapped the app in it fall through to the built-in `spring` default and animate normally — that's a requirement of copy-paste distribution, not just a convenience.
 
-| Preset | Effect |
-| --- | --- |
-| `fadeIn` | Fade from 0 to 1 opacity |
-| `slideUp` | Slide up 20px with fade |
-| `slideDown` | Slide down 20px with fade |
-| `scaleIn` | Scale from 0.95 with fade |
-| `tap` | Scale to 0.98 on press |
-| `hover` | Scale to 1.02 on hover |
+## Resolution Order
 
-### Spring Configs
+Each component resolves its feel most-specific-first:
 
-| Config | Feel |
-| --- | --- |
-| `spring` | Balanced (stiffness: 400, damping: 17) |
-| `springBouncy` | Bouncy (stiffness: 600, damping: 15) |
-| `springSmooth` | Smooth (stiffness: 300, damping: 30) |
+1. The user's OS-level reduced-motion preference — forces `none`, always.
+2. The instance's own `motion` prop (`<Button motion="bounce">`).
+3. A per-component override on `NikaMotionConfig` (`components={{ button: "snap" }}`).
+4. The `NikaMotionConfig` provider's global `preset`.
+5. The built-in default, `spring`.
+
+Reduced motion sits above an explicit `motion` prop on purpose — a library selling itself on animation is the one that has to get that right.
 
 ## Custom Animations
 

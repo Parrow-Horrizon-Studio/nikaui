@@ -45,11 +45,14 @@ The button component supports 6 variants:
 
 ## Animation
 
-The button has spring hover and tap animations by default. Disable with:
+The button scales slightly on hover and tap, using the `spring` preset by default. Pass a different preset with the `motion` prop, or turn it off with `"none"`:
 
 ```tsx
-<Button animated={false}>No animation</Button>
+<Button motion="none">No animation</Button>
+<Button motion="bounce">Bouncier feel</Button>
 ```
+
+See [Animation](/docs/guide/animation) for the full list of presets and how to set a default globally with `NikaMotionConfig`.
 
 ## API Reference
 
@@ -57,4 +60,4 @@ The button has spring hover and tap animations by default. Disable with:
 | --- | --- | --- | --- |
 | `variant` | `"default" \| "secondary" \| "destructive" \| "outline" \| "ghost" \| "link"` | `"default"` | Visual style variant |
 | `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Button size |
-| `animated` | `boolean` | `true` | Enable/disable motion animation |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig`, or `"spring"` | Animation feel for hover/tap |
