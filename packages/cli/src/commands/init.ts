@@ -10,13 +10,37 @@ import {
   detectPackageManager,
 } from "../utils/dependencies.js";
 import { getRegistryFile } from "../utils/registry-files.js";
+import { applyMotionPreset } from "../utils/motion-source.js";
+import { MOTION_PRESETS, type MotionPreset } from "../utils/config.js";
 
 const DEFAULTS = {
   componentsDir: "src/components/ui",
   utilsDir: "src/lib",
   tailwindCss: "src/app/globals.css",
-  motion: "spring",
+  motion: "spring" as MotionPreset,
 };
+
+/**
+ * Prompt copy and display position for each preset.
+ *
+ * Typed `Record<MotionPreset, …>`, so adding a preset to `MOTION_PRESETS`
+ * fails compilation here until it is given a label — the prompt cannot fall
+ * behind the vocabulary. `rank` exists because the display order is not the
+ * vocabulary's order: the recommended preset leads and `none` trails.
+ */
+const MOTION_CHOICES: Record<MotionPreset, { label: string; rank: number }> = {
+  spring: { label: "spring — lively, slight overshoot (recommended)", rank: 0 },
+  glide: { label: "glide  — smooth, no overshoot", rank: 1 },
+  snap: { label: "snap   — fast and tight", rank: 2 },
+  bounce: { label: "bounce — pronounced overshoot", rank: 3 },
+  none: { label: "none   — no animation", rank: 4 },
+};
+
+// Generated from MOTION_PRESETS, not written out again, so a preset cannot
+// be missing from the prompt while present in the union.
+const motionChoices = [...MOTION_PRESETS]
+  .sort((a, b) => MOTION_CHOICES[a].rank - MOTION_CHOICES[b].rank)
+  .map((value) => ({ title: MOTION_CHOICES[value].label, value }));
 
 /**
  * A stylesheet answer must be a `.css` file that resolves inside the
@@ -86,14 +110,10 @@ export const initCommand = new Command()
               type: "select",
               name: "motion",
               message: "Default animation feel?",
-              choices: [
-                { title: "spring — lively, slight overshoot (recommended)", value: "spring" },
-                { title: "glide  — smooth, no overshoot", value: "glide" },
-                { title: "snap   — fast and tight", value: "snap" },
-                { title: "bounce — pronounced overshoot", value: "bounce" },
-                { title: "none   — no animation", value: "none" },
-              ],
-              initial: 0,
+              choices: motionChoices,
+              initial: motionChoices.findIndex(
+                (choice) => choice.value === DEFAULTS.motion
+              ),
             },
           ],
           {
@@ -125,6 +145,19 @@ export const initCommand = new Command()
       console.error(
         chalk.red(
           `\n  Invalid stylesheet path: "${response.tailwindCss}". It must be a .css file inside the project.\n`
+        )
+      );
+      process.exit(1);
+    }
+
+    // Same defense in depth, and it matters more now that this answer is
+    // baked into source: an out-of-vocabulary value would be written into
+    // motion.ts as `motionPresets.<garbage>`, which is a type error in the
+    // consumer's project rather than a message here.
+    if (!(MOTION_PRESETS as readonly string[]).includes(response.motion)) {
+      console.error(
+        chalk.red(
+          `\n  Unknown motion preset: "${response.motion}". Expected one of: ${MOTION_PRESETS.join(", ")}.\n`
         )
       );
       process.exit(1);
@@ -181,14 +214,14 @@ export const initCommand = new Command()
         wroteTokens = true;
       }
 
-      // Insert the import immediately after `@import "tailwindcss";`, not
-      // before it. Tailwind v4 merges every `@theme`/`@theme inline` block
-      // across all flattened imports into one theme, and among blocks at
-      // the same precedence level the later one in source order wins for
-      // any key they both define. Placing Nika's import after Tailwind's
-      // own keeps Nika's @theme block the later one for every colliding
-      // key (radius, shadow, font, ease) — matching Tailwind's own
-      // documented convention of "import the framework, then customize".
+      // Insert the import immediately after `@import "tailwindcss";`. This
+      // is convention, not correctness: Tailwind marks its own defaults
+      // `@theme default`, and its engine refuses to overwrite a key already
+      // set by a non-default block, so Nika's `@theme inline` wins over
+      // Tailwind's defaults for a colliding key (radius, shadow, font,
+      // ease) in either order. What insert-after buys is that the
+      // consumer's own overrides sit below this line, where the ordinary
+      // later-wins rule between two project-level blocks does apply.
       // If no `@import "tailwindcss"` line is found, insert after the
       // last import in the file's leading import block instead of
       // silently doing nothing.
@@ -229,22 +262,26 @@ export const initCommand = new Command()
         wroteImport = true;
       }
 
-      // Write cn() utility
-      const utilsContent = `import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-`;
+      // Write cn() utility. Read from the registry rather than an inline
+      // literal: `add` already serves this file from `lib/utils.ts`, and two
+      // copies of the same source in two places drift the moment one of them
+      // is touched.
+      const utilsContent = await getRegistryFile("lib/utils.ts");
       await fs.writeFile(
         path.join(cwd, response.utilsDir, "utils.ts"),
         utilsContent
       );
 
       // Write motion presets. The motion module is registry source now;
-      // write it exactly as the tokens are written.
-      const motionContent = await getRegistryFile("lib/motion.ts");
+      // write it exactly as the tokens are written — except that the preset
+      // chosen above is baked into the copy. `nika.config.ts` records the
+      // answer for humans and for future CLI commands, but no runtime code
+      // reads that file, so the built-in default in this module is the only
+      // thing that actually decides how an un-wrapped app feels.
+      const motionContent = applyMotionPreset(
+        await getRegistryFile("lib/motion.ts"),
+        response.motion
+      );
       await fs.writeFile(
         path.join(cwd, response.utilsDir, "motion.ts"),
         motionContent
@@ -266,7 +303,11 @@ export function cn(...inputs: ClassValue[]) {
       console.log(chalk.dim("\n  Created:"));
       console.log(chalk.dim(`    - nika.config.ts`));
       console.log(chalk.dim(`    - ${response.utilsDir}/utils.ts`));
-      console.log(chalk.dim(`    - ${response.utilsDir}/motion.ts`));
+      console.log(
+        chalk.dim(
+          `    - ${response.utilsDir}/motion.ts (default feel: ${response.motion})`
+        )
+      );
       if (wroteTokens) {
         console.log(chalk.dim(`    - ${path.relative(cwd, tokensPath)}`));
       } else {

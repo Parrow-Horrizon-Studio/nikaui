@@ -1,7 +1,27 @@
 import fs from "fs-extra";
 import path from "path";
 
-export type MotionPreset = "none" | "snap" | "glide" | "spring" | "bounce";
+/**
+ * The single source of truth for the preset vocabulary.
+ *
+ * The union type, the config parser's regex and `init`'s prompt choices are
+ * all derived from this array, so there is exactly one place to edit when a
+ * preset is added or removed. Previously all three were written out by hand
+ * and could drift apart silently — a preset present in the union but missing
+ * from the regex would parse as the default with no error.
+ *
+ * Order here is the vocabulary's own (ascending liveliness), not the order
+ * the prompt displays; `init` sorts for display.
+ */
+export const MOTION_PRESETS = [
+  "none",
+  "snap",
+  "glide",
+  "spring",
+  "bounce",
+] as const;
+
+export type MotionPreset = (typeof MOTION_PRESETS)[number];
 
 export interface NikaConfig {
   style: string;
@@ -60,8 +80,11 @@ export async function getConfig(cwd: string): Promise<NikaConfig> {
   const componentsMatch = content.match(/components:\s*"([^"]+)"/);
   if (componentsMatch) config.aliases.components = componentsMatch[1]!;
 
+  // Built from MOTION_PRESETS rather than spelled out, so the accepted set
+  // cannot fall behind the union. The names contain no regex metacharacters,
+  // so joining them directly is safe.
   const motionMatch = content.match(
-    /motion:\s*"(none|snap|glide|spring|bounce)"/
+    new RegExp(`motion:\\s*"(${MOTION_PRESETS.join("|")})"`)
   );
   if (motionMatch) config.motion = motionMatch[1] as MotionPreset;
 

@@ -84,9 +84,13 @@ export interface NikaMotionConfigProps {
 
 /**
  * Optional. Components land in repositories where nobody wrapped the app;
- * without this provider they fall through to the built-in `spring` default
- * and animate normally. That is a hard requirement of copy-paste
- * distribution, not a convenience.
+ * without this provider they fall through to the built-in default below and
+ * still work. That is a hard requirement of copy-paste distribution, not a
+ * convenience.
+ *
+ * `nikaui init` rewrites the built-in default — both here and in
+ * `useMotionPreset` — to the preset chosen at setup, so this file is the one
+ * place that decides how an un-wrapped app feels.
  */
 export function NikaMotionConfig({
   preset = "spring",
