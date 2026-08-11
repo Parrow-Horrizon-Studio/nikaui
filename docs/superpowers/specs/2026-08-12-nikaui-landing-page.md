@@ -75,9 +75,9 @@ Every claim below is in the prototype and must not reach production.
 |---|---|
 | "40+ components" (hero stat, free tier) | **27** |
 | Presets `bounce, pop, glide, snap, none` | `none, snap, glide, spring, bounce` |
-| "12+ full-page templates" | Zero |
-| "80+ premium blocks & sections" | Zero |
-| "Figma design kit" | Does not exist and is not planned |
+| "12+ full-page templates" | Zero — and the Templates section is cut entirely, see C5 |
+| "80+ premium blocks & sections" | Zero — described without a count in pricing, nowhere else |
+| "Figma design kit" | Not built, not planned, and not mentioned. Revisit at v2 or on real demand |
 | `npx nika add button` (×3) | `npx nikaui add button` |
 | "Inspired by shadcn/ui"; "The shadcn workflow…" | Removed — no reference-library attribution anywhere |
 | `github.com/Rowee13/nikaui` (×4) | `github.com/Parrow-Horrizon-Studio/nikaui` |
@@ -98,7 +98,13 @@ Every claim below is in the prototype and must not reach production.
 
 Feature lists describe what a tier contains without inventing counts. Pro entries read "Premium blocks", "Full-page templates", "Lifetime updates" — not "80+" of anything. One plain sentence states that Pro is not yet purchasable.
 
-**The Templates section labels its three placeholder cards "Planned", not "Pro".** A Pro badge on something with no checkout behind it reads as a broken purchase flow rather than a roadmap.
+**The Templates section is cut from the page.** This supersedes the MASTER-PLAN's line for C, which called for three placeholder cards "honestly labelled".
+
+The reasoning: `pro.nikaui.dev` is a separate site whose entire job is showing templates and blocks, with the real counts, once they exist. A placeholder grid on the open-source landing page duplicates that job while having nothing to put in it — and a card captioned "Planned" is a promise, not a product. Cutting it removes a section, a navigation link and a footer link, and loses nothing a visitor wanted.
+
+Pricing keeps its reference to blocks and templates because that is what the paid tiers are *for*; it simply does not enumerate them.
+
+**No Figma design kit is mentioned anywhere.** It is not built, not planned, and not on any roadmap this spec touches — revisit at v2, or if buyers actually ask for it.
 
 ### C6 — Waitlist capture through Loops
 
@@ -118,7 +124,11 @@ The email validator is a pure function with unit tests. CI runs `pnpm test` acro
 
 `src/components/site/` holds the navigation, footer, theme toggle and accent switcher. These are designed knowing D will wrap documentation routes in them: the navigation takes its links as data rather than hard-coding a marketing-only set, and the layout does not assume a single full-width page.
 
-Theme switching uses `next-themes` with `attribute="class"`, matching B's `.dark` convention and the documentation app's existing behaviour. Accent selection sets `data-accent` on the document element and persists to `localStorage`; `sun` is the default and needs no attribute.
+Theme switching uses `next-themes` with `attribute="class"`, matching B's `.dark` convention. **The default is `system`** — the visitor's own operating-system preference decides, and the toggle cycles system → light → dark rather than flipping between two.
+
+This differs from `apps/docs`, which B set to `defaultTheme="dark"` to preserve the prototype's presentation. The two are inconsistent until D migrates documentation into this application, at which point `system` should win: a marketing site that ignores an explicit OS preference on first paint is a worse first impression than one that honours it, and there is no reason documentation should behave differently from the page that links to it. Recorded here so D does not silently carry `dark` across.
+
+Accent selection sets `data-accent` on the document element and persists to `localStorage`; `sun` is the default and needs no attribute.
 
 Fonts are Manrope and JetBrains Mono through `next/font`, the same pairing `apps/docs` uses. The registry's own font tokens remain system stacks — fonts are the site's business, not the library's.
 
@@ -128,18 +138,19 @@ Page metadata, an Open Graph image, `robots.txt` and a sitemap. A landing page w
 
 ---
 
-## 3. The eight sections
+## 3. The seven sections
+
+The prototype has eight. Templates is cut, per C5.
 
 | Section | Contents | Live? |
 |---|---|---|
-| **Nav** | Brand mark, links (Docs · Components · Templates · Pricing), theme toggle, accent switcher, GitHub, waitlist call to action | Accent switcher, theme toggle |
+| **Nav** | Brand mark, links (Docs · Components · Pricing), theme toggle, accent switcher, GitHub, waitlist call to action | Accent switcher, theme toggle |
 | **Hero** | Rays and sun ported from `nika-landing.css`, pill, headline, lead, two calls to action, install bar with copy button, live component window, stat strip | Nine real components |
 | **Features** | Six cards | Static |
 | **Motion** | Copy plus five preset demonstrations with replay | Five real presets |
-| **Templates** | Three placeholder cards labelled "Planned" | Static |
 | **Pricing** | Three tiers, waitlist form beneath | Form |
 | **CTA band** | Headline, docs link, GitHub link | Static |
-| **Footer** | Four columns, only links that resolve | Static |
+| **Footer** | Three columns, only links that resolve | Static |
 
 **Reduced motion.** B's presets cover component motion. The decorative sun and ray animations are CSS and need their own `prefers-reduced-motion` guard — without one, the page would honour a user's preference everywhere except the first thing they see.
 
@@ -152,8 +163,8 @@ Page metadata, an Open Graph image, `robots.txt` and a sitemap. A landing page w
 - **Analytics** — genuinely needed for a marketing page, but it is deploy-time configuration rather than application code. It belongs with E7.
 - **The Pro landing page and documentation** at `pro.nikaui.dev` — a different repository, per spec A §D4.
 - **Polar, payments, license keys, `nikaui login`** — none of it exists at waitlist stage.
-- **Block and template content** — sub-project F. The Templates section ships three placeholders and nothing behind them.
-- **A Figma design kit** — the prototype advertises one. It does not exist and is not planned.
+- **Block and template content, and any section that shows it** — sub-project F builds them; `pro.nikaui.dev` displays them. The open-source landing page names them only in the pricing tiers.
+- **A Figma design kit** — the prototype advertises one. It is not built, not planned, and not mentioned on the page.
 
 ---
 
