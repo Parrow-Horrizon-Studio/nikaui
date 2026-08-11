@@ -17,6 +17,7 @@ import {
 } from "../utils/dependencies.js";
 import { transformImports } from "../utils/transformer.js";
 import { getRegistryFile } from "../utils/registry-files.js";
+import { applyMotionPreset } from "../utils/motion-source.js";
 
 export const addCommand = new Command()
   .name("add")
@@ -180,7 +181,18 @@ async function copyRegistryFiles(
     const targetPath = resolveTarget(file.target, cwd, config);
     await fs.ensureDir(path.dirname(targetPath));
 
-    const content = await getRegistryFile(file.source);
+    let content = await getRegistryFile(file.source);
+
+    // `init` bakes the chosen preset into lib/motion.ts, because nothing
+    // reads `nika.config.ts` at runtime. `add` resolves the same file as a
+    // registry dependency, so without this it would write the raw registry
+    // source back over the baked copy and silently reset the project to
+    // `spring` — visible whenever `add` runs with --overwrite. The config
+    // field is where the answer survives between the two commands.
+    if (file.source === "lib/motion.ts") {
+      content = applyMotionPreset(content, config.motion);
+    }
+
     // CSS carries no imports to rewrite, and running the TS import
     // transformer over it would corrupt @import lines.
     const output = targetPath.endsWith(".css")
