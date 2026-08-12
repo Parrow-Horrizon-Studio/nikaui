@@ -89,8 +89,9 @@ export interface NikaMotionConfigProps {
  * convenience.
  *
  * `nikaui init` rewrites the built-in default — both here and in
- * `useMotionPreset` — to the preset chosen at setup, so this file is the one
- * place that decides how an un-wrapped app feels.
+ * `useConfiguredMotion`, which is where the final fallback lives — to the
+ * preset chosen at setup, so this file is the one place that decides how an
+ * un-wrapped app feels. See `packages/cli/src/utils/motion-source.ts`.
  */
 export function NikaMotionConfig({
   preset = "spring",

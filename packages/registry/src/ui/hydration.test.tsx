@@ -28,6 +28,7 @@ vi.mock("motion/react", async (importOriginal) => {
   return { ...actual, useReducedMotion: () => mocks.reducedMotion };
 });
 
+import { useReducedMotion } from "motion/react";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Progress } from "./progress";
 import { Skeleton } from "./skeleton";
@@ -52,8 +53,19 @@ afterEach(() => {
   mocks.reducedMotion = false;
 });
 
-/** Server-render without the preference, then hydrate with it. Returns every
- *  complaint React made while reconciling. */
+const isHydrationComplaint = (complaint: string) => /hydrat/i.test(complaint);
+
+/**
+ * Server-render without the preference, then hydrate with it. Returns the
+ * complaints React made while reconciling that name a hydration problem.
+ *
+ * Everything else React said is deliberately *not* dropped. The spy swallows
+ * every `console.error` for the duration of the hydrate, so an unrelated
+ * React error — a bad prop, a failed invariant — would otherwise vanish
+ * without a trace while the test still reported a clean `[]`. Non-hydration
+ * complaints are re-emitted through the restored `console.error` instead, so
+ * they reach whoever is running the suite.
+ */
 function hydrateUnderReducedMotion(element: React.ReactElement): string[] {
   mocks.reducedMotion = false;
   container.innerHTML = renderToString(element);
@@ -73,8 +85,35 @@ function hydrateUnderReducedMotion(element: React.ReactElement): string[] {
   });
 
   consoleError.mockRestore();
-  return complaints.filter((c) => /hydrat/i.test(c));
+
+  for (const other of complaints.filter((c) => !isHydrationComplaint(c))) {
+    console.error("hydration.test.tsx — unrelated React error while hydrating:", other);
+  }
+
+  return complaints.filter(isHydrationComplaint);
 }
+
+/**
+ * A component that is *supposed* to fail: its rendered text is derived from
+ * the reduced-motion preference, the exact thing the server cannot read.
+ * It is the positive control for the harness above.
+ *
+ * Without it, every assertion in this file is of the form "expect no
+ * complaints" — so if the `console.error` capture, the mock, or
+ * `onRecoverableError` ever stopped working, all of them would pass forever
+ * while testing nothing. This one proves the harness can still see a
+ * mismatch when there genuinely is one.
+ */
+function DeliberateMismatch() {
+  const prefersReducedMotion = useReducedMotion();
+  return <div>{prefersReducedMotion ? "held still" : "in motion"}</div>;
+}
+
+describe("the harness can still see a mismatch when there is one", () => {
+  it("catches a component whose markup depends on the preference", () => {
+    expect(hydrateUnderReducedMotion(<DeliberateMismatch />).length).toBeGreaterThan(0);
+  });
+});
 
 describe("server and first client render agree under reduced motion", () => {
   it("Card hydrates without a mismatch", () => {
@@ -139,6 +178,25 @@ describe("the entrance still plays for a visitor who did not ask for stillness",
   it("Spinner keeps a spin class a normal-motion visitor's browser will run", () => {
     mocks.reducedMotion = false;
     expect(renderToString(<Spinner />)).toContain("animate-spin");
+  });
+
+  it("an indeterminate Progress server-renders its segment inside the track, not past the right edge", () => {
+    mocks.reducedMotion = false;
+    const html = renderToString(<Progress />);
+    // `initial={false}` with a keyframe array does NOT mean "start at the
+    // first keyframe". When the initial animation is blocked Motion takes
+    // `valueTarget[valueTarget.length - 1]` (motion/utils/use-visual-state),
+    // so `x: ["-100%", "300%"]` server-rendered as translateX(300%) — three
+    // times the segment's own width, entirely outside an overflow-hidden
+    // track. Every visitor who did not ask for reduced motion saw an empty
+    // grey bar until Motion booted.
+    //
+    // Motion normalises a zero translate to the identity, so the correct
+    // server markup is `transform:none` (or an explicit `translateX(0%)`);
+    // either way the segment sits at the track's start. What must never
+    // appear is the sweep's *end* keyframe.
+    expect(html).not.toContain("300%");
+    expect(html).toMatch(/style="transform:(none|translateX\(0%\))"/);
   });
 });
 

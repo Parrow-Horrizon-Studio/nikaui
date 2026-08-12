@@ -5,8 +5,10 @@ import type { MotionPreset } from "./config.js";
  *
  * Two of them are behaviour:
  *
- *   - `useMotionPreset`'s final fallback, used when no provider is mounted
- *     at all;
+ *   - `useConfiguredMotion`'s final fallback, used when no provider is
+ *     mounted at all. It lives there, not in `useMotionPreset`, because
+ *     `useMotionPreset` now delegates the whole configured-preset lookup to
+ *     it and only layers the visitor's reduced-motion preference on top;
  *   - `NikaMotionConfig`'s own `preset` default, used when a provider *is*
  *     mounted but given no `preset` prop.
  *
@@ -14,7 +16,7 @@ import type { MotionPreset } from "./config.js";
  * who wraps their app in a bare `<NikaMotionConfig>` back on `spring`, which
  * is the same silent override the config field suffered from.
  *
- * The third is the precedence list in the resolver's own doc comment. It is
+ * The third is the precedence list in `useMotionPreset`'s doc comment. It is
  * not behaviour, but a copied file whose documentation contradicts its code
  * is worse than one with no documentation.
  */
