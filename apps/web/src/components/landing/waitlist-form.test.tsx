@@ -1,8 +1,3 @@
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any test file using JSX
-// syntax needs React in scope for the classic transform — the same reason
-// pricing.test.tsx does.
 import * as React from "react";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -152,7 +147,45 @@ describe("WaitlistForm", () => {
     expect(screen.queryByText(SUCCESS_TEXT)).toBeNull();
   });
 
-  it("exposes openFor via ref: records the tier in the hidden input and focuses the email field", () => {
+  it("announces that the submission is in flight instead of going silent until the result", async () => {
+    // The status region is aria-live and is the only channel a screen-reader
+    // user has here. Clearing it on submit left them with nothing between
+    // the press and the response. Held open deliberately so the in-flight
+    // state can be observed rather than raced past.
+    let settle: (value: unknown) => void = () => {};
+    global.fetch = vi
+      .fn()
+      .mockImplementation(
+        () => new Promise((resolve) => { settle = resolve; })
+      ) as unknown as typeof fetch;
+
+    render(<WaitlistForm />);
+    submit("luffy@nika.dev");
+
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toBe("Adding you to the list…");
+    });
+
+    await act(async () => {
+      settle({ ok: true, json: () => Promise.resolve({ ok: true }) });
+    });
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toBe(SUCCESS_TEXT);
+    });
+  });
+
+  // This assertion used to read the hidden <input name="tier"> and nothing
+  // else. That input is never submitted — the form calls preventDefault and
+  // builds its payload from React state — so `tier` could be deleted from
+  // the request body with this suite still fully green, while the tier
+  // signal spec §C6 adds the field for silently stopped reaching Loops.
+  // Assert the request instead; the hidden input is checked too, because
+  // §C6 specifies it, but it is no longer what proves the behaviour.
+  it("exposes openFor via ref: the recorded tier reaches the request body, and the field takes focus", async () => {
+    const fetchMock = mockFetchResolves({
+      ok: true,
+      json: () => Promise.resolve({ ok: true }),
+    });
     const ref = React.createRef<WaitlistFormHandle>();
     const { container } = render(<WaitlistForm ref={ref} />);
 
@@ -160,8 +193,20 @@ describe("WaitlistForm", () => {
       ref.current?.openFor("team");
     });
 
-    const tierHidden = container.querySelector('input[type="hidden"][name="tier"]') as HTMLInputElement;
-    expect(tierHidden.value).toBe("team");
     expect(document.activeElement).toBe(screen.getByLabelText("Email"));
+
+    submit("luffy@nika.dev");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      email: "luffy@nika.dev",
+      tier: "team",
+    });
+
+    const tierHidden = container.querySelector(
+      'input[type="hidden"][name="tier"]'
+    ) as HTMLInputElement;
+    expect(tierHidden.value).toBe("team");
   });
 });

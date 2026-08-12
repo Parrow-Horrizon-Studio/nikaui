@@ -1,9 +1,3 @@
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any test file using JSX
-// syntax needs React in scope for the classic transform — the same reason
-// install-bar.test.tsx and hero-window.test.tsx import it.
-import * as React from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Pricing } from "./pricing";
@@ -22,8 +16,8 @@ function tierCard(container: HTMLElement, slug: "free" | "personal" | "team") {
 /**
  * The commercial terms this section must match exactly: Free $0, Personal
  * $149 one-time, Team $349 one-time. Both paid tiers open the waitlist —
- * neither is a checkout — and no feature line invents a count. See
- * .superpowers/sdd/2026-08-12-landing-page/task-8-brief.md.
+ * neither is a checkout — and no feature line invents a count. See spec §C5
+ * in docs/superpowers/specs/2026-08-12-nikaui-landing-page.md.
  */
 describe("Pricing", () => {
   it("carries the id the nav and footer's Pricing link (#pricing) points to", () => {
@@ -115,9 +109,12 @@ describe("Pricing", () => {
       const onWaitlist = vi.fn();
       const { container } = render(<Pricing onWaitlist={onWaitlist} />);
       const button = tierCard(container, "personal").getByRole("button", {
-        name: "Join the waitlist",
+        name: "Join the waitlist for Personal",
       });
       expect(button.tagName).toBe("BUTTON");
+      // The tier only qualifies the accessible name; the visible text stays
+      // exactly what the spec's copy says, and remains a prefix of it.
+      expect(button.textContent).toBe("Join the waitlist");
 
       fireEvent.click(button);
 
@@ -157,8 +154,9 @@ describe("Pricing", () => {
       const onWaitlist = vi.fn();
       const { container } = render(<Pricing onWaitlist={onWaitlist} />);
       const button = tierCard(container, "team").getByRole("button", {
-        name: "Join the waitlist",
+        name: "Join the waitlist for Team",
       });
+      expect(button.textContent).toBe("Join the waitlist");
 
       fireEvent.click(button);
 
@@ -186,8 +184,10 @@ describe("Pricing", () => {
     // test still exercises.
     const { container } = render(<Pricing />);
     const buttons = [
-      tierCard(container, "personal").getByRole("button", { name: "Join the waitlist" }),
-      tierCard(container, "team").getByRole("button", { name: "Join the waitlist" }),
+      tierCard(container, "personal").getByRole("button", {
+        name: "Join the waitlist for Personal",
+      }),
+      tierCard(container, "team").getByRole("button", { name: "Join the waitlist for Team" }),
     ];
     buttons.forEach((button) => {
       expect(() => fireEvent.click(button)).not.toThrow();
@@ -196,9 +196,10 @@ describe("Pricing", () => {
 
   // A defensive "no forbidden claim" assertion deliberately does not live
   // here: writing the forbidden substrings into this file (even inside a
-  // `.not.toMatch` regex) would itself trip task-8-brief.md Step 4's own
-  // repo-wide grep — and, later, sub-project C's real gate,
-  // scripts/check-copy.mjs (Task 11). That grep is the authoritative check;
+  // `.not.toMatch` regex) would itself trip the honesty gate those strings
+  // exist to feed — scripts/check-copy.mjs, which implements spec §5 item 3
+  // in docs/superpowers/specs/2026-08-12-nikaui-landing-page.md. That gate
+  // is the authoritative check;
   // this file only needs to assert what the tiers *do* say, which the exact
   // price/badge/feature-line tests above already pin down completely.
 });

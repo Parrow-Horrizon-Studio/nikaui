@@ -40,9 +40,29 @@ function NavAnchor({ href, children }: { href: NavLink["href"]; children: ReactN
   );
 }
 
+/**
+ * The id this chrome's skip link targets. Exported so the element carrying
+ * it and the link pointing at it cannot drift apart — sub-project D wraps
+ * every documentation route in this header, and each of those routes needs
+ * the same anchor on its own main element.
+ */
+export const MAIN_CONTENT_ID = "main-content";
+
 export function Nav() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-canvas/70 backdrop-blur">
+      {/* Twelve tabbable controls sit between the top of the page and
+          <main>. Without this a keyboard or switch user pays for all of
+          them on every route — and D wraps every documentation page in this
+          same header. Invisible until focused, then a real, visible
+          control. */}
+      <a
+        href={`#${MAIN_CONTENT_ID}`}
+        className="sr-only focus:not-sr-only focus:absolute focus:left-6 focus:top-3 focus:z-50 focus:rounded-md focus:border focus:border-line focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-content focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to content
+      </a>
+
       <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center gap-x-6 gap-y-3 px-6 py-3">
         <Brand />
 
@@ -66,7 +86,11 @@ export function Nav() {
           >
             <GithubIcon />
           </a>
-          <a href="#pricing" className={cn(buttonVariants({ size: "sm" }))}>
+          {/* #waitlist, not #pricing: the waitlist form carries that id (see
+              waitlist-form.tsx) and is what this control promises. Landing on
+              the pricing grid instead left the visitor to find the form
+              themselves, below three cards. */}
+          <a href="#waitlist" className={cn(buttonVariants({ size: "sm" }))}>
             Join the waitlist
           </a>
         </div>

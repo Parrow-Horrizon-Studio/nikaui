@@ -4,7 +4,6 @@
 // registry hooks, so this file stays correct even if a future refactor
 // renders it from a Server Component instead.
 
-import * as React from "react";
 import { Avatar, AvatarFallback } from "@nikaui/registry/ui/avatar";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { Button, buttonVariants } from "@nikaui/registry/ui/button";
@@ -29,7 +28,10 @@ import { cn } from "@nikaui/registry/lib/utils";
  */
 export function HeroWindow() {
   return (
-    <div className="hero-window">
+    // A labelled group, so a screen-reader user meeting "Continue", "Primary"
+    // or "Keep me signed in" out of context is told what they belong to.
+    // Nothing in here does anything.
+    <div className="hero-window" role="group" aria-label="Live component preview">
       <div className="flex items-center gap-2 border-b border-line bg-canvas-2 px-4 py-3">
         <span className="flex gap-1.5" aria-hidden="true">
           <span className="size-2.5 rounded-full bg-line-strong" />
@@ -52,7 +54,16 @@ export function HeroWindow() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="hero-window-email">Email</Label>
+            {/* The visible label is "Email", the same word the real waitlist
+                field uses — and both are focusable, so a screen-reader user
+                rotoring the page's form fields would otherwise find two
+                identically named inputs and no way to tell which one is the
+                real signup. The sr-only tail distinguishes the accessible
+                name ("Email (preview only)") without changing what anyone
+                reads, and keeps the htmlFor/id association intact. */}
+            <Label htmlFor="hero-window-email">
+              Email <span className="sr-only">(preview only)</span>
+            </Label>
             <Input id="hero-window-email" type="email" readOnly value="luffy@nika.dev" />
           </div>
 

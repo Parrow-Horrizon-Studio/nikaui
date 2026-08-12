@@ -1,10 +1,3 @@
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any file using JSX syntax
-// needs React in scope for the classic transform — the same reason
-// hero-window.tsx itself imports React, and the same reason
-// site/theme-toggle.test.tsx and site/accent-switcher.test.tsx do too.
-import * as React from "react";
 import { describe, expect, it } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HeroWindow } from "./hero-window";
@@ -38,7 +31,7 @@ describe("HeroWindow", () => {
     // getByLabelText only resolves via a real htmlFor/id (or wrapping)
     // relationship — if the association were merely visual adjacency, this
     // query would fail even though the page looks identical.
-    const input = screen.getByLabelText("Email") as HTMLInputElement;
+    const input = screen.getByLabelText("Email (preview only)") as HTMLInputElement;
     expect(input.value).toBe("luffy@nika.dev");
     expect(input.readOnly).toBe(true);
   });
@@ -86,9 +79,27 @@ describe("HeroWindow", () => {
     await waitFor(expectTooltipClosing);
   });
 
+  // The real waitlist field is also labelled "Email" and is also focusable.
+  // Two identically named inputs on one page leave a screen-reader user
+  // rotoring the form fields unable to tell the decoration from the signup.
+  it("distinguishes its decorative Email field from the real waitlist one, keeping the visible label", () => {
+    render(<HeroWindow />);
+    expect(screen.queryByLabelText("Email")).toBeNull();
+    const input = screen.getByLabelText("Email (preview only)");
+    // The visible text is still just "Email" — the qualifier is sr-only.
+    const label = document.querySelector('label[for="hero-window-email"]')!;
+    expect(label.querySelector(".sr-only")?.textContent).toBe("(preview only)");
+    expect(input.getAttribute("id")).toBe("hero-window-email");
+  });
+
+  it("groups the whole preview under one label, so nothing inside it reads as a real control", () => {
+    render(<HeroWindow />);
+    expect(screen.getByRole("group", { name: "Live component preview" })).toBeDefined();
+  });
+
   it("every interactive control has an accessible name", () => {
     render(<HeroWindow />);
-    expect(screen.getByRole("textbox", { name: "Email" })).toBeDefined();
+    expect(screen.getByRole("textbox", { name: "Email (preview only)" })).toBeDefined();
     expect(screen.getByRole("switch", { name: "Keep me signed in" })).toBeDefined();
     expect(screen.getByRole("button", { name: "Continue" })).toBeDefined();
     expect(screen.getByRole("button", { name: "Primary" })).toBeDefined();

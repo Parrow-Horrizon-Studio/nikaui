@@ -2,23 +2,12 @@
 // The paid tiers' buttons need an onClick, and the Free tier's link needs
 // buttonVariants() to render a next/link as a <Button> — the same reason
 // hero.tsx and site/nav.tsx are "use client".
-//
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any file using JSX syntax
-// needs React in scope for the classic transform — the same reason
-// hero-window.tsx and motion-showcase.tsx import it. Next's own build
-// doesn't need this (it never hits Vite), but pricing.test.tsx does.
 import * as React from "react";
 import Link from "next/link";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { Button, buttonVariants } from "@nikaui/registry/ui/button";
 import { cn } from "@nikaui/registry/lib/utils";
-// Relative, not the "@/" alias: vitest.config.ts (untouched by this task)
-// has no path-alias resolution set up, so pricing.test.tsx — which renders
-// <Pricing>, which renders <WaitlistForm> — would fail to resolve an
-// "@/..." specifier even though Next's own build resolves it fine. See the
-// same note in cta-band.tsx.
+// Relative, not the "@/" alias — the convention cta-band.tsx explains.
 import { WaitlistForm, type WaitlistFormHandle } from "./waitlist-form";
 
 /** The two tiers whose call to action opens the waitlist rather than a purchase. */
@@ -51,7 +40,8 @@ interface Tier {
   price: string;
   period: string;
   blurb: string;
-  /** No counts: there is nothing to count yet. See task-8-brief.md Step 1. */
+  /** No counts: there is nothing to count yet. See spec §C5 in
+   *  docs/superpowers/specs/2026-08-12-nikaui-landing-page.md. */
   features: readonly string[];
   highlighted?: boolean;
   cta:
@@ -196,6 +186,14 @@ export function Pricing({ onWaitlist }: PricingProps) {
                   <Button
                     variant={tier.highlighted ? "default" : "outline"}
                     className="w-full"
+                    // Three buttons on this page read "Join the waitlist" —
+                    // these two and the form's own submit — and a screen
+                    // reader listing the page's buttons shows exactly that,
+                    // stripped of the card each one sits in. Naming the tier
+                    // separates them. The visible text is unchanged and is a
+                    // prefix of the accessible name, so speech-input users
+                    // can still say what they read (WCAG 2.5.3).
+                    aria-label={`${cta.label} for ${tier.name}`}
                     onClick={() => handleWaitlist(cta.tier)}
                   >
                     {cta.label}

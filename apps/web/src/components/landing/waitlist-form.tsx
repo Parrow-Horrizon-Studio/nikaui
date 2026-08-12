@@ -1,9 +1,5 @@
 "use client";
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any file using JSX syntax
-// needs React in scope for the classic transform — the same reason
-// pricing.tsx and hero-window.tsx import it.
+
 import * as React from "react";
 import { Label } from "@nikaui/registry/ui/label";
 import { Input } from "@nikaui/registry/ui/input";
@@ -26,6 +22,9 @@ export interface WaitlistFormHandle {
 }
 
 type Status = "idle" | "submitting" | "success" | "error";
+
+/** Announced in the aria-live region while the request is in flight. */
+const SUBMITTING_TEXT = "Adding you to the list…";
 
 export const WaitlistForm = React.forwardRef<WaitlistFormHandle>(function WaitlistForm(
   _props,
@@ -59,7 +58,12 @@ export const WaitlistForm = React.forwardRef<WaitlistFormHandle>(function Waitli
     if (status === "submitting") return;
 
     setStatus("submitting");
-    setMessage("");
+    // Not cleared to "". The button's disabled state is a visual cue only;
+    // the status region is the sole channel a screen-reader user has, and
+    // emptying it left them with silence from the moment they pressed until
+    // the response landed — which on a slow connection is the entire
+    // interaction. aria-live="polite" announces this without interrupting.
+    setMessage(SUBMITTING_TEXT);
 
     try {
       const response = await fetch("/api/waitlist", {
