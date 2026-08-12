@@ -1,7 +1,30 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
-const ROOT = path.resolve(import.meta.dirname, "..", "apps", "web", "src");
+const REPO_ROOT = path.resolve(import.meta.dirname, "..");
+
+/**
+ * Every tree whose contents a user of this project can end up reading: the
+ * marketing site, the component sources the CLI copies into consumers'
+ * repositories, and the CLI itself.
+ *
+ * This was `apps/web/src` alone, which made one of the patterns below
+ * unreachable. The `pop` pattern was strengthened specifically to catch the
+ * object-key shape `pop: {` — a shape that can only occur in
+ * `packages/registry/src/lib/motion.ts`, a file the old walk never visited.
+ * A correct pattern aimed at a tree that cannot contain the violation is
+ * not a gate.
+ *
+ * Deliberately NOT scanned:
+ *   - `docs/` — the design documents legitimately discuss the distribution
+ *     model by name; they are the reasoning behind these rules, not copy
+ *     shipped to anyone.
+ *   - `apps/docs/` — Fumadocs ships vendored CSS containing such names.
+ *     Sub-project D replaces this application with `apps/web` anyway.
+ */
+const ROOTS = ["apps/web/src", "packages/registry/src", "packages/cli/src"].map((relative) =>
+  path.resolve(REPO_ROOT, relative)
+);
 
 const FORBIDDEN = [
   { pattern: /npx nika(?!ui)/, why: "the advertised command is `npx nikaui`" },
@@ -10,6 +33,15 @@ const FORBIDDEN = [
   { pattern: /Figma/i, why: "no design kit exists" },
   { pattern: /\$99\b/, why: "pricing is $149 and $349" },
   { pattern: /data-theme=/, why: "theming switches on the .dark class" },
+  // Spec §5 item 3 and the plan's "What must never reach production" both
+  // list this among the honesty greps, and it was the one string of the
+  // seven that `FORBIDDEN` never implemented. The shipped surfaces are
+  // clean today — this closes an ungated constraint rather than a live
+  // violation, which is exactly when it is cheapest to add.
+  {
+    pattern: /shadcn/i,
+    why: "no reference-library attribution anywhere in shipped code or copy",
+  },
   // Three shapes, because the real risk is someone adding the preset as
   // code, not prose: `motionPresets` in packages/registry/src/lib/motion.ts
   // is unquoted object keys, one per line (`bounce: {`), so a `pop: {`
@@ -32,7 +64,7 @@ const FORBIDDEN = [
 // would never be caught by this script. That's accepted deliberately —
 // test files are not shipped copy a visitor can read, so they're outside
 // what this gate exists to police, and every production source file under
-// apps/web/src is still fully scanned.
+// the roots above is still fully scanned.
 function* walk(dir) {
   for (const entry of readdirSync(dir)) {
     const full = path.join(dir, entry);
@@ -43,16 +75,22 @@ function* walk(dir) {
 }
 
 let failed = false;
-for (const file of walk(ROOT)) {
-  const source = readFileSync(file, "utf8");
-  for (const { pattern, why } of FORBIDDEN) {
-    const match = source.match(pattern);
-    if (match) {
-      console.error(`${path.relative(ROOT, file)}: found "${match[0]}" — ${why}`);
-      failed = true;
+let scanned = 0;
+for (const root of ROOTS) {
+  for (const file of walk(root)) {
+    scanned += 1;
+    const source = readFileSync(file, "utf8");
+    for (const { pattern, why } of FORBIDDEN) {
+      const match = source.match(pattern);
+      if (match) {
+        console.error(
+          `${path.relative(REPO_ROOT, file)}: found "${match[0]}" — ${why}`
+        );
+        failed = true;
+      }
     }
   }
 }
 
 if (failed) process.exit(1);
-console.log("PASS: no forbidden copy");
+console.log(`PASS: no forbidden copy (${scanned} files across ${ROOTS.length} roots)`);
