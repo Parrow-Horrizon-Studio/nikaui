@@ -20,17 +20,21 @@
  *     the original defect shipped unnoticed.
  *   - It computes contrast with `culori`, a real colour library, instead of
  *     hand-rolled OKLCH math. `wcagContrast` is fed colours already run
- *     through `toGamut("rgb")`, culori's implementation of the CSS Color 4
- *     gamut-mapping algorithm (reduce chroma at fixed lightness/hue until
- *     in-gamut) — the same thing a browser does with an out-of-sRGB
- *     oklch() value. Naive channel-clamping instead of gamut-mapping was
- *     checked against real Chromium canvas rendering during development
- *     and drifts by up to ~0.15 on the values in this file; `toGamut`
- *     matched the browser to within ~0.01.
+ *     through `toGamut("rgb", "oklch")`, culori's implementation of the CSS
+ *     Color 4 gamut-mapping algorithm (reduce chroma at fixed lightness/hue
+ *     until in-gamut) — the same resolution path a browser takes for an
+ *     out-of-sRGB oklch() value, rather than a naive per-channel clamp. On
+ *     the fifteen pairs in this file the two methods mostly agree (nine are
+ *     identical to 4 decimal places) and differ by at most 0.0017 — not
+ *     load-bearing for any of these values, since none sit that close to
+ *     4.5. `toGamut` is still the correct choice on principle: it is what
+ *     actually happens on screen, and the gap can matter for other values.
  *   - Every accent × state (`primary`, `primary-hover`, `primary-press`)
  *     is asserted against that accent's `primary-fg`. The accent list
- *     comes from parsing, not a hardcoded array, so a sixth accent — or a
- *     press value nudged back into failure — is covered automatically.
+ *     comes from parsing, not a hardcoded array, so a press value nudged
+ *     back into failure is covered automatically — and so is a sixth
+ *     accent, backed by a parity check (below) that fails loudly if the
+ *     accent-name pattern ever silently drops one instead of matching it.
  *
  * IF THIS FAILS: a shipped accent (or a new one) now renders its primary
  * button label under WCAG AA. Fix the failing state's lightness in
@@ -68,13 +72,16 @@ interface CssBlock {
 /**
  * A deliberately small, non-nested-brace CSS reader — not a general parser.
  * tokens.css has no @media queries or nested rules, so "everything between
- * one `{` and the next `}`" is a safe way to split it into blocks. Comments
- * are stripped first: the file's own header comment names
- * `[data-accent="violet"]` in prose, which — left in — gets matched as if
- * it were a real selector and corrupts the first block's extracted name.
+ * one `{` and the next `}`" is a safe way to split it into blocks.
+ *
+ * Expects comments already stripped from `css` — the caller (parseTokens)
+ * does that once and reuses the stripped text for both this and the accent
+ * parity count below, so the two can't drift apart. The file's own header
+ * comment names `[data-accent="violet"]` in prose, which — left in — gets
+ * matched as if it were a real selector and corrupts the first block's
+ * extracted name; that's what stripping guards against.
  */
-function parseBlocks(css: string): CssBlock[] {
-  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+function parseBlocks(withoutComments: string): CssBlock[] {
   const blocks: CssBlock[] = [];
   const blockPattern = /([^{}]+)\{([^{}]*)\}/g;
   let blockMatch: RegExpExecArray | null;
@@ -111,6 +118,7 @@ interface AccentTokens {
 
 interface ParsedTokens {
   accents: AccentTokens[];
+  accentSelectorCount: number;
   canvas: string;
   success: string;
   warning: string;
@@ -118,18 +126,41 @@ interface ParsedTokens {
   dangerFg: string;
 }
 
-const ACCENT_SELECTOR = /\[data-accent="([a-z]+)"\]/;
+// `[\w-]+` (word chars plus hyphen) covers every plausible accent name —
+// `cobalt`, `deep-sea`, `sun2`, `seaFoam` — not just lowercase-a-z. An
+// earlier version of this pattern was lowercase-only and silently dropped
+// every one of those; nothing here caught it because the vacuity guards
+// below only checked for the five accents that already existed. The parity
+// check right after them is what actually catches that class of bug now —
+// and it deliberately does NOT reuse this pattern to establish its ground
+// truth (see accentSelectorCount below): a character class that's wrong
+// for extraction would be equally wrong for counting, and the two checks
+// would agree with each other while both silently missing the same thing.
+const ACCENT_SELECTOR = /\[data-accent="([\w-]+)"\]/;
 
 function parseTokens(css: string): ParsedTokens {
-  const blocks = parseBlocks(css);
+  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const blocks = parseBlocks(withoutComments);
+
+  // Ground truth for the parity check: how many accent selectors the file
+  // *opens*, counted from the literal `[data-accent="` prefix alone — no
+  // name-character assumptions, no closing `"]`, nothing shared with
+  // ACCENT_SELECTOR above. If that pattern's character class is ever wrong
+  // for a real accent name (this bug, or a future one it doesn't yet
+  // cover), this count still reflects the file's actual accent count, and
+  // the assertion below catches the mismatch instead of both numbers
+  // quietly agreeing on the same wrong answer.
+  const accentSelectorCount = (withoutComments.match(/\[data-accent="/g) ?? []).length;
 
   const accents = blocks
-    .filter(
-      (block) =>
-        ACCENT_SELECTOR.test(block.selector) &&
-        block.vars.has("primary") &&
-        block.vars.has("primary-fg")
-    )
+    // Filter on the selector alone. Filtering on `vars.has(...)` here as
+    // well used to let a block that matches `[data-accent="..."]` but is
+    // missing a required variable (a typo, a copy-paste that dropped a
+    // line, a `@media` override that only sets some of them) disappear
+    // silently instead of hitting the throw below — the one branch where
+    // silence hides an actual defect. Every block whose selector names an
+    // accent now always reaches the completeness check.
+    .filter((block) => ACCENT_SELECTOR.test(block.selector))
     .map((block): AccentTokens => {
       const nameMatch = ACCENT_SELECTOR.exec(block.selector);
       const name = nameMatch?.[1];
@@ -174,7 +205,7 @@ function parseTokens(css: string): ParsedTokens {
     );
   }
 
-  return { accents, canvas, success, warning, danger, dangerFg };
+  return { accents, accentSelectorCount, canvas, success, warning, danger, dangerFg };
 }
 
 const tokensPath = fileURLToPath(new URL("./tokens.css", import.meta.url));
@@ -190,6 +221,19 @@ describe("tokens.css parsing", () => {
       expect.arrayContaining(["sun", "violet", "emerald", "azure", "rose"])
     );
     expect(tokens.accents.length).toBeGreaterThanOrEqual(5);
+  });
+
+  // The guard above only checks that the five known accents are present —
+  // it stays green even if a sixth, differently-spelled accent's selector
+  // silently failed to parse into an AccentTokens entry, because
+  // arrayContaining and a >= length check don't notice an extra element
+  // going missing. This checks the actual count of `[data-accent="..."]`
+  // selectors in the file against how many were successfully parsed, so a
+  // silent drop — from an accent-name character the pattern doesn't
+  // recognise, or from some other future parsing gap — fails here by name
+  // instead of vanishing.
+  it("parses exactly as many accents as the file declares", () => {
+    expect(tokens.accents.length).toBe(tokens.accentSelectorCount);
   });
 });
 
@@ -217,19 +261,19 @@ describe("other contrast figures tokens.css documents in prose", () => {
   it("danger vs danger-fg clears AA and matches the documented ~4.70:1", () => {
     const ratio = contrastRatio(tokens.dangerFg, tokens.danger);
     expect(ratio).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
-    expect(ratio).toBeCloseTo(4.7, 1);
+    expect(ratio).toBeCloseTo(4.7, 2);
   });
 
   // "success measures 2.08:1 ... against it [the light canvas]"
   it("success vs the light canvas matches the documented ~2.08:1 (sub-AA, by design)", () => {
     const ratio = contrastRatio(tokens.success, tokens.canvas);
-    expect(ratio).toBeCloseTo(2.08, 1);
+    expect(ratio).toBeCloseTo(2.08, 2);
   });
 
   // "warning 1.70:1 against it [the light canvas]"
   it("warning vs the light canvas matches the documented ~1.70:1 (sub-AA, by design)", () => {
     const ratio = contrastRatio(tokens.warning, tokens.canvas);
-    expect(ratio).toBeCloseTo(1.7, 1);
+    expect(ratio).toBeCloseTo(1.7, 2);
   });
 
   // NOT bound here: "They are safe as fills, borders and large icons" and
