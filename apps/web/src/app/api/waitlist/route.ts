@@ -1,16 +1,35 @@
 import { NextResponse } from "next/server";
-// Relative, not the "@/" alias: vitest.config.ts has no path-alias
-// resolution configured, so route.test.ts — which imports this module
-// directly to call POST() — would fail to resolve an "@/..." specifier
-// even though Next's own build resolves it fine. Same convention as
-// cta-band.tsx and pricing.tsx.
+// Relative, not the "@/" alias. vitest.config.ts does resolve "@/" now
+// (Task 10 added it for opengraph-image.tsx), so this is a convention
+// rather than a necessity: every module reachable from a test still
+// imports its siblings relatively, which keeps them resolvable by any
+// tool without a matching alias table. Same convention as cta-band.tsx
+// and pricing.tsx.
 import { isValidEmail } from "../../../lib/email";
 import { takeToken } from "../../../lib/rate-limit";
+// Type-only, so it is erased at compile time and no "use client" module is
+// pulled into this server route's graph.
+import type { PricingTier } from "../../../components/landing/pricing";
 
 const LOOPS_ENDPOINT = "https://app.loops.so/api/v1/contacts/create";
 
 // A hung Loops request must not hold the visitor's request open forever.
 const LOOPS_TIMEOUT_MS = 8_000;
+
+/**
+ * `tier` arrives in an untrusted request body and is forwarded to a third
+ * party, so it is validated against the closed domain rather than passed
+ * through — `email` was length-capped and format-checked from the start and
+ * `tier` was not, which let any string of any length reach Loops as a
+ * contact's user group.
+ *
+ * Typed `Record<PricingTier, true>` deliberately: adding a tier to the union
+ * without adding it here is a compile error, and adding one here that is not
+ * in the union is too. An array with `satisfies readonly PricingTier[]` would
+ * only catch the second.
+ */
+const KNOWN_TIERS: Record<PricingTier, true> = { personal: true, team: true };
+const TIER_VALUES = new Set<string>(Object.keys(KNOWN_TIERS));
 
 export async function POST(request: Request) {
   const apiKey = process.env.LOOPS_API_KEY;
@@ -26,8 +45,13 @@ export async function POST(request: Request) {
     );
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  if (!takeToken(ip, Date.now())) {
+  // `null`, not a literal like "unknown": a shared fallback bucket would give
+  // every visitor of a deployment that does not set this header five signups
+  // per minute *between them*. takeToken treats null as "no limit key
+  // available" and documents what it does about it.
+  const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const clientIp = forwardedFor ? forwardedFor : null;
+  if (!takeToken(clientIp, Date.now())) {
     return NextResponse.json(
       { error: "Too many attempts. Try again in a minute." },
       { status: 429 }
@@ -64,7 +88,8 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         email: (email as string).trim(),
         source: "nikaui.dev waitlist",
-        userGroup: typeof tier === "string" ? tier : "unspecified",
+        userGroup:
+          typeof tier === "string" && TIER_VALUES.has(tier) ? tier : "unspecified",
       }),
       // Without this a hanging Loops request holds the visitor's request
       // (and this server's connection) open indefinitely.

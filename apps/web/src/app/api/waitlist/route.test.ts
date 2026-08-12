@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
-// Relative, not the "@/" alias: vitest.config.ts has no path-alias
-// resolution configured (see the same note in cta-band.tsx / pricing.tsx),
-// and this file only needs resetRateLimit to keep each test's rate-limit
-// bucket independent — the same reason rate-limit.test.ts imports it this
-// way rather than through route.ts.
+// Relative, not the "@/" alias — the convention route.ts explains. This
+// file only needs resetRateLimit, to keep each test's rate-limit bucket
+// independent; the same reason rate-limit.test.ts imports it this way
+// rather than through route.ts.
 import { resetRateLimit } from "../../../lib/rate-limit";
 
 const ENDPOINT = "http://localhost/api/waitlist";
@@ -186,6 +185,61 @@ describe("POST /api/waitlist", () => {
     expect(body).toEqual({ error: "Malformed request." });
   });
 
+  describe("the tier it forwards to Loops", () => {
+    /** Runs one request and returns the body route.ts sent onward to Loops. */
+    async function outboundBody(requestBody: unknown, ip: string) {
+      process.env.LOOPS_API_KEY = "test-key";
+      const fetchSpy = vi
+        .fn()
+        .mockResolvedValue(loopsResponse(200, { success: true }));
+      global.fetch = fetchSpy as unknown as typeof fetch;
+
+      await POST(postRequest(requestBody, { "x-forwarded-for": ip }));
+
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      const [, init] = fetchSpy.mock.calls[0] as [string, RequestInit];
+      return JSON.parse(init.body as string) as Record<string, unknown>;
+    }
+
+    it("passes a real tier straight through", async () => {
+      const sent = await outboundBody({ email: "luffy@nika.dev", tier: "team" }, "10.0.0.1");
+      expect(sent.userGroup).toBe("team");
+    });
+
+    // The regression: `typeof tier === "string" ? tier : "unspecified"` took
+    // any string of any length out of an untrusted body and handed it to a
+    // third party. The domain is closed — "personal" | "team" — so anything
+    // else is not a tier and must not be forwarded as one.
+    it("refuses an unknown tier rather than forwarding it", async () => {
+      const sent = await outboundBody(
+        { email: "luffy@nika.dev", tier: "enterprise" },
+        "10.0.0.2"
+      );
+      expect(sent.userGroup).toBe("unspecified");
+    });
+
+    it("refuses an oversized string rather than forwarding it", async () => {
+      const sent = await outboundBody(
+        { email: "luffy@nika.dev", tier: "x".repeat(5_000) },
+        "10.0.0.3"
+      );
+      expect(sent.userGroup).toBe("unspecified");
+    });
+
+    it("refuses a non-string tier rather than forwarding it", async () => {
+      const sent = await outboundBody(
+        { email: "luffy@nika.dev", tier: { toString: "personal" } },
+        "10.0.0.4"
+      );
+      expect(sent.userGroup).toBe("unspecified");
+    });
+
+    it("says unspecified when no tier was recorded at all", async () => {
+      const sent = await outboundBody({ email: "luffy@nika.dev" }, "10.0.0.5");
+      expect(sent.userGroup).toBe("unspecified");
+    });
+  });
+
   it("rate limits the 6th request from the same key, before any Loops call", async () => {
     process.env.LOOPS_API_KEY = "test-key";
     global.fetch = vi
@@ -206,5 +260,21 @@ describe("POST /api/waitlist", () => {
 
     expect(limited.status).toBe(429);
     expect(body).toEqual({ error: "Too many attempts. Try again in a minute." });
+  });
+
+  // On a deployment that sets no x-forwarded-for, the old "unknown" fallback
+  // put every visitor in one bucket: the site as a whole got five signups a
+  // minute, and the sixth real person to try was turned away. Absent header
+  // now means "no limit key available", which is allowed through.
+  it("does not pool visitors into one bucket when x-forwarded-for is absent", async () => {
+    process.env.LOOPS_API_KEY = "test-key";
+    global.fetch = vi
+      .fn()
+      .mockResolvedValue(loopsResponse(200, { success: true })) as unknown as typeof fetch;
+
+    for (let i = 0; i < 8; i++) {
+      const response = await POST(postRequest({ email: `visitor${i}@nika.dev` }));
+      expect(response.status).toBe(200);
+    }
   });
 });
