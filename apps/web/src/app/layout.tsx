@@ -1,10 +1,26 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { JetBrains_Mono, Manrope } from "next/font/google";
 import { ThemeProvider } from "@/components/site/theme-provider";
 import { AccentProvider, AccentScript } from "@/components/site/accent";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
+import { SITE } from "@/lib/site";
 import "./globals.css";
+
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE.url),
+  title: { template: "%s | Nika UI", default: SITE.title },
+  description: SITE.description,
+  openGraph: {
+    title: SITE.title,
+    description: SITE.description,
+    url: SITE.url,
+    siteName: SITE.name,
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", title: SITE.title, description: SITE.description },
+};
 
 const manrope = Manrope({
   subsets: ["latin"],
