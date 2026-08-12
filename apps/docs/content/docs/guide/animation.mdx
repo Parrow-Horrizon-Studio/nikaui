@@ -66,6 +66,48 @@ Each component resolves its feel most-specific-first:
 
 Reduced motion sits above an explicit `motion` prop on purpose — a library selling itself on animation is the one that has to get that right.
 
+## How reduced motion is actually enforced
+
+Step 1 above is the guarantee. **It is not always delivered by the resolver.** For five components — `Card`, `Tabs`, `Progress`, `Spinner` and `Skeleton` — it is delivered by CSS instead. This section explains why, and what it costs you.
+
+Those five put a value derived from the preference *into their markup*: a Motion `initial`, an `animate` under `initial={false}`, a gated `animate-*` class. The server cannot read `prefers-reduced-motion` and the client can, so if the resolver made that decision the two renders would disagree and React would report a hydration mismatch. Deferring the read to a mount effect would make them agree, and would buy that with a frame of animation before the switch-off — the one thing the preference exists to prevent.
+
+CSS is the only layer that runs before hydration. So those components split the decision:
+
+- **Markup values** come from `useConfiguredMotion`, which resolves steps 2 to 5 and deliberately ignores the preference. Identical on the server and the client.
+- **The preference itself** is enforced by Tailwind's `motion-safe:` / `motion-reduce:` variants, which hold from the first paint onwards — before hydration, during it, and after.
+
+Everything else — transitions, hover and tap scales, whether a looping animation runs at all — keeps using `useMotionPreset`, which honours the preference outright and in JavaScript.
+
+Three consequences follow, and all three are yours to know about because you own these files.
+
+### `<Card className="…">` can be overridden under reduced motion
+
+`Card`'s guard is `motion-reduce:opacity-100! motion-reduce:transform-none!`, and it sits on **the same element your `className` styles**. The `!` beats an unmarked utility regardless of source order. So:
+
+```tsx
+<Card className="opacity-60">      {/* renders fully opaque under reduced motion */}
+<Card className="-translate-y-1">  {/* renders unshifted under reduced motion */}
+```
+
+This affects reduced-motion visitors only, which means it is invisible unless you test with the preference switched on. If you need a card whose resting state is not the default one, set `motion="none"` and apply the offset with your own wrapper rather than fighting the guard.
+
+`TabsContent` does **not** have this problem — its guard is on an internal wrapper your `className` never reaches. `Progress` likewise guards its inner bar, not the track you style. `Spinner` and `Skeleton` use `motion-safe:` to *add* an animation rather than `!` to pin one, so they override nothing.
+
+### `useConfiguredMotion` is exported, and has one hard rule
+
+`motion.ts` exports `useConfiguredMotion` alongside `useMotionPreset`. If you write your own animated component against it:
+
+> Use it **only** for values React renders into the DOM, and **always** pair it with a `motion-safe:` or `motion-reduce:` class that enforces the preference.
+
+Used without that guard it silently animates for people who asked for stillness. Reach for `useMotionPreset` for anything else; it honours the preference on its own.
+
+### Your Tailwind build has to emit the variants
+
+The guarantee now depends on your own Tailwind build producing `motion-safe:` / `motion-reduce:` rules for the copied component files. That is a new dependency where previously there was none — the resolver needed nothing outside JavaScript.
+
+In practice this is safe: both are core Tailwind variants, and `nikaui init` puts your components inside the content Tailwind already scans. It matters if you do something unusual — scanning a narrower set of paths than where your components live, or stripping variants from the build. If you do, verify with the preference switched on that a `Card` renders at its resting state.
+
 ## Custom Animations
 
 Since you own the component code, you can modify animations directly:
