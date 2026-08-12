@@ -24,7 +24,7 @@
  *     Color 4 gamut-mapping algorithm (reduce chroma at fixed lightness/hue
  *     until in-gamut) — the same resolution path a browser takes for an
  *     out-of-sRGB oklch() value, rather than a naive per-channel clamp. On
- *     the fifteen pairs in this file the two methods mostly agree (nine are
+ *     the fifteen pairs in this file the two methods mostly agree (eight are
  *     identical to 4 decimal places) and differ by at most 0.0017 — not
  *     load-bearing for any of these values, since none sit that close to
  *     4.5. `toGamut` is still the correct choice on principle: it is what
