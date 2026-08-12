@@ -176,7 +176,7 @@ describe("Pricing", () => {
     ).toBeDefined();
   });
 
-  it("stays inert and never throws when onWaitlist is omitted — the documented default", () => {
+  it("drives the waitlist form via ref and never throws when onWaitlist is omitted — the documented default", () => {
     // Scoped to the two tier cards' own CTA buttons via tierCard(), not a
     // page-wide getAllByRole: since Task 9, <Pricing> also renders
     // <WaitlistForm>, whose submit button is separately labelled "Join the

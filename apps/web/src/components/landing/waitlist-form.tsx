@@ -131,17 +131,25 @@ export const WaitlistForm = React.forwardRef<WaitlistFormHandle>(function Waitli
           </Button>
         </div>
 
-        {/* Honeypot: no accessible name, out of tab order and invisible to
-            sighted users. A human never fills this in; anything that does
-            is a bot, and route.ts answers it with a 200 that sends nothing
-            onward. */}
+        {/* Honeypot: `hidden` (display:none), not `sr-only`. `sr-only` clips
+            to a 1x1 box but keeps it in the layout and focusable by
+            coordinate — and "company" is exactly the field name a
+            browser's saved-address autofill targets first, so a real
+            visitor's browser can and does fill an `sr-only` field like
+            this one silently. `display:none` is never autofilled by any
+            browser and never focusable by any means, so it costs the trap
+            nothing: a bot that blindly fills every input still finds it,
+            since filling is done by dispatching events against the DOM
+            node, not by checking whether it renders. The body is read from
+            React state (not the DOM) either way, so hiding it this way
+            changes nothing about what gets submitted. */}
         <input
           type="text"
           name="company"
           tabIndex={-1}
           aria-hidden="true"
           autoComplete="off"
-          className="sr-only"
+          className="hidden"
           value={company}
           onChange={(event) => setCompany(event.target.value)}
         />
@@ -152,9 +160,17 @@ export const WaitlistForm = React.forwardRef<WaitlistFormHandle>(function Waitli
           role="status"
           aria-live="polite"
           className={cn(
-            "min-h-[1.25rem] text-sm",
+            "min-h-[1.25rem] rounded-md px-2 py-1 text-sm",
+            // `text-danger` is fine as body text (4.70:1 on the light
+            // canvas). `text-success` is not — the token file's own
+            // comment measures it at 2.08:1 and says so isn't a body-text
+            // colour. Alert and Toast both solve this the same way: tint
+            // the surface with the hue and keep `text-content` for the
+            // text (14.9:1). Danger doesn't need the same tint; it's only
+            // applied to success so the two states don't gain mismatched
+            // treatments for no reason.
             status === "error" && "text-danger",
-            status === "success" && "text-success"
+            status === "success" && "bg-success/10 text-content"
           )}
         >
           {message}
