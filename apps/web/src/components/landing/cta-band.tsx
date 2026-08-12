@@ -3,18 +3,11 @@
 // links below (a next/link and a plain <a> can't render as <Button>, a
 // <button> element) — the same reason hero.tsx and site/nav.tsx are
 // "use client".
-//
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any file using JSX syntax
-// needs React in scope for the classic transform — the same reason
-// hero-window.tsx and motion-showcase.tsx import it.
-import * as React from "react";
 import Link from "next/link";
 import { buttonVariants } from "@nikaui/registry/ui/button";
 import { cn } from "@nikaui/registry/lib/utils";
 // Relative, not the "@/" alias: vitest.config.ts (untouched by this task)
-// has no path-alias resolution set up, so a test that imports this module
+// resolves "@/" since Task 10, so a test that imports this module
 // would fail to resolve an "@/..." specifier even though Next's own build
 // resolves it fine.
 import { GITHUB_URL } from "../site/nav-links";

@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
  * The real ImageResponse (Satori + resvg, both WASM) is exercised for real
- * against a running server in the task's manual verification — see
- * task-10-report.md. This test targets one specific regression instead:
+ * against a running server by hand — the social card is spec §C8 in
+ * docs/superpowers/specs/2026-08-12-nikaui-landing-page.md. This test
+ * targets one specific regression instead:
  * what `fonts` value the route hands ImageResponse when the Google Fonts
  * fetch fails. Mocking ImageResponse itself keeps the test fast and
  * hermetic, and lets it assert on the exact value passed rather than on

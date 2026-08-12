@@ -8,34 +8,15 @@ body {
   font-family: var(--nika-font-sans);
 }
 
-/* The prototype's stylesheets use their own variable names. Rather than
-   rewrite every ported rule, bind those names to the tokens the library
-   actually ships. One direction only: prototype names read from --nika-*,
-   never the reverse. These exist solely so ported CSS compiles; new code
-   uses Tailwind utilities or --nika-* directly. */
-:root {
-  --primary: var(--nika-primary);
-  --accent-2: var(--nika-accent);
-  --bg: var(--nika-canvas);
-  --bg-2: var(--nika-canvas-2);
-  --card: var(--nika-surface);
-  --card-2: var(--nika-surface-2);
-  --border: var(--nika-line);
-  --border-2: var(--nika-line-strong);
-  --fg: var(--nika-content);
-  --fg-muted: var(--nika-content-muted);
-  --fg-subtle: var(--nika-content-subtle);
-  --code-bg: var(--nika-code);
-  --font-mono: var(--nika-font-mono);
-  --r-lg: var(--nika-radius-lg);
-  --r-xl: var(--nika-radius-xl);
-  --r-2xl: var(--nika-radius-2xl);
-  --r-full: var(--nika-radius-full);
-  --shadow: var(--nika-shadow);
-  --shadow-lg: var(--nika-shadow-lg);
-  --t: var(--nika-duration);
-  --ease-out: var(--nika-ease-out);
-}
+/* Task 2 defined a compatibility layer here aliasing the prototype's own
+   variable names (--primary, --bg, --r-lg, …) to the --nika-* tokens, so
+   ported CSS could be pasted unchanged. Nothing ever used it: every rule
+   below was written against --nika-* directly. Deleted rather than kept
+   "just in case" — a block of 21 declarations that looks like the token
+   contract but binds nothing is a trap for whoever reads this file next.
+   Port new prototype CSS by rewriting its variable names, not by reviving
+   this. The mapping table is in the plan, under "The prototype token
+   bridge". */
 
 /* The site's own typography. The registry ships system stacks on purpose —
    forcing a font download on every consumer is not the library's call. */
@@ -57,11 +38,10 @@ body {
 }
 
 /* Ported from the prototype: the hero's decorative sun disc and the
-   conic-gradient rays behind it. Rebound directly to --nika-* tokens (no
-   bridge entry needed — the prototype used --primary/--accent-2 here, which
-   already map 1:1 to --nika-primary/--nika-accent). Both retune with
-   [data-accent] since color-mix reads the live custom property, not a
-   frozen value. */
+   conic-gradient rays behind it. Written against --nika-* directly; the
+   prototype's own names here were its --primary/--accent-2, which map 1:1
+   to --nika-primary/--nika-accent. Both retune with [data-accent] since
+   color-mix reads the live custom property, not a frozen value. */
 .hero-sun {
   position: absolute;
   top: -340px;
@@ -158,7 +138,7 @@ body {
    treatment of its Pro card. Paired in JSX with border-primary/50,
    ring-1 ring-primary/30 and shadow-lg, all plain Tailwind utilities — this
    class is only the gradient, which needs a raw color-mix() a utility class
-   can't express. Rebound directly to --nika-* (no bridge entry needed). */
+   can't express. Written against --nika-* directly. */
 .pricing-highlight {
   background: linear-gradient(
     180deg,
@@ -167,8 +147,8 @@ body {
   );
 }
 
-/* Task 8: cta-band.tsx's radial-gradient panel, ported verbatim from the
-   prototype. Rebound directly to --nika-* (no bridge entry needed). */
+/* Task 8: cta-band.tsx's radial-gradient panel, ported from the prototype
+   with its variable names rewritten to --nika-*. */
 .cta-band {
   position: relative;
   overflow: hidden;

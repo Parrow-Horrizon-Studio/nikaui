@@ -5,7 +5,6 @@
 // a plain function exported from a "use client" module, and Next's RSC
 // boundary only allows calling it from a Client Component.
 
-import * as React from "react";
 import Link from "next/link";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { buttonVariants } from "@nikaui/registry/ui/button";

@@ -1,8 +1,3 @@
-// This project's Vitest pipeline (unlike Next's own SWC build) has no
-// automatic-JSX-runtime plugin configured, so any test file using JSX
-// syntax directly needs `React` in scope for the classic transform —
-// matching the convention theme-toggle.test.tsx already established.
-import * as React from "react";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";

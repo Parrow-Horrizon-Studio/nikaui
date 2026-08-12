@@ -1,9 +1,3 @@
-// This project's Vitest pipeline has no automatic-JSX-runtime plugin
-// configured (apps/web/tsconfig.json sets "jsx": "preserve", meant for
-// Next's own SWC build, not Vite/esbuild), so any test file using JSX
-// syntax needs React in scope for the classic transform — the same reason
-// site/theme-toggle.test.tsx and site/accent-switcher.test.tsx import it.
-import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { InstallBar } from "./install-bar";

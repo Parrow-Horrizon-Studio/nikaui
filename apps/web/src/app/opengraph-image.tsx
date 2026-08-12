@@ -1,10 +1,3 @@
-// Not otherwise referenced by name: Next's own build uses the automatic
-// JSX runtime and doesn't need it. Present because vitest's esbuild
-// transform for .tsx defaults to the classic runtime and throws
-// "React is not defined" without it — the same reason every other
-// test-rendered component in this app (hero-window.tsx, cta-band.tsx,
-// pricing.tsx, …) carries the same import.
-import * as React from "react";
 import { ImageResponse } from "next/og";
 import { SITE } from "@/lib/site";
 
