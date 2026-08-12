@@ -89,8 +89,9 @@ export interface NikaMotionConfigProps {
  * convenience.
  *
  * `nikaui init` rewrites the built-in default — both here and in
- * `useMotionPreset` — to the preset chosen at setup, so this file is the one
- * place that decides how an un-wrapped app feels.
+ * `useConfiguredMotion`, which is where the final fallback lives — to the
+ * preset chosen at setup, so this file is the one place that decides how an
+ * un-wrapped app feels. See `packages/cli/src/utils/motion-source.ts`.
  */
 export function NikaMotionConfig({
   preset = "spring",
@@ -102,6 +103,45 @@ export function NikaMotionConfig({
     [preset, components]
   );
   return React.createElement(MotionContext.Provider, { value }, children);
+}
+
+/**
+ * Resolve the feel a component was *configured* with — steps 2 to 5 of the
+ * precedence below, with the visitor's reduced-motion preference deliberately
+ * left out.
+ *
+ * It exists because that preference is readable on the client and not on the
+ * server. `useMotionPreset` reads it during render, so every value derived
+ * from it that a component then puts *into its markup* — a Motion `initial`,
+ * an `animate` under `initial={false}`, a gated `animate-*` class — differs
+ * between the server render and the first client render, and React reports a
+ * hydration mismatch.
+ *
+ * Deferring the read to a mount effect would make the two renders agree and
+ * buy that with a frame of animation before the switch-off, which is the one
+ * thing the preference exists to prevent. CSS is the only layer that runs
+ * before hydration, so the split is: markup values come from here, identical
+ * on both renders, and the preference is enforced by Tailwind's
+ * `motion-safe:` / `motion-reduce:` variants, which hold from the first paint
+ * onwards — before hydration, during it, and after.
+ *
+ * Use this **only** for values React renders into the DOM, and always pair it
+ * with such a guard. Everything else — transitions, hover and tap scales,
+ * whether a looping animation runs at all — keeps using `useMotionPreset`,
+ * which honours the preference outright and in JavaScript.
+ */
+export function useConfiguredMotion(
+  component: NikaComponent,
+  prop?: MotionPreset
+): MotionFeel {
+  const ctx = React.useContext(MotionContext);
+
+  if (prop) return motionPresets[prop];
+  if (ctx?.components?.[component]) {
+    return motionPresets[ctx.components[component]!];
+  }
+  if (ctx?.preset) return motionPresets[ctx.preset];
+  return motionPresets.spring;
 }
 
 /**
@@ -121,14 +161,8 @@ export function useMotionPreset(
   component: NikaComponent,
   prop?: MotionPreset
 ): MotionFeel {
-  const ctx = React.useContext(MotionContext);
+  const configured = useConfiguredMotion(component, prop);
   const prefersReduced = useReducedMotion();
 
-  if (prefersReduced) return motionPresets.none;
-  if (prop) return motionPresets[prop];
-  if (ctx?.components?.[component]) {
-    return motionPresets[ctx.components[component]!];
-  }
-  if (ctx?.preset) return motionPresets[ctx.preset];
-  return motionPresets.spring;
+  return prefersReduced ? motionPresets.none : configured;
 }

@@ -1,0 +1,175 @@
+@import "tailwindcss";
+@import "@nikaui/registry/styles/tokens.css";
+@source "../../../../packages/registry/src";
+
+body {
+  background: var(--nika-canvas);
+  color: var(--nika-content);
+  font-family: var(--nika-font-sans);
+}
+
+/* Task 2 defined a compatibility layer here aliasing the prototype's own
+   variable names (--primary, --bg, --r-lg, …) to the --nika-* tokens, so
+   ported CSS could be pasted unchanged. Nothing ever used it: every rule
+   below was written against --nika-* directly. Deleted rather than kept
+   "just in case" — a block of 21 declarations that looks like the token
+   contract but binds nothing is a trap for whoever reads this file next.
+   Port new prototype CSS by rewriting its variable names, not by reviving
+   this. The mapping table is in the plan, under "The prototype token
+   bridge". */
+
+/* The site's own typography. The registry ships system stacks on purpose —
+   forcing a font download on every consumer is not the library's call. */
+:root {
+  --nika-font-sans: var(--web-font-sans), ui-sans-serif, system-ui, sans-serif;
+  --nika-font-mono: var(--web-font-mono), ui-monospace, monospace;
+}
+
+/* Ported from the prototype: the brand mark, a radial-gradient disc. The
+   nav's translucent, blurred surface is plain Tailwind utilities on the
+   <header> in nav.tsx (bg-canvas/70 backdrop-blur), not a class here. */
+.sun-mark {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--nika-accent), var(--nika-primary) 60%);
+  box-shadow: 0 0 18px -2px color-mix(in oklch, var(--nika-primary) 60%, transparent);
+  flex: none;
+}
+
+/* Ported from the prototype: the hero's decorative sun disc and the
+   conic-gradient rays behind it. Written against --nika-* directly; the
+   prototype's own names here were its --primary/--accent-2, which map 1:1
+   to --nika-primary/--nika-accent. Both retune with [data-accent] since
+   color-mix reads the live custom property, not a frozen value. */
+.hero-sun {
+  position: absolute;
+  top: -340px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 760px;
+  height: 760px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklch, var(--nika-primary) 40%, transparent) 0%,
+    color-mix(in oklch, var(--nika-accent) 14%, transparent) 32%,
+    transparent 64%
+  );
+  filter: blur(8px);
+}
+
+.hero-rays {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140%;
+  height: 700px;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+  background: conic-gradient(
+    from 180deg at 50% 0%,
+    transparent 0deg,
+    color-mix(in oklch, var(--nika-primary) 22%, transparent) 8deg,
+    transparent 16deg,
+    transparent 30deg,
+    color-mix(in oklch, var(--nika-accent) 16%, transparent) 38deg,
+    transparent 46deg,
+    transparent 60deg,
+    color-mix(in oklch, var(--nika-primary) 18%, transparent) 68deg,
+    transparent 76deg,
+    transparent 104deg,
+    color-mix(in oklch, var(--nika-accent) 16%, transparent) 112deg,
+    transparent 120deg,
+    transparent 134deg,
+    color-mix(in oklch, var(--nika-primary) 22%, transparent) 142deg,
+    transparent 150deg,
+    transparent 164deg,
+    color-mix(in oklch, var(--nika-accent) 14%, transparent) 172deg,
+    transparent 180deg
+  );
+  mask-image: linear-gradient(to bottom, black, transparent 70%);
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 70%);
+  animation: nika-rays-drift 24s var(--nika-ease-inout) infinite alternate;
+}
+
+@keyframes nika-rays-drift {
+  from {
+    transform: translateX(-50%) rotate(-1.5deg);
+  }
+  to {
+    transform: translateX(-50%) rotate(1.5deg);
+  }
+}
+
+/* The library's own motion honours this through the resolver; these two
+   decorations are CSS and would otherwise keep moving for a visitor who
+   asked everything to stop. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-rays {
+    animation: none;
+  }
+}
+
+/* Ported from the prototype: the chrome around Task 5's live component
+   window. Everything inside it (the title bar dots, the two-column body) is
+   Tailwind utilities in hero-window.tsx — this is only the outer frame,
+   whose glow needs a raw color-mix() a utility class can't express. */
+.hero-window {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 940px;
+  margin-inline: auto;
+  background: var(--nika-surface);
+  border: 1px solid var(--nika-line);
+  border-radius: var(--nika-radius-2xl);
+  box-shadow:
+    var(--nika-shadow-lg),
+    0 0 80px -20px color-mix(in oklch, var(--nika-primary) 30%, transparent);
+  overflow: hidden;
+}
+
+/* Task 8: pricing.tsx's emphasised middle card. Ported from the prototype's
+   treatment of its Pro card. Paired in JSX with border-primary/50,
+   ring-1 ring-primary/30 and shadow-lg, all plain Tailwind utilities — this
+   class is only the gradient, which needs a raw color-mix() a utility class
+   can't express. Written against --nika-* directly. */
+.pricing-highlight {
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklch, var(--nika-primary) 8%, var(--nika-surface)),
+    var(--nika-surface)
+  );
+}
+
+/* Task 8: cta-band.tsx's radial-gradient panel, ported from the prototype
+   with its variable names rewritten to --nika-*. */
+.cta-band {
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  padding: clamp(56px, 8vw, 96px) 32px;
+  border-radius: var(--nika-radius-2xl);
+  border: 1px solid var(--nika-line-strong);
+  background:
+    radial-gradient(
+      circle at 50% -40%,
+      color-mix(in oklch, var(--nika-primary) 30%, transparent),
+      transparent 60%
+    ),
+    var(--nika-surface);
+}
+
+/* A larger rendition of the brand mark for cta-band.tsx's standalone sun —
+   48px rather than the wordmark's 22px. Declared after .sun-mark so its
+   width/height win: both rules are unlayered (outside any @layer), so
+   equal-specificity conflicts fall back to source order. */
+.sun-mark--lg {
+  width: 48px;
+  height: 48px;
+}

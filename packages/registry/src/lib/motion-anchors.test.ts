@@ -38,7 +38,9 @@ import { fileURLToPath } from "node:url";
  * will throw for real users.
  */
 const ANCHORS = [
-  // useMotionPreset's final fallback — no provider mounted at all.
+  // useConfiguredMotion's final fallback — no provider mounted at all.
+  // It lives there rather than in useMotionPreset, which delegates the
+  // configured-preset lookup to it and only layers reduced motion on top.
   "return motionPresets.spring;",
   // NikaMotionConfig's own default — a provider mounted with no preset prop.
   `  preset = "spring",`,

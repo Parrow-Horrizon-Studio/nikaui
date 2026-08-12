@@ -260,13 +260,18 @@ The plan itself was amended eight times during execution. A pre-flight scan foun
 
 ### C — Landing page
 
+Full spec: [`docs/superpowers/specs/2026-08-12-nikaui-landing-page.md`](superpowers/specs/2026-08-12-nikaui-landing-page.md)
+
 **Goal:** port the prototype landing page onto real Next.js and React, using B's tokens.
 
-Prototype sections, in order: nav with theme toggle → hero with rays, sun, live component window, stats → features grid → motion highlight → templates → pricing → CTA band → footer.
+Prototype sections, in order: nav with theme toggle → hero with rays, sun, live component window, stats → features grid → motion highlight → ~~templates~~ → pricing → CTA band → footer.
 
-- Pricing section ships fully built with real numbers ($149 / $349); CTA is "Join the waitlist" → email capture.
-- Templates section ships with placeholder cards, honestly labelled.
-- All prototype copy is reviewed against reality before shipping — no "40+ components" unless 40+ exist.
+- The landing page moves to a **new `apps/web`**, which sub-project D grows into the documentation site so `apps/docs` can be deleted. One site, one set of chrome, built once.
+- The page is a **live demonstration** — nine real components in the hero window, five real presets in the motion section, and an accent switcher that retints the whole page.
+- Pricing section ships fully built with real numbers, **three tiers** (Free / $149 Personal / $349 Team); both paid CTAs are "Join the waitlist" → email capture through Loops.
+- ~~Templates section ships with placeholder cards, honestly labelled.~~ **Superseded 2026-08-12: the Templates section is cut entirely.** `pro.nikaui.dev` is a separate site whose job is showing templates and blocks with real counts once they exist; a placeholder grid here duplicates that while having nothing to put in it. No Figma design kit is mentioned either — not built, not planned, revisit at v2 or on demand.
+- Theme defaults to **system**, not dark. `apps/docs` currently defaults to dark; D should align it rather than carry that across.
+- All prototype copy is reviewed against reality before shipping — no "40+ components" unless 40+ exist. The full audit is spec §C4; it found eleven corrections, two of which changed what gets built.
 
 ### D — Documentation and showcase
 

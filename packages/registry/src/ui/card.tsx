@@ -3,7 +3,11 @@
 import * as React from "react";
 import { motion as m, type HTMLMotionProps } from "motion/react";
 import { cn } from "../lib/utils";
-import { useMotionPreset, type MotionPreset } from "../lib/motion";
+import {
+  useConfiguredMotion,
+  useMotionPreset,
+  type MotionPreset,
+} from "../lib/motion";
 
 export interface CardProps extends HTMLMotionProps<"div"> {
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
@@ -13,15 +17,37 @@ export interface CardProps extends HTMLMotionProps<"div"> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("card", motionProp);
+    // The from-state is server-rendered, so it must not depend on a
+    // preference only the client can read — see useConfiguredMotion.
+    const configured = useConfiguredMotion("card", motionProp);
 
     return (
       <m.div
         ref={ref}
-        initial={{ opacity: 0, y: 15 * feel.travel }}
+        initial={
+          configured.enabled ? { opacity: 0, y: 15 * configured.travel } : false
+        }
         animate={{ opacity: 1, y: 0 }}
         transition={feel.transition}
         className={cn(
           "rounded-lg border border-line bg-surface text-content shadow-sm",
+          // Pins the card to its resting state for a reduced-motion visitor
+          // from the first paint, so the server-rendered from-state is never
+          // the thing they see. Overrides Motion's inline style, hence `!`.
+          //
+          // KNOWN COST, documented in guide/animation.mdx: this pin lands on
+          // the same element `className` styles, and `!` beats an unmarked
+          // utility whatever the source order. So for a reduced-motion
+          // visitor — and only for them — `<Card className="opacity-60">`
+          // renders fully opaque and `<Card className="-translate-y-1">`
+          // renders unshifted. Anyone not testing with the preference on
+          // never sees it. TabsContent does not have this problem: its guard
+          // sits on an internal wrapper the consumer cannot reach. Card
+          // cannot copy that without adding a wrapper element to every card
+          // in every consuming app, so the cost is documented instead of
+          // hidden — reach for `motion="none"` plus your own styling when
+          // you need a card whose resting state is not the default one.
+          "motion-reduce:opacity-100! motion-reduce:transform-none!",
           className
         )}
         {...props}
