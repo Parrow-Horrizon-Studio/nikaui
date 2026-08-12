@@ -10,7 +10,14 @@ const FORBIDDEN = [
   { pattern: /Figma/i, why: "no design kit exists" },
   { pattern: /\$99\b/, why: "pricing is $149 and $349" },
   { pattern: /data-theme=/, why: "theming switches on the .dark class" },
-  { pattern: /"pop"|'pop'|\bpop\b(?=.*preset)/, why: "there is no preset named pop" },
+  // Three shapes, because the real risk is someone adding the preset as
+  // code, not prose: `motionPresets` in packages/registry/src/lib/motion.ts
+  // is unquoted object keys, one per line (`bounce: {`), so a `pop: {`
+  // entry there is caught by neither the quoted-string alternatives nor a
+  // same-line "pop ... preset" pairing (`.` doesn't cross the newline, and
+  // the enclosing object is named `motionPresets`, several lines above any
+  // individual key). `\bpop\s*:` matches that object-key shape directly.
+  { pattern: /"pop"|'pop'|\bpop\s*:|\bpop\b(?=.*preset)/, why: "there is no preset named pop" },
 ];
 
 // Test files are excluded from this walk. A test that defensively asserts a

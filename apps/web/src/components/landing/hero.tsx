@@ -5,17 +5,36 @@
 // a plain function exported from a "use client" module, and Next's RSC
 // boundary only allows calling it from a Client Component.
 
+import * as React from "react";
 import Link from "next/link";
 import { Badge } from "@nikaui/registry/ui/badge";
 import { buttonVariants } from "@nikaui/registry/ui/button";
 import { cn } from "@nikaui/registry/lib/utils";
+import { motionPresets } from "@nikaui/registry/lib/motion";
+import { ACCENTS } from "../site/accent";
 import { HeroWindow } from "./hero-window";
 import { InstallBar } from "./install-bar";
 
+/**
+ * The component count has no runtime source this file and the CLI's
+ * registry manifest (`packages/cli/src/registry.json`) can both read: the
+ * manifest is loaded via Node's `fs` at build/test time, not importable into
+ * a client bundle. It stays a literal here, and `apps/web/src/lib/claims.test.ts`
+ * is what keeps it honest — it renders this component and asserts the
+ * rendered count matches the manifest.
+ *
+ * The other two stats have no such excuse: `motionPresets` and `ACCENTS` are
+ * ordinary runtime exports, importable directly, so there is nothing left to
+ * bind by hand — counting them here means there is nothing to drift.
+ */
+const COMPONENT_COUNT = 27;
+const MOTION_PRESET_COUNT = Object.keys(motionPresets).length;
+const ACCENT_COUNT = ACCENTS.length;
+
 const STATS = [
-  { value: "27", label: "Components" },
-  { value: "5", label: "Motion presets" },
-  { value: "5", label: "Accents" },
+  { value: String(COMPONENT_COUNT), label: "Components" },
+  { value: String(MOTION_PRESET_COUNT), label: "Motion presets" },
+  { value: String(ACCENT_COUNT), label: "Accents" },
   { value: "MIT", label: "Open source core" },
 ] as const;
 
@@ -28,7 +47,9 @@ export function Hero() {
       <div className="relative z-10 mx-auto flex w-full max-w-[1400px] flex-col items-center px-6 pb-24 pt-20 text-center sm:pt-28">
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface/80 py-1 pl-1 pr-4 text-sm text-content-muted shadow-sm backdrop-blur">
           <Badge>New</Badge>
-          <span>27 components, five motion presets</span>
+          <span>
+            {COMPONENT_COUNT} components, {MOTION_PRESET_COUNT} motion presets
+          </span>
         </div>
 
         <h1 className="mt-6 max-w-[16ch] text-balance text-5xl font-semibold tracking-tight text-content sm:text-6xl">
