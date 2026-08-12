@@ -1,3 +1,10 @@
+// Not otherwise referenced by name: Next's own build uses the automatic
+// JSX runtime and doesn't need it. Present because vitest's esbuild
+// transform for .tsx defaults to the classic runtime and throws
+// "React is not defined" without it — the same reason every other
+// test-rendered component in this app (hero-window.tsx, cta-band.tsx,
+// pricing.tsx, …) carries the same import.
+import * as React from "react";
 import { ImageResponse } from "next/og";
 import { SITE } from "@/lib/site";
 
@@ -36,8 +43,9 @@ const MONO_FONT = "JetBrains Mono";
  * mirrors the `loadGoogleFont` helper next/og itself ships (for CJK/emoji
  * fallback), pointed at the one family the card needs. Requests only the
  * glyphs actually drawn. If the fetch fails (no network at build time), the
- * caller omits `fonts` entirely and Satori renders with its bundled default
- * instead of throwing — degraded, but never broken.
+ * caller passes `fonts: undefined` rather than `[]` — see the comment on
+ * that call for why the distinction matters — and Satori renders with its
+ * bundled default instead of throwing.
  */
 async function loadMonoFont(text: string): Promise<ArrayBuffer | null> {
   try {
@@ -45,6 +53,10 @@ async function loadMonoFont(text: string): Promise<ArrayBuffer | null> {
       `https://fonts.googleapis.com/css2?family=${encodeURIComponent(MONO_FONT)}&text=${encodeURIComponent(text)}`,
       { headers: { "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" } },
     ).then((res) => res.text());
+    // Takes the first @font-face block only, assuming Google returns one
+    // minimal subset for a single text=-scoped family request. True today;
+    // would silently truncate the glyph set if that assumption ever stops
+    // holding (e.g. a request that spans multiple weights/styles).
     const match = css.match(/src: url\(([^)]+)\) format\('(?:opentype|truetype)'\)/);
     const fontUrl = match?.[1];
     if (!fontUrl) return null;
@@ -70,25 +82,24 @@ export default async function Image() {
           justifyContent: "space-between",
           padding: "64px 72px",
           backgroundColor: CANVAS,
+          // Echoes .hero-sun/.hero-rays from globals.css: a soft radial glow
+          // above the wordmark, in literal colour since Satori can't read
+          // the site's --nika-* custom properties. Painted straight onto
+          // this root box (which is exactly the 1200x630 canvas) with an
+          // explicit pixel radius rather than a separate decorative div
+          // sized in percentages: Satori's un-sized `circle` keyword does
+          // not compute the spec's farthest-corner radius — it appears to
+          // reuse the containing box's own declared height as a linear
+          // (not radial) 100% reference, so a `70%` stop on a 900px-tall
+          // box produced a hard seam at a fixed row (top + 0.7 * 900)
+          // instead of a circular falloff. An explicit `circle <px>` size
+          // sidesteps that auto-sizing path entirely.
+          backgroundImage:
+            "radial-gradient(circle 420px at 600px 40px, rgba(250,114,23,0.30) 0%, rgba(251,195,66,0.12) 45%, rgba(250,114,23,0) 100%)",
           position: "relative",
           fontFamily: monoFontData ? MONO_FONT : "sans-serif",
         }}
       >
-        {/* Echoes .hero-sun/.hero-rays from globals.css: a soft radial glow
-            behind the wordmark, in literal colour since Satori can't read
-            the site's --nika-* custom properties. */}
-        <div
-          style={{
-            position: "absolute",
-            top: -260,
-            left: 150,
-            width: 900,
-            height: 900,
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(250,114,23,0.30) 0%, rgba(251,195,66,0.12) 35%, rgba(250,114,23,0) 70%)",
-          }}
-        />
-
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <div
             style={{
@@ -139,9 +150,14 @@ export default async function Image() {
     ),
     {
       ...size,
+      // `undefined`, not `[]`: @vercel/og's internal default is
+      // `options.fonts || defaultFonts`, and an empty array is truthy in
+      // JavaScript, so `[]` short-circuits that fallback and Satori throws
+      // "No fonts are loaded" instead of using its bundled Geist. Only
+      // `undefined` actually reaches `defaultFonts`.
       fonts: monoFontData
         ? [{ name: MONO_FONT, data: monoFontData, style: "normal", weight: 500 }]
-        : [],
+        : undefined,
     },
   );
 }
