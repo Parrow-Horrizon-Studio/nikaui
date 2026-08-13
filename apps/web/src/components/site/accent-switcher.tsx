@@ -55,7 +55,27 @@ export function AccentSwitcher() {
             aria-label={`${LABELS[option]} accent`}
             aria-pressed={selected}
             className={cn(
-              "size-5 rounded-full ring-offset-2 ring-offset-canvas transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              // Every other focus ring in this codebase uses
+              // `ring-ring` — `--nika-ring`, a 55%-opacity mix of the
+              // active accent (packages/registry/src/styles/tokens.css) —
+              // and it reads clearly on a text link or a full-size button.
+              // On a 20px circle it doesn't: confirmed live (real keyboard
+              // focus, both themes, zoomed screenshots) that the ring
+              // *paints* — computed `box-shadow` carries the right color
+              // and spread, nothing clips or occludes it — it's just too
+              // thin and too translucent at this element's size to read as
+              // a ring rather than background noise. `--nika-ring` is a
+              // shared token used everywhere else this pattern appears
+              // (every nav link, every registry form control); changing it
+              // would restyle focus rings site-wide to fix one component,
+              // so this swaps only this button's focus-visible color for
+              // `ring-content` — already used two lines down for the
+              // opaque "selected" ring, proven visible in the same
+              // screenshots — and widens it to `ring-4` so a
+              // selected-and-focused swatch still visibly grows relative
+              // to selected-but-unfocused (`ring-2`), rather than the two
+              // states becoming indistinguishable.
+              "size-5 rounded-full ring-offset-2 ring-offset-canvas transition-shadow focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-content",
               selected ? "ring-2 ring-content" : "ring-1 ring-line-strong hover:ring-content-subtle",
             )}
             style={{ backgroundColor: SWATCHES[option] }}

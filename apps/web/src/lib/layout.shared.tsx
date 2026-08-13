@@ -1,32 +1,46 @@
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
+import { EmptyNavTitle } from "./empty-nav-title";
 
 export function baseOptions(): BaseLayoutProps {
   return {
+    // Turns off Fumadocs' separate mobile header bar only — unrelated to
+    // the sidebar's own home link handled by `slots.navTitle` below.
     nav: {
       enabled: false,
-      // Fumadocs always renders this link in the sidebar's own header
-      // (fumadocs-ui/dist/layouts/shared/client.js, InlineNavTitle) even
-      // with `nav.enabled: false` above — that flag only turns off
-      // Fumadocs' separate mobile header bar. Leaving `title` unset renders
-      // an `<a href="/">` with no children at all: an unnamed link sitting
-      // in the tab order of every documentation page.
-      //
-      // A prior fix named it with an `sr-only` span, which helped screen
-      // readers but left a sighted keyboard user tabbing onto a stop with
-      // nothing to see — invisible either way, just invisible-and-named
-      // instead of invisible-and-unnamed. There's no supported way to drop
-      // the link from the tab order entirely: `BaseSlots.navTitle` is typed
-      // as a plain `FC`, not `FC | false` the way its sibling slots
-      // (themeSwitch, searchTrigger, languageSelect) are, so suppressing it
-      // via `slots.navTitle` would mean fighting the library's own types
-      // rather than using `title`, the option it's actually designed to
-      // take. Plain text is the smaller, type-safe fix: it costs nothing
-      // structural and the accessible name stays "Nika UI". Yes, <Nav>'s own
-      // Brand already gives every route (docs included) a visible home
-      // link, so this is a second one — a little redundant, but redundant
-      // beats invisible, and this is the smallest change that removes the
-      // defect without touching the sidebar's layout.
-      title: "Nika UI",
+    },
+    // Fumadocs always renders a `nav.title` link in the sidebar's own header
+    // (fumadocs-ui/dist/layouts/shared/client.js, InlineNavTitle; consumed
+    // by fumadocs-ui/dist/layouts/docs/slots/sidebar.js) regardless of
+    // `nav.enabled` above. Leaving `title` unset used to render an
+    // `<a href="/">` with no children at all: a real, focusable, invisible
+    // link in the tab order of every documentation page. Two earlier fixes
+    // narrowed but didn't close the gap: an `sr-only` label named it for
+    // screen readers while leaving it exactly as invisible for a sighted
+    // keyboard user, and plain visible text after that made it visible but
+    // redundant — <Nav>'s own Brand already renders a visible "Nika UI" home
+    // link on every route, docs included, directly above this one.
+    //
+    // `slots.navTitle` removes the link outright rather than filling it in.
+    // Both places that consume this slot guard with
+    // `slots.navTitle && jsx(slots.navTitle, …)` — a component is truthy
+    // regardless of what it renders, so passing one that always returns
+    // `null` skips Fumadocs' own default (`InlineNavTitle`) and renders
+    // nothing: no `<a>`, no tab stop, at all. This type-checks with no cast:
+    // `BaseSlots.navTitle` is `FC<ComponentProps<'a'>>`, whose call
+    // signature returns `ReactNode`, and `ReactNode` includes `null`
+    // (@types/react's `index.d.ts`) — `Partial<BaseSlots>` only requires
+    // *some* function matching that signature, not Fumadocs' own.
+    //
+    // It has to be imported from a dedicated `"use client"` module
+    // (`./empty-nav-title`) rather than written inline here as `() => null`:
+    // this function runs in a Server Component, and `DocsLayout` renders
+    // this slot from inside its own Client Component tree, so the value
+    // has to be a real client component reference to cross that boundary —
+    // an inline closure isn't one, and fails at build time even though it
+    // type-checks and even though a component test (no RSC boundary) can't
+    // see the problem.
+    slots: {
+      navTitle: EmptyNavTitle,
     },
   };
 }
