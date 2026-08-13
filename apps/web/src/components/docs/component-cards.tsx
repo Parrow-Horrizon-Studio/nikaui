@@ -117,8 +117,21 @@ function ComponentCard({ name, slug, isStub }: ComponentIndexEntry) {
       href={`/docs/components/${slug}`}
       className="group flex flex-col overflow-hidden rounded-lg border transition-colors hover:border-fd-primary/50"
     >
-      {/* Preview area */}
-      <div className="flex min-h-[120px] items-center justify-center bg-fd-muted/30 p-6">
+      {/* Preview area. `inert` (plus `pointer-events-none` as a defence in
+          depth, since the preview's own controls previously overrode
+          pointer-events to stay clickable) takes the whole subtree out of
+          the tab order and the accessibility tree: without it, each card put
+          up to five extra stops — a button, a slider, a textarea — between
+          this link and the next one, and some of those controls (the
+          textarea, the slider) captured keys a keyboard user tabbing card to
+          card expected the link to receive. A click that lands on the
+          preview area now falls through to the card link instead of
+          reaching the preview's own controls, same as clicking any other
+          non-interactive part of the card. */}
+      <div
+        className="pointer-events-none flex min-h-[120px] items-center justify-center bg-fd-muted/30 p-6"
+        inert
+      >
         <ComponentPreview slug={slug} />
       </div>
 

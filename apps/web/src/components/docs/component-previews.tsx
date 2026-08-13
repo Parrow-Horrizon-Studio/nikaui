@@ -171,19 +171,20 @@ export const previews: Record<string, React.ReactNode> = {
  * rather than the object. The lookup therefore happens here, behind a
  * serialisable `slug` prop.
  *
- * The click suppression comes with it. Each card is a link, and a preview's
- * own controls — the toast button, the progress "Advance" button — must act
- * on the preview instead of navigating.
+ * Each card is a link, and this is rendered inside it, so `component-cards.tsx`
+ * marks the wrapping element `inert`: a preview's own controls — the toast
+ * button, the progress "Advance" button, the slider — would otherwise sit
+ * inside the `<a>` as extra tab stops and swallow keys a keyboard user
+ * tabbing card to card expects the link to receive. `inert` takes the whole
+ * subtree out of the tab order and the accessibility tree, so no click or
+ * key suppression is needed here — this component only has to render the
+ * preview.
  */
 export function ComponentPreview({ slug }: { slug: string }) {
   const preview = previews[slug];
   if (!preview) return null;
 
-  return (
-    <div onClick={(event) => event.preventDefault()} className="pointer-events-auto">
-      {preview}
-    </div>
-  );
+  return <>{preview}</>;
 }
 
 function DialogDemo() {

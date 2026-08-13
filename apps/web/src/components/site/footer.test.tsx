@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { FOOTER_COLUMNS } from "./nav-links";
@@ -37,16 +37,11 @@ describe("Footer", () => {
     for (const column of FOOTER_COLUMNS) {
       const heading = screen.getByRole("heading", { name: column.heading });
       expect(heading).toBeDefined();
-      // Scoped to this column's own wrapper, not `screen`: "Components",
-      // "Installation" and "Theming" each appear in more than one column
-      // (the same docs pages are cross-linked from Product/Developers and
-      // this new Documentation column), so an unscoped `getByRole` would
-      // find multiple same-named links and throw on the very links this
-      // test exists to check.
-      const columnContainer = heading.closest("div");
-      if (!columnContainer) throw new Error(`No wrapper found for column "${column.heading}"`);
+      // Every link's accessible name is unique across the whole footer (no
+      // two columns link the same label to different places), so a plain
+      // `screen.getByRole` is enough here — no per-column scoping needed.
       for (const link of column.links) {
-        expect(within(columnContainer).getByRole("link", { name: link.label })).toBeDefined();
+        expect(screen.getByRole("link", { name: link.label })).toBeDefined();
       }
     }
     // Guards the layout against the data: a hard-coded grid template that

@@ -46,10 +46,16 @@ describe("the five component previews added in sub-project D", () => {
     // marker did not. Motion normalises an identity scale to
     // `transform: none`, so the selected dot is asserted as "not collapsed"
     // rather than as a literal `scale(1)`.
-    await waitFor(() => {
-      expect(dot(options[0]!).style.transform).toContain("scale(0)");
-      expect(dot(options[1]!).style.transform).not.toContain("scale(0)");
-    });
+    // The real spring animation this asserts on measures ~633ms — 1.6x under
+    // `waitFor`'s default 1000ms budget, too thin a margin on a loaded CI
+    // runner. Explicit, like the progress bar assertion below.
+    await waitFor(
+      () => {
+        expect(dot(options[0]!).style.transform).toContain("scale(0)");
+        expect(dot(options[1]!).style.transform).not.toContain("scale(0)");
+      },
+      { timeout: 3000 }
+    );
   });
 
   it("renders a textarea that accepts input", () => {

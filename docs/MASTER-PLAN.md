@@ -16,7 +16,7 @@ This is the single reference for Nika UI. It holds the product definition, curre
 | **A** | Monetization & distribution — boundary, delivery, pricing, launch posture | — | — | C, E, F | ✅ **Specced** |
 | **B** | Design-system foundation — tokens, motion API, registry schema | **L** | — | C, D, F, G | ✅ **Specced** |
 | **C** | Landing page — port the prototype onto real Next.js | M | A, B | — | Not started |
-| **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | Not started |
+| **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | ✅ **Executed 2026-08-13 — migration only** |
 | **E** | Repo migration & ops — org transfer, protection, CI, npm identity | S–M | A ✅ | — | ✅ **Specced — do first** |
 | **F** | Block & template lineup — choose, then build | M decide / L build | A, B | G | Not started |
 | **G** | Agent surface — MCP server, Pro agent skill | M | B, D, F | — | Not started |
@@ -299,6 +299,10 @@ Delivered: the documentation routes render inside C's site chrome; search and th
 | Eighteen component pages remain `status: stub` | **unscheduled sub-project** | Each carries an `## API Reference` documenting only `motion`; writing real prop tables for all eighteen is its own sub-project, deliberately not this one |
 | `ComboboxTrigger` rejects native input props (`placeholder`, `id`, `name`, `autoFocus`) | **B follow-up — Ruling R11** | `packages/registry/src/ui/combobox.tsx:17-19` leaves a generic uninstantiated. D's combobox preview ships without a placeholder as a workaround; the registry itself is out of D's scope and untouched |
 | Toast lacks `warning`/`info` variants; danger toast composites over page content | **Sub-project F** | Unchanged from B's carried-forward list below — D documented the components as they are, it did not change them |
+| Live previews have no variant or motion-preset switcher | **unscheduled sub-project** | Chartered above ("Live previews for every component, with variant and motion-preset switchers"); what shipped is one fixed demo per component, no switching. Not started |
+| `llms.txt` does not exist | **unscheduled sub-project** | Chartered above as part of "Absorbs agent Tiers 0 and 1." Not started |
+| Agent Tiers 0 and 1 (`llms.txt` and the `AGENTS.md` snippet) | **unscheduled sub-project, likely G** | Chartered above, not started. `apps/web/AGENTS.md` is a `next dev` build artefact, not this deliverable — it is gitignored and never committed |
+| `checkbox` and `radio-group` use a `ring-2 ring-ring` focus pattern at 16px | **measure, do not assume** | The same construction rendered an *invisible* focus ring at 20px on the accent switcher. Judged materially different here — the switch is a filled accent-coloured circle wearing an accent-derived translucent ring (near-zero self-contrast against its own fill), while checkbox/radio sit on canvas with `ring-offset-2` giving a neutral gap — but this has not been measured, only reasoned about. Check contrast at 16px in both themes before assuming it is fine; do not let it be rediscovered by accident a third time |
 
 ### E — Repository migration and ops ✅
 

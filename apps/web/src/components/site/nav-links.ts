@@ -28,9 +28,6 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
     heading: "Developers",
     links: [
-      { label: "Documentation", href: "/docs/guide" },
-      { label: "Installation", href: "/docs/guide/installation" },
-      { label: "Theming", href: "/docs/guide/theming" },
       { label: "GitHub", href: GITHUB_URL },
       { label: "License", href: `${GITHUB_URL}/blob/main/LICENSE` },
     ],
@@ -39,7 +36,6 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: "Documentation",
     links: [
       { label: "Guide", href: "/docs/guide" },
-      { label: "Components", href: "/docs/components" },
       { label: "Installation", href: "/docs/guide/installation" },
       { label: "Theming", href: "/docs/guide/theming" },
       { label: "Animation", href: "/docs/guide/animation" },

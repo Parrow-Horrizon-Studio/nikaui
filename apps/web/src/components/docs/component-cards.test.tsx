@@ -4,6 +4,7 @@ import path from "node:path";
 import type { Node } from "fumadocs-core/page-tree";
 import { source } from "@/lib/source";
 import { componentIndex } from "./component-cards";
+import { previews } from "./component-previews";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../../../../..");
 
@@ -108,5 +109,20 @@ describe("the component index", () => {
     expect(componentIndex().map((c) => `${c.slug}: ${c.category}`)).toEqual(
       componentIndex().map((c) => `${c.slug}: ${sidebar.get(c.slug)}`)
     );
+  });
+
+  it("has a preview for every component in the index, and no preview for a component that isn't", () => {
+    // `previews` in component-previews.tsx is the one hand-maintained list D
+    // left behind: a Record keyed by slug, bound to nothing. `ComponentPreview`
+    // returns `null` on a miss, so a documented component with no preview
+    // entry ships an empty card silently — precisely the drift the derived
+    // index exists to end, one layer further down. This binds the two lists
+    // together in both directions: a page without a preview fails here, and
+    // so does a preview without a page.
+    const indexSlugs = componentIndex()
+      .map((c) => c.slug)
+      .sort();
+    const previewSlugs = Object.keys(previews).sort();
+    expect(previewSlugs).toEqual(indexSlugs);
   });
 });
