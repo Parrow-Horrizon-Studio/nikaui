@@ -161,6 +161,31 @@ export const previews: Record<string, React.ReactNode> = {
   ),
 };
 
+/**
+ * One component's preview, looked up by slug on the client.
+ *
+ * `component-cards.tsx` derives its list from `source`, which is server-side,
+ * so it is a Server Component now and cannot read the `previews` record
+ * itself: `"use client"` means the server never evaluates this module, and an
+ * import of `previews` from a Server Component yields a client *reference*
+ * rather than the object. The lookup therefore happens here, behind a
+ * serialisable `slug` prop.
+ *
+ * The click suppression comes with it. Each card is a link, and a preview's
+ * own controls — the toast button, the progress "Advance" button — must act
+ * on the preview instead of navigating.
+ */
+export function ComponentPreview({ slug }: { slug: string }) {
+  const preview = previews[slug];
+  if (!preview) return null;
+
+  return (
+    <div onClick={(event) => event.preventDefault()} className="pointer-events-auto">
+      {preview}
+    </div>
+  );
+}
+
 function DialogDemo() {
   const [open, setOpen] = useState(false);
   return (

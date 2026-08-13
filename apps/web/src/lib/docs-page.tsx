@@ -7,6 +7,7 @@ import {
 } from "fumadocs-ui/layouts/docs/page";
 import { notFound } from "next/navigation";
 import { getMDXComponents } from "@/components/docs/mdx";
+import { StubNotice } from "@/components/docs/stub-notice";
 import { createRelativeLink } from "fumadocs-ui/mdx";
 import type { Metadata } from "next";
 
@@ -34,6 +35,7 @@ export function createDocsPage(sectionPrefix: string) {
         <DocsTitle>{data.title}</DocsTitle>
         <DocsDescription>{data.description}</DocsDescription>
         <DocsBody>
+          {data.status === "stub" ? <StubNotice /> : null}
           <MDX
             components={getMDXComponents({
               a: createRelativeLink(source, page),
