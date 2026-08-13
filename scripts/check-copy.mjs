@@ -22,9 +22,12 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "..");
  *   - `apps/docs/` — Fumadocs ships vendored CSS containing such names.
  *     Sub-project D replaces this application with `apps/web` anyway.
  */
-const ROOTS = ["apps/web/src", "packages/registry/src", "packages/cli/src"].map((relative) =>
-  path.resolve(REPO_ROOT, relative)
-);
+const ROOTS = [
+  "apps/web/src",
+  "apps/web/content",
+  "packages/registry/src",
+  "packages/cli/src",
+].map((relative) => path.resolve(REPO_ROOT, relative));
 
 const FORBIDDEN = [
   { pattern: /npx nika(?!ui)/, why: "the advertised command is `npx nikaui`" },
@@ -70,7 +73,7 @@ function* walk(dir) {
     const full = path.join(dir, entry);
     if (statSync(full).isDirectory()) yield* walk(full);
     else if (/\.test\.(ts|tsx)$/.test(entry)) continue;
-    else if (/\.(ts|tsx|css|mjs)$/.test(entry)) yield full;
+    else if (/\.(ts|tsx|css|mjs|mdx)$/.test(entry)) yield full;
   }
 }
 
