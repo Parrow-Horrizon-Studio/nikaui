@@ -48,6 +48,29 @@
   --color-fd-muted-foreground: var(--nika-content-muted);
 }
 
+/* A second, differently-shaped fight over the same sidebar, this time not
+   about which declaration of a variable wins but about *when* Fumadocs
+   applies it. The active-page item's highlight
+   (fumadocs-ui/dist/layouts/docs/slots/sidebar.js, itemVariants:
+   `data-[active=true]:text-fd-primary data-[active=true]:bg-fd-primary/10`)
+   sits under a `transition-colors` Fumadocs applies unconditionally to
+   every sidebar link, so `color`/`background-color` change through a CSS
+   transition rather than snapping instantly. `--color-fd-primary` itself
+   always tracks the current accent correctly (confirmed live on the
+   element with getComputedStyle across all five accents) — the transition
+   is the problem: AccentSwitcher changes `[data-accent]` on `<html>`, a
+   distant ancestor, not on the item itself, and that transition never
+   finishes. The highlight stays pinned to whichever accent was current at
+   the page's last full load until something else forces a restyle, e.g. a
+   client-side navigation to a different doc page. Excluding `color` and
+   `background-color` from this element's transitioned properties — the
+   only two Fumadocs drives from --color-fd-primary here — makes the
+   highlight retune the instant the accent changes, same as every other
+   Fumadocs surface already does. */
+#nd-sidebar a[data-active="true"] {
+  transition-property: border-color, outline-color, text-decoration-color, fill, stroke;
+}
+
 body {
   background: var(--nika-canvas);
   color: var(--nika-content);

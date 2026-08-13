@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { getMDXComponents } from "@/components/docs/mdx";
 import { StubNotice } from "@/components/docs/stub-notice";
 import { createRelativeLink } from "fumadocs-ui/mdx";
+import { MAIN_CONTENT_ID } from "@/components/site/nav";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -32,7 +33,18 @@ export function createDocsPage(sectionPrefix: string) {
 
     return (
       <DocsPage toc={data.toc} full={data.full}>
-        <DocsTitle>{data.title}</DocsTitle>
+        {/* The skip link in <Nav> (rendered by the root layout on every
+            route, docs included) targets this id. The landing page puts it
+            on its own <main>; every /docs/* route renders through this one
+            shared page component, so the title — the actual start of the
+            page's content, after Fumadocs' own breadcrumb chrome — is the
+            equivalent target here. `tabIndex={-1}` and `scroll-mt-20` mirror
+            page.tsx's <main> for the same reason: browsers scroll to a
+            non-focusable target but leave focus behind, and the sticky <Nav>
+            would otherwise cover the heading the skip link lands on. */}
+        <DocsTitle id={MAIN_CONTENT_ID} tabIndex={-1} className="scroll-mt-20 focus:outline-none">
+          {data.title}
+        </DocsTitle>
         <DocsDescription>{data.description}</DocsDescription>
         <DocsBody>
           {data.status === "stub" ? <StubNotice /> : null}
