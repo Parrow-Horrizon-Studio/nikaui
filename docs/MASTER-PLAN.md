@@ -119,7 +119,7 @@ Two repositories, each a Turborepo, both owned by the Parrow Horrizon Studio org
 
 ```
 Parrow-Horrizon-Studio/nikaui      (public, org)
-  apps/docs         → nikaui.dev       landing + OSS documentation
+  apps/web          → nikaui.dev       landing + OSS documentation
   packages/         registry, cli, eslint-config, typescript-config
 
 Rowee13/nikaui-pro                 (private, personal account)
@@ -251,7 +251,7 @@ The plan itself was amended eight times during execution. A pre-flight scan foun
 | Doc pages are one-prop stubs | **unscheduled sub-project (see D's own carried-forward)** | D's audit found the true count is **18**, not the 13 estimated here — each carries an `## API Reference` documenting only `motion`, replacing "Documentation coming soon." Honest, but not a prop table. Now marked by frontmatter rather than merely estimated |
 | Toast lacks `warning` and `info` variants | **Sub-project D/F** | Alert has all five and the tokens exist. A missing feature, not a defect |
 | Danger toast composites over page content | **Sub-project D/F** | `bg-danger/10` on a fixed overlay with no opaque base. `success` behaved this way before B; fixing it needs a layering change, not a class swap |
-| `apps/docs` now fetches fonts at build time | **user decision** | `next/font/google` replaced local Geist files, so `ci` — a required status check — now depends on `fonts.googleapis.com` being reachable on a cold cache |
+| `apps/web` fetches fonts at build time | **user decision** | `next/font/google` (`Manrope`, `JetBrains_Mono` — `apps/web/src/app/layout.tsx`) means `ci`, a required status check, depends on `fonts.googleapis.com` being reachable on a cold cache. Formerly `apps/docs`; the dependency moved with the app, unchanged, when D deleted it |
 | `packages/cli` has no test suite | **B follow-up** | `isValidStylesheetPath`, `onCancel`, `--yes` and the token guard are verified only by manual end-to-end runs. The registry suite now guards `init`'s three substitution anchors; nothing else in the CLI is tested |
 | `resolveTarget` does not sanitise `..` in a target | **Sub-project F/G** | Unreachable today — targets come only from the bundled first-party manifest. Must close before custom registries |
 | `access` and the `styles` resolution bucket are unused | **Sub-project F** | Schema v2 pre-wired both; `add` never reads either |

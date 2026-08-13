@@ -17,7 +17,7 @@ npx nikaui add button card dialog
 
 ### Apps
 
-- `apps/docs` — documentation site and landing page (Next.js + Fumadocs)
+- `apps/web` — landing page and documentation site (Next.js + Fumadocs)
 
 ### Packages
 

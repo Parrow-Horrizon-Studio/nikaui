@@ -17,7 +17,7 @@ pnpm install
 ## Repository layout
 
 ```
-apps/docs           Documentation site (Next.js + Fumadocs)
+apps/web            Landing page and documentation site (Next.js + Fumadocs)
 packages/registry   Component source — what the CLI copies into user projects
 packages/cli        The `nikaui` CLI
 packages/*-config   Shared ESLint, TypeScript, and Tailwind configuration
@@ -45,7 +45,7 @@ request can merge — they are the required status checks.
 2. Add an entry to `packages/cli/src/registry.json` declaring its npm
    `dependencies` and its `registryDependencies` (other registry files it
    imports)
-3. Add documentation at `apps/docs/content/docs/components/<name>.mdx`
+3. Add documentation at `apps/web/content/docs/components/<name>.mdx`
 
 Components use Motion for animation, `class-variance-authority` for variants,
 and the token layer for all colour. Never hard-code a colour.
