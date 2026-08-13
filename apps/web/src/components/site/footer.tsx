@@ -38,7 +38,13 @@ export function Footer() {
   return (
     <footer className="border-t border-line">
       <div className="mx-auto w-full max-w-[1400px] px-6 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_repeat(2,minmax(0,auto))]">
+        {/* Two grid tracks, not one-per-column: `repeat(N, …)` would hard-code
+            the column count again, just with a different N. The brand takes
+            the first track; every `FOOTER_COLUMNS` entry lives inside the
+            second as a `flex flex-wrap` group, so adding or removing a
+            column is purely a data change — the grid never needs to know
+            the count. */}
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_auto]">
           <div className="max-w-sm">
             <Brand />
             <p className="mt-4 text-sm text-content-muted">
@@ -47,18 +53,20 @@ export function Footer() {
             </p>
           </div>
 
-          {FOOTER_COLUMNS.map((column) => (
-            <div key={column.heading}>
-              <h3 className="text-sm font-semibold text-content">{column.heading}</h3>
-              <ul className="mt-4 space-y-2.5">
-                {column.links.map((link) => (
-                  <li key={link.href}>
-                    <FooterAnchor href={link.href}>{link.label}</FooterAnchor>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="flex flex-wrap gap-10">
+            {FOOTER_COLUMNS.map((column) => (
+              <div key={column.heading}>
+                <h3 className="text-sm font-semibold text-content">{column.heading}</h3>
+                <ul className="mt-4 space-y-2.5">
+                  {column.links.map((link) => (
+                    <li key={link.href}>
+                      <FooterAnchor href={link.href}>{link.label}</FooterAnchor>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-2 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">

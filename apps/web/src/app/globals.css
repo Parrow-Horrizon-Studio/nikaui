@@ -33,6 +33,21 @@
   --color-fd-ring: var(--nika-ring);
 }
 
+/* fumadocs-ui/css/neutral.css (imported above) re-declares three of the
+   bridge's properties under `.dark #nd-sidebar` — specificity (1,1,0),
+   which outranks the plain `:root` bridge's (0,1,0). Left alone, dark mode's
+   documentation sidebar would render Fumadocs' own grey palette for those
+   three surfaces while everything else on the page reads from Nika's
+   tokens. This block is not redundant with the one above: it exists only to
+   win that specificity fight, so it must repeat the same selector shape
+   Fumadocs uses. `--color-fd-primary` is not among the three Fumadocs
+   overrides, so the accent needs no matching entry here. */
+.dark #nd-sidebar {
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+}
+
 body {
   background: var(--nika-canvas);
   color: var(--nika-content);
