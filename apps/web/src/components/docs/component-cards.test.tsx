@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import type { Node } from "fumadocs-core/page-tree";
 import { source } from "@/lib/source";
 import { componentIndex } from "./component-cards";
 
@@ -24,6 +25,38 @@ function documentedSlugs(): string[] {
     .map((u) => u.replace("/docs/components/", ""))
     .filter((s) => s.length > 0)
     .sort();
+}
+
+/**
+ * Which sidebar section each component page falls under, according to the
+ * `---Foundation---` / `---Interactive---` separators in
+ * `content/docs/components/meta.json`.
+ *
+ * A separator applies to the siblings that follow it, so `section` is scoped
+ * to one list of children and resets on entering a nested folder.
+ */
+function sidebarSectionBySlug(): Map<string, string> {
+  const sections = new Map<string, string>();
+
+  const walk = (nodes: Node[]) => {
+    let section: string | undefined;
+    for (const node of nodes) {
+      if (node.type === "separator") {
+        section =
+          typeof node.name === "string" ? node.name.toLowerCase() : undefined;
+      } else if (node.type === "folder") {
+        walk(node.children);
+      } else if (node.type === "page" && section) {
+        const prefix = "/docs/components/";
+        if (node.url.startsWith(prefix)) {
+          sections.set(node.url.slice(prefix.length), section);
+        }
+      }
+    }
+  };
+
+  walk(source.getPageTree().children);
+  return sections;
 }
 
 describe("the component index", () => {
@@ -59,5 +92,21 @@ describe("the component index", () => {
     expect(bySlug.get("dialog")?.isStub).toBe(false);
     expect(bySlug.get("tooltip")?.isStub).toBe(true);
     expect(componentIndex().filter((c) => c.isStub)).toHaveLength(18);
+  });
+
+  it("groups every component the way the sidebar separators do", () => {
+    // The grouping is written down twice: `meta.json`'s `---Foundation---` and
+    // `---Interactive---` separators drive the sidebar, `category` drives this
+    // index. Deleting the hand-maintained component *list* left a second copy
+    // of the component *grouping*, and two unbound representations of one fact
+    // drift — a page could sit under one heading here and the other there,
+    // silently, on a green build. This is what binds them.
+    const sidebar = sidebarSectionBySlug();
+
+    // Compared as `slug: value` strings so a mismatch names the offending
+    // page rather than reporting an anonymous "foundation" ≠ "interactive".
+    expect(componentIndex().map((c) => `${c.slug}: ${c.category}`)).toEqual(
+      componentIndex().map((c) => `${c.slug}: ${sidebar.get(c.slug)}`)
+    );
   });
 });

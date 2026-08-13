@@ -6,10 +6,12 @@ afterEach(cleanup);
 
 /**
  * `previews` is a `Record<string, React.ReactNode>` — the values are already
- * *elements*, not component types, because `component-cards.tsx` consumes
- * them as `{previews[slug]}`. So these render `previews[slug]` directly
- * rather than `<Preview />`: the record's shape is the established interface
- * and the test follows it, not the other way round.
+ * *elements*, not component types, because `ComponentPreview`, alongside the
+ * record in `component-previews.tsx`, consumes them as `{previews[slug]}`.
+ * (Until the component index moved to the server, `component-cards.tsx` did
+ * that lookup itself.) So these render `previews[slug]` directly rather than
+ * `<Preview />`: the record's shape is the established interface and the test
+ * follows it, not the other way round.
  *
  * The point of these is that the previews are live. A preview that renders a
  * component's static default demonstrates nothing a screenshot wouldn't, so
