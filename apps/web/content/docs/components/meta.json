@@ -13,6 +13,9 @@
     "spinner",
     "avatar",
     "aspect-ratio",
+    "alert",
+    "progress",
+    "textarea",
     "---Interactive---",
     "dialog",
     "alert-dialog",
@@ -25,6 +28,8 @@
     "switch",
     "checkbox",
     "tooltip",
-    "toast"
+    "toast",
+    "radio-group",
+    "slider"
   ]
 }

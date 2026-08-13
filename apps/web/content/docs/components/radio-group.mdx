@@ -1,0 +1,117 @@
+---
+title: Radio Group
+description: A set of mutually exclusive options.
+category: interactive
+---
+
+## Installation
+
+```bash
+npx nikaui add radio-group
+```
+
+## Usage
+
+```tsx
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { useState } from "react"
+
+export default function Example() {
+  const [density, setDensity] = useState("comfortable")
+
+  return (
+    <RadioGroup value={density} onChange={setDensity}>
+      <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
+      <RadioGroupItem value="compact">Compact</RadioGroupItem>
+    </RadioGroup>
+  )
+}
+```
+
+`onChange` receives the selected `value` directly — a string, not an event.
+
+## Uncontrolled
+
+Pass `defaultValue` instead of `value` to let the group manage its own
+selection:
+
+```tsx
+<RadioGroup defaultValue="comfortable">
+  <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
+  <RadioGroupItem value="compact">Compact</RadioGroupItem>
+</RadioGroup>
+```
+
+## Disabled options
+
+`disabled` on the group disables every option; on an item it disables just
+that one. Disabled options are skipped by the arrow keys and dimmed.
+
+```tsx
+<RadioGroup defaultValue="monthly">
+  <RadioGroupItem value="monthly">Monthly</RadioGroupItem>
+  <RadioGroupItem value="yearly" disabled>
+    Yearly — unavailable on your plan
+  </RadioGroupItem>
+</RadioGroup>
+```
+
+## Forms
+
+Give the group a `name` and the current selection is submitted with the
+surrounding form through a hidden field.
+
+```tsx
+<RadioGroup name="density" defaultValue="comfortable">
+  <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
+  <RadioGroupItem value="compact">Compact</RadioGroupItem>
+</RadioGroup>
+```
+
+## Keyboard
+
+The group is a single tab stop. Once focused, the arrow keys move between
+options — wrapping at both ends and selecting as they go — and <kbd>Space</kbd>
+selects the focused option.
+
+## Animation
+
+The dot inside the selected option scales up from nothing, and back down when
+the selection moves away, using the `spring` preset by default. Pass a
+different preset with the `motion` prop on the item, or turn it off with
+`"none"`:
+
+```tsx
+<RadioGroupItem value="compact" motion="snap">Compact</RadioGroupItem>
+<RadioGroupItem value="compact" motion="none">Compact</RadioGroupItem>
+```
+
+See [Animation](/docs/guide/animation) for the full list of presets and how to
+set a default globally with `NikaMotionConfig`.
+
+## API Reference
+
+### RadioGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — | The selected value, for a controlled group |
+| `defaultValue` | `string` | — | The initially selected value, for an uncontrolled group |
+| `onChange` | `(value: string) => void` | — | Called with the newly selected value |
+| `name` | `string` | — | Submits the selection with the surrounding form under this name |
+| `disabled` | `boolean` | `false` | Disables every option in the group |
+| `className` | `string` | — | Merged with the group's own classes |
+| `children` | `React.ReactNode` | — | The `RadioGroupItem` options |
+
+`RadioGroup` accepts these props only — it does not spread arbitrary `div`
+attributes. It forwards its ref to the group element.
+
+### RadioGroupItem
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string` | — | **Required.** The value this option selects |
+| `disabled` | `boolean` | `false` | Disables this option |
+| `className` | `string` | — | Merged with the item's own classes |
+| `children` | `React.ReactNode` | — | The option's label |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the dot |

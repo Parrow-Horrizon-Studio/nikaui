@@ -1,0 +1,73 @@
+---
+title: Progress
+description: A determinate or indeterminate progress bar.
+category: foundation
+---
+
+## Installation
+
+```bash
+npx nikaui add progress
+```
+
+## Usage
+
+Pass a `value` between 0 and 100 for a determinate bar. Values outside that
+range are clamped, so you can hand it raw arithmetic without guarding it:
+
+```tsx
+import { Progress } from "@/components/ui/progress"
+
+export default function Example() {
+  return <Progress value={60} />
+}
+```
+
+## Indeterminate
+
+Omit `value` and the bar becomes indeterminate: a short segment sweeps across
+the track on a loop, for work whose completion you cannot measure.
+
+```tsx
+<Progress />
+```
+
+## Accessibility
+
+`Progress` renders with `role="progressbar"`, `aria-valuemin={0}` and
+`aria-valuemax={100}`. `aria-valuenow` carries the clamped `value`, and is
+left off entirely when the bar is indeterminate — which is how assistive
+technology tells the two apart. Give the bar an `aria-label` (or point
+`aria-labelledby` at your own heading) so the announcement says what is
+progressing.
+
+## Animation
+
+The determinate bar animates its fill to each new `value` using the `spring`
+preset by default. The indeterminate bar loops its sweep with the same feel.
+Pass a different preset with the `motion` prop, or turn it off with `"none"`:
+
+```tsx
+<Progress value={60} motion="glide" />
+<Progress value={60} motion="none" />
+```
+
+Under `"none"` — and for visitors who have asked for reduced motion — the
+determinate fill jumps straight to its value and the indeterminate segment
+sits still at the start of the track rather than sweeping, so it remains a
+visible loading affordance either way.
+
+See [Animation](/docs/guide/animation) for the full list of presets and how to
+set a default globally with `NikaMotionConfig`.
+
+## API Reference
+
+### Progress
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `number` | — | Completion from 0 to 100, clamped to that range. Omit for an indeterminate bar |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the fill and the indeterminate sweep |
+
+`Progress` renders a `<div>` and forwards its ref, so it also accepts every
+standard `div` attribute — `className`, `aria-label` and the rest.

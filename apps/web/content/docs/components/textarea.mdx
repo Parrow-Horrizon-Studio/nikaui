@@ -1,0 +1,80 @@
+---
+title: Textarea
+description: A multi-line text input.
+category: foundation
+---
+
+## Installation
+
+```bash
+npx nikaui add textarea
+```
+
+## Usage
+
+`Textarea` is a styled native `<textarea>`, controlled the same way:
+
+```tsx
+import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react"
+
+export default function Example() {
+  const [message, setMessage] = useState("")
+
+  return (
+    <Textarea
+      placeholder="Write a message..."
+      value={message}
+      onChange={(event) => setMessage(event.target.value)}
+    />
+  )
+}
+```
+
+## With a label
+
+```tsx
+import { Label } from "@/components/ui/label"
+
+<div className="space-y-2">
+  <Label htmlFor="message">Message</Label>
+  <Textarea id="message" placeholder="Write a message..." />
+</div>
+```
+
+## Height
+
+The field starts at a minimum height of five rems and grows no further on its
+own. Set `rows`, or override the minimum with a class, to change that:
+
+```tsx
+<Textarea rows={8} />
+<Textarea className="min-h-40" />
+```
+
+## Disabled
+
+```tsx
+<Textarea disabled placeholder="Unavailable" />
+```
+
+## API Reference
+
+### Textarea
+
+`Textarea` takes every attribute a native `<textarea>` takes and forwards its
+ref to the element. The attributes that matter most here:
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string \| number \| readonly string[]` | — | Current text, for a controlled field |
+| `defaultValue` | `string \| number \| readonly string[]` | — | Initial text, for an uncontrolled field |
+| `onChange` | `React.ChangeEventHandler<HTMLTextAreaElement>` | — | Fires on every keystroke |
+| `placeholder` | `string` | — | Hint shown while the field is empty |
+| `rows` | `number` | — | Visible rows of text |
+| `maxLength` | `number` | — | Maximum number of characters accepted |
+| `disabled` | `boolean` | `false` | Blocks input and dims the field |
+| `className` | `string` | — | Merged with the field's own classes |
+
+There is no `motion` prop: the textarea has no entrance or state transition to
+animate.

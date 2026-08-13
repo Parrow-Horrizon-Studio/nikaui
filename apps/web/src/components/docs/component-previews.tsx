@@ -10,7 +10,12 @@ import {
   CardDescription,
 } from "@nikaui/registry/ui/card";
 import { Input } from "@nikaui/registry/ui/input";
+import { Textarea } from "@nikaui/registry/ui/textarea";
 import { Label } from "@nikaui/registry/ui/label";
+import { Alert, AlertTitle, AlertDescription } from "@nikaui/registry/ui/alert";
+import { Progress } from "@nikaui/registry/ui/progress";
+import { Slider } from "@nikaui/registry/ui/slider";
+import { RadioGroup, RadioGroupItem } from "@nikaui/registry/ui/radio-group";
 import { Separator } from "@nikaui/registry/ui/separator";
 import { Skeleton } from "@nikaui/registry/ui/skeleton";
 import { Spinner, LoadingDots } from "@nikaui/registry/ui/spinner";
@@ -52,6 +57,12 @@ import {
   AccordionContent,
 } from "@nikaui/registry/ui/accordion";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@nikaui/registry/ui/select";
+import {
+  Combobox,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxItem,
+} from "@nikaui/registry/ui/combobox";
 import { Switch } from "@nikaui/registry/ui/switch";
 import { Checkbox } from "@nikaui/registry/ui/checkbox";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@nikaui/registry/ui/tooltip";
@@ -85,6 +96,8 @@ export const previews: Record<string, React.ReactNode> = {
   ),
 
   input: <Input placeholder="Type here..." className="h-9 text-sm" />,
+
+  textarea: <TextareaDemo />,
 
   label: <Label>Email address</Label>,
 
@@ -124,6 +137,10 @@ export const previews: Record<string, React.ReactNode> = {
     </AspectRatio>
   ),
 
+  alert: <AlertDemo />,
+
+  progress: <ProgressDemo />,
+
   dialog: <DialogDemo />,
   "alert-dialog": <AlertDialogDemo />,
   "dropdown-menu": <DropdownMenuDemo />,
@@ -134,6 +151,8 @@ export const previews: Record<string, React.ReactNode> = {
   combobox: <ComboboxDemo />,
   switch: <SwitchDemo />,
   checkbox: <CheckboxDemo />,
+  "radio-group": <RadioGroupDemo />,
+  slider: <SliderDemo />,
   tooltip: <TooltipDemo />,
   toast: (
     <ToastProvider>
@@ -230,8 +249,10 @@ function AccordionDemo() {
   return (
     <Accordion className="w-full">
       <AccordionItem>
-        <AccordionTrigger>Is it accessible?</AccordionTrigger>
-        <AccordionContent>Yes, it uses Headless UI.</AccordionContent>
+        <AccordionTrigger>What is in this panel?</AccordionTrigger>
+        <AccordionContent>
+          Whatever you put here. Each panel opens and closes on its own.
+        </AccordionContent>
       </AccordionItem>
     </Accordion>
   );
@@ -253,11 +274,46 @@ function SelectDemo() {
   );
 }
 
+const FRAMEWORKS = ["React", "Vue", "Svelte", "Solid"];
+
+/**
+ * The real component, not a look-alike. It starts with a selection rather
+ * than a placeholder because `ComboboxTrigger`'s props are derived from
+ * `ComboboxInput`'s unresolved default generic, which admits `aria-*` but not
+ * native input attributes such as `placeholder`. A selected value is the
+ * better demonstration anyway: it exercises `displayValue` as well as the
+ * filtering.
+ */
 function ComboboxDemo() {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string | null>("React");
+
+  const matches = query
+    ? FRAMEWORKS.filter((f) => f.toLowerCase().includes(query.toLowerCase()))
+    : FRAMEWORKS;
+
   return (
-    <div className="flex h-9 w-full items-center rounded-md border bg-fd-background px-3 text-sm text-fd-muted-foreground">
-      Search frameworks...
-    </div>
+    <Combobox
+      value={selected}
+      onChange={setSelected}
+      onClose={() => setQuery("")}
+    >
+      <ComboboxTrigger
+        className="h-9 text-sm"
+        aria-label="Framework"
+        // Same unresolved generic: the item arrives as `unknown`, so narrow
+        // it rather than assert it.
+        displayValue={(value) => (typeof value === "string" ? value : "")}
+        onChange={(event) => setQuery(event.target.value)}
+      />
+      <ComboboxContent>
+        {matches.map((framework) => (
+          <ComboboxItem key={framework} value={framework}>
+            {framework}
+          </ComboboxItem>
+        ))}
+      </ComboboxContent>
+    </Combobox>
   );
 }
 
@@ -284,5 +340,89 @@ function TooltipDemo() {
       </TooltipTrigger>
       <TooltipContent>Tooltip content</TooltipContent>
     </Tooltip>
+  );
+}
+
+function AlertDemo() {
+  return (
+    <div className="w-full space-y-2">
+      <Alert variant="success" className="px-3 py-2">
+        <AlertTitle className="text-sm">Changes saved</AlertTitle>
+        <AlertDescription className="text-xs">
+          Your edits are live.
+        </AlertDescription>
+      </Alert>
+      <Alert variant="danger" className="px-3 py-2">
+        <AlertTitle className="text-sm">Upload failed</AlertTitle>
+        <AlertDescription className="text-xs">
+          The file is larger than 5 MB.
+        </AlertDescription>
+      </Alert>
+    </div>
+  );
+}
+
+function ProgressDemo() {
+  const [value, setValue] = useState(40);
+  return (
+    <div className="w-full space-y-3">
+      <Progress value={value} />
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-fd-muted-foreground">{value}%</span>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setValue((current) => (current >= 100 ? 0 : current + 20))}
+        >
+          Advance
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function RadioGroupDemo() {
+  const [value, setValue] = useState("comfortable");
+  return (
+    <RadioGroup value={value} onChange={setValue}>
+      <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
+      <RadioGroupItem value="compact">Compact</RadioGroupItem>
+    </RadioGroup>
+  );
+}
+
+function SliderDemo() {
+  const [value, setValue] = useState(50);
+  return (
+    <div className="w-full space-y-2">
+      <Slider
+        aria-label="Volume"
+        min={0}
+        max={100}
+        step={1}
+        value={value}
+        onChange={(event) => setValue(Number(event.target.value))}
+      />
+      <div className="text-center text-xs text-fd-muted-foreground">{value}</div>
+    </div>
+  );
+}
+
+function TextareaDemo() {
+  const [value, setValue] = useState("");
+  return (
+    <div className="w-full space-y-1">
+      <Textarea
+        aria-label="Message"
+        placeholder="Write a message..."
+        maxLength={120}
+        className="min-h-16 text-sm"
+        value={value}
+        onChange={(event) => setValue(event.target.value)}
+      />
+      <div className="text-right text-xs text-fd-muted-foreground">
+        {value.length} / 120
+      </div>
+    </div>
   );
 }
