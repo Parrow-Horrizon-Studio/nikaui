@@ -39,3 +39,6 @@ yarn-error.log*
 
 # Superpowers SDD scratch
 .superpowers/
+
+# Per-machine Claude Code permission state
+.claude/settings.local.json
