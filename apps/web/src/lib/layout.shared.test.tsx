@@ -9,13 +9,19 @@ import { baseOptions } from "./layout.shared";
  * of `nav.enabled` — that flag only turns off Fumadocs' separate mobile
  * header. Leaving `title` unset, as this used to, renders an `<a href="/">`
  * with no children at all: an unnamed link in the tab order of every
- * documentation page. This renders `nav.title` inside the same kind of link
- * `InlineNavTitle` itself wraps it in, and checks the accessible name the
- * same way this codebase already checks icon-only controls elsewhere
- * (hero-window.test.tsx, nav.test.tsx: `getByRole(..., { name })`).
+ * documentation page. An earlier fix named it with an `sr-only` span, which
+ * gave it an accessible name but kept it visually invisible for a sighted
+ * keyboard user; `title` is now plain visible text instead, so the same
+ * string is both the rendered content and the accessible name. This renders
+ * `nav.title` inside the same kind of link `InlineNavTitle` itself wraps it
+ * in, and checks the accessible name the same way this codebase already
+ * checks icon-only controls elsewhere (hero-window.test.tsx, nav.test.tsx:
+ * `getByRole(..., { name })`) — still the right check even though this link
+ * isn't icon-only anymore, since it confirms both that the link renders and
+ * that it's reachable by name.
  */
 describe("baseOptions", () => {
-  it("gives the sidebar's home link an accessible name", () => {
+  it("gives the sidebar's home link visible, accessible text", () => {
     const { title } = baseOptions().nav ?? {};
     // `NavOptions["title"]` also allows a render-prop function; this app
     // never uses that form, so a function here means the shape of
@@ -27,6 +33,13 @@ describe("baseOptions", () => {
 
     render(<Link href="/">{title}</Link>);
 
-    expect(screen.getByRole("link", { name: "Nika UI" })).toBeDefined();
+    const link = screen.getByRole("link", { name: "Nika UI" });
+    expect(link).toBeDefined();
+    // The regression this guards against: `sr-only` gives an accessible
+    // name to a link with nothing sighted users can see. Asserting the name
+    // alone can't catch that — an `sr-only`-wrapped label passes the same
+    // `getByRole` query. Checking that no `sr-only` wrapper is involved is
+    // what actually pins the link to being visible, not just named.
+    expect(link.querySelector(".sr-only")).toBeNull();
   });
 });

@@ -53,7 +53,13 @@ export function Footer() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-10">
+          {/* Column-count-agnostic on purpose (see above) — `flex-col` below
+              `sm` stacks every column full-width regardless of how many
+              there are, rather than letting narrow columns sit side by side
+              with a gap where an odd one out wraps alone. `sm:flex-row
+              sm:flex-wrap` restores the original wrapping-row layout at
+              wider widths, unchanged. */}
+          <div className="flex flex-col gap-10 sm:flex-row sm:flex-wrap">
             {FOOTER_COLUMNS.map((column) => (
               <div key={column.heading}>
                 <h3 className="text-sm font-semibold text-content">{column.heading}</h3>
