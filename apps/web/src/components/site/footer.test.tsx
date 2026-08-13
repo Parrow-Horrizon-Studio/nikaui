@@ -12,8 +12,8 @@ afterEach(() => {
  * Like Nav, this footer is not marketing chrome that gets thrown away —
  * sub-project D wraps every documentation route in it. The layout is pinned
  * against the data that drives it (`FOOTER_COLUMNS`) so a future column
- * addition can't silently break the grid, and the one link that used to be
- * a bare same-page fragment is pinned to its fixed form.
+ * addition can't silently break the grid, and the links that used to be
+ * bare same-page fragments are pinned to their fixed form.
  */
 describe("Footer", () => {
   // Same defect as the nav's CTA and Pricing link: a bare "#pricing"
@@ -22,6 +22,14 @@ describe("Footer", () => {
     render(<Footer />);
     const link = screen.getByRole("link", { name: "Pricing" });
     expect(link.getAttribute("href")).toBe("/#pricing");
+  });
+
+  // Identical defect class, same fix: a bare "#motion" resolves only on the
+  // landing page and goes nowhere from /docs/*.
+  it("points the Motion footer link at the landing page, not a bare fragment", () => {
+    render(<Footer />);
+    const link = screen.getByRole("link", { name: "Motion" });
+    expect(link.getAttribute("href")).toBe("/#motion");
   });
 
   it("renders every column in FOOTER_COLUMNS, whatever the count", () => {
