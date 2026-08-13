@@ -1,6 +1,37 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 @import "@nikaui/registry/styles/tokens.css";
 @source "../../../../packages/registry/src";
+
+/* Fumadocs chrome inherits the Nika accent. One way only: --color-fd-* is
+   assigned from --nika-*, never the reverse, and never in the registry.
+
+   Fumadocs registers its Tailwind colour tokens as --color-fd-* (see
+   fumadocs-ui/css/lib/default-colors.css) — utilities like `bg-fd-primary`
+   and Fumadocs' own component CSS read that name, not the bare `--fd-*`
+   custom properties (which Fumadocs reserves for layout dimensions such
+   as --fd-sidebar-width and --fd-header-height). Assigning the bare name
+   compiles and passes every automated check here, but every Fumadocs
+   colour utility keeps rendering with Fumadocs' own default palette. */
+:root {
+  --color-fd-background: var(--nika-canvas);
+  --color-fd-foreground: var(--nika-content);
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+  --color-fd-popover: var(--nika-overlay);
+  --color-fd-popover-foreground: var(--nika-content);
+  --color-fd-card: var(--nika-surface);
+  --color-fd-card-foreground: var(--nika-content);
+  --color-fd-border: var(--nika-line);
+  --color-fd-primary: var(--nika-primary);
+  --color-fd-primary-foreground: var(--nika-primary-fg);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-secondary-foreground: var(--nika-content);
+  --color-fd-accent: var(--nika-muted);
+  --color-fd-accent-foreground: var(--nika-content);
+  --color-fd-ring: var(--nika-ring);
+}
 
 body {
   background: var(--nika-canvas);

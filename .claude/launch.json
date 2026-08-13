@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@nikaui/web", "dev"],
+      "port": 3001
+    },
+    {
+      "name": "docs",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@nikaui/docs", "dev"],
+      "port": 3000
+    }
+  ]
+}
