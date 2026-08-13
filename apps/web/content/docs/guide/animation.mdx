@@ -1,0 +1,122 @@
+---
+title: Animation
+description: Motion presets and animation customization.
+---
+
+## Motion Integration
+
+Nika UI uses [Motion](https://motion.dev) (formerly Framer Motion) for animations. Every animated component resolves its animation through a shared `motion` prop backed by five presets, rather than a plain on/off boolean.
+
+A preset is a *feel*, not a specific animation. Each component decides what it animates — a Button scales on hover, a Card fades and slides up on mount, a Dialog fades and lifts — and the preset decides how that feels: a spring configuration, a travel distance multiplier, and a hover/tap scale multiplier. That's what keeps one preset name coherent across components that animate entirely different properties.
+
+## Presets
+
+| Preset | Feel |
+| --- | --- |
+| `none` | No animation — hover/tap scale is 1, entrance travel is 0 |
+| `snap` | Fast and tight, smallest travel |
+| `glide` | Smooth, no overshoot |
+| `spring` | Balanced with a slight overshoot — the shipped default |
+| `bounce` | Pronounced overshoot, largest travel |
+
+## Setting the Preset
+
+### Per component
+
+Every animated component accepts a `motion` prop:
+
+```tsx
+<Button motion="bounce">Bouncy</Button>
+<Card motion="none">No entrance animation</Card>
+```
+
+### Globally, with `NikaMotionConfig`
+
+When you run `npx nikaui init`, a `motion.ts` file is created in your utils directory. It exports `NikaMotionConfig`, a provider you can wrap around your app (or any subtree) to set a default preset for every component beneath it, and optionally override individual components by name:
+
+```tsx
+import { NikaMotionConfig } from "@/lib/motion";
+
+export default function App({ children }) {
+  return (
+    <NikaMotionConfig preset="glide" components={{ dialog: "none" }}>
+      {children}
+    </NikaMotionConfig>
+  );
+}
+```
+
+`NikaMotionConfig` is optional. Components that land in a repository where nobody wrapped the app in it fall through to the built-in default in `motion.ts` and still work — that's a requirement of copy-paste distribution, not just a convenience.
+
+That built-in default is whichever preset you picked when you ran `npx nikaui init`. The answer is baked into the `motion.ts` written into your project — nothing reads `nika.config.ts` at runtime. It ships as `spring`.
+
+**To change it later, edit the `motion` field in `nika.config.ts`.** That is where the choice survives. Every animated component lists `motion.ts` as a registry dependency, so `nikaui add` rewrites that file from the registry — baking in whatever `nika.config.ts` currently says — each time you let it overwrite. Change the config, run `npx nikaui add <any component>`, and the new default is in place.
+
+Editing `motion.ts` by hand works until the next `add` regenerates it, and then it is gone. If you want a default that no CLI command can touch, set it on the provider instead: `<NikaMotionConfig preset="glide">` sits above the built-in default in the resolution order below and lives in your own application code.
+
+## Resolution Order
+
+Each component resolves its feel most-specific-first:
+
+1. The user's OS-level reduced-motion preference — forces `none`, always.
+2. The instance's own `motion` prop (`<Button motion="bounce">`).
+3. A per-component override on `NikaMotionConfig` (`components={{ button: "snap" }}`).
+4. The `NikaMotionConfig` provider's global `preset`.
+5. The built-in default baked into your `motion.ts` from `nika.config.ts` (`spring` unless you chose otherwise).
+
+Reduced motion sits above an explicit `motion` prop on purpose — a library selling itself on animation is the one that has to get that right.
+
+## How reduced motion is actually enforced
+
+Step 1 above is the guarantee. **It is not always delivered by the resolver.** For five components — `Card`, `Tabs`, `Progress`, `Spinner` and `Skeleton` — it is delivered by CSS instead. This section explains why, and what it costs you.
+
+Those five put a value derived from the preference *into their markup*: a Motion `initial`, an `animate` under `initial={false}`, a gated `animate-*` class. The server cannot read `prefers-reduced-motion` and the client can, so if the resolver made that decision the two renders would disagree and React would report a hydration mismatch. Deferring the read to a mount effect would make them agree, and would buy that with a frame of animation before the switch-off — the one thing the preference exists to prevent.
+
+CSS is the only layer that runs before hydration. So those components split the decision:
+
+- **Markup values** come from `useConfiguredMotion`, which resolves steps 2 to 5 and deliberately ignores the preference. Identical on the server and the client.
+- **The preference itself** is enforced by Tailwind's `motion-safe:` / `motion-reduce:` variants, which hold from the first paint onwards — before hydration, during it, and after.
+
+Everything else — transitions, hover and tap scales, whether a looping animation runs at all — keeps using `useMotionPreset`, which honours the preference outright and in JavaScript.
+
+Three consequences follow, and all three are yours to know about because you own these files.
+
+### `<Card className="…">` can be overridden under reduced motion
+
+`Card`'s guard is `motion-reduce:opacity-100! motion-reduce:transform-none!`, and it sits on **the same element your `className` styles**. The `!` beats an unmarked utility regardless of source order. So:
+
+```tsx
+<Card className="opacity-60">      {/* renders fully opaque under reduced motion */}
+<Card className="-translate-y-1">  {/* renders unshifted under reduced motion */}
+```
+
+This affects reduced-motion visitors only, which means it is invisible unless you test with the preference switched on. If you need a card whose resting state is not the default one, set `motion="none"` and apply the offset with your own wrapper rather than fighting the guard.
+
+`TabsContent` does **not** have this problem — its guard is on an internal wrapper your `className` never reaches. `Progress` likewise guards its inner bar, not the track you style. `Spinner` and `Skeleton` use `motion-safe:` to *add* an animation rather than `!` to pin one, so they override nothing.
+
+### `useConfiguredMotion` is exported, and has one hard rule
+
+`motion.ts` exports `useConfiguredMotion` alongside `useMotionPreset`. If you write your own animated component against it:
+
+> Use it **only** for values React renders into the DOM, and **always** pair it with a `motion-safe:` or `motion-reduce:` class that enforces the preference.
+
+Used without that guard it silently animates for people who asked for stillness. Reach for `useMotionPreset` for anything else; it honours the preference on its own.
+
+### Your Tailwind build has to emit the variants
+
+The guarantee now depends on your own Tailwind build producing `motion-safe:` / `motion-reduce:` rules for the copied component files. That is a new dependency where previously there was none — the resolver needed nothing outside JavaScript.
+
+In practice this is safe: both are core Tailwind variants, and `nikaui init` puts your components inside the content Tailwind already scans. It matters if you do something unusual — scanning a narrower set of paths than where your components live, or stripping variants from the build. If you do, verify with the preference switched on that a `Card` renders at its resting state.
+
+## Custom Animations
+
+Since you own the component code, you can modify animations directly:
+
+```tsx
+// In your button.tsx
+<motion.button
+  whileHover={{ scale: 1.05, rotate: 2 }}
+  whileTap={{ scale: 0.95 }}
+  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+>
+```

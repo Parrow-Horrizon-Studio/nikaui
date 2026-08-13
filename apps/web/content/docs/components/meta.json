@@ -1,0 +1,30 @@
+{
+  "title": "Components",
+  "pages": [
+    "index",
+    "---Foundation---",
+    "button",
+    "badge",
+    "card",
+    "input",
+    "label",
+    "separator",
+    "skeleton",
+    "spinner",
+    "avatar",
+    "aspect-ratio",
+    "---Interactive---",
+    "dialog",
+    "alert-dialog",
+    "dropdown-menu",
+    "popover",
+    "tabs",
+    "accordion",
+    "select",
+    "combobox",
+    "switch",
+    "checkbox",
+    "tooltip",
+    "toast"
+  ]
+}

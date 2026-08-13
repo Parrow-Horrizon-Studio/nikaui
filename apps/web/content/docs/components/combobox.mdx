@@ -1,0 +1,27 @@
+---
+title: Combobox
+description: An autocomplete combobox with search.
+---
+
+## Installation
+
+```bash
+npx nikaui add combobox
+```
+
+## Usage
+
+```tsx
+import { Combobox, ComboboxTrigger, ComboboxContent, ComboboxItem } from "@/components/ui/combobox"
+```
+
+## API Reference
+
+### ComboboxContent
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the listbox's enter/exit transition |
+
+Full prop documentation is still to come. See [Animation](/docs/guide/animation)
+for the preset list and for setting a default globally with `NikaMotionConfig`.

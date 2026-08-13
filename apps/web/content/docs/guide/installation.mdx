@@ -1,0 +1,96 @@
+---
+title: Installation
+description: How to install and set up Nika UI in your project.
+---
+
+<Callout type="warn" title="Pre-release">
+  `nikaui` exists on npm today only as a placeholder that reserves the name —
+  running it prints an in-development notice and installs nothing. The CLI
+  described on this page hasn't shipped yet; see the
+  [master plan](https://github.com/Parrow-Horrizon-Studio/nikaui/blob/main/docs/MASTER-PLAN.md)
+  for what's being built and in what order.
+</Callout>
+
+## Prerequisites
+
+Nika UI requires the following in your project:
+
+- **React 18+** (19 recommended)
+- **Tailwind CSS v4**
+- **TypeScript** (recommended)
+
+## Initialize Nika UI
+
+Run the `init` command to set up Nika UI in your project:
+
+```bash
+npx nikaui init
+```
+
+This will:
+
+1. Ask where to install components (default: `src/components/ui`)
+2. Ask where to install utilities (default: `src/lib`)
+3. Create `nika.config.ts` with your settings
+4. Copy the token layer (`nika-tokens.css`) next to your global stylesheet and add an `@import` for it
+5. Create the `cn()` utility and motion presets
+6. Install base dependencies (`clsx`, `tailwind-merge`, `motion`)
+
+## Add Components
+
+Install components individually:
+
+```bash
+npx nikaui add button
+npx nikaui add card dialog tabs
+```
+
+Each component is copied into your project with its dependencies automatically resolved.
+
+## CLI Commands
+
+| Command | Description |
+| --- | --- |
+| `npx nikaui init` | Initialize Nika UI in your project |
+| `npx nikaui add <name>` | Add one or more components |
+| `npx nikaui add <name> --overwrite` | Overwrite existing components |
+| `npx nikaui list` | List all available components |
+
+## Project Structure
+
+After installation, your project will look like this:
+
+```
+src/
+  components/
+    ui/
+      button.tsx
+      card.tsx
+      dialog.tsx
+      ...
+  lib/
+    utils.ts      # cn() helper
+    motion.ts     # Animation presets
+nika.config.ts    # Configuration
+```
+
+## Configuration
+
+The `nika.config.ts` file controls where components are installed:
+
+```ts
+export default {
+  style: "default",
+  tailwind: {
+    css: "./src/app/globals.css",
+  },
+  aliases: {
+    components: "@/components",
+    ui: "@/components/ui",
+    utils: "@/lib/utils",
+    hooks: "@/hooks",
+    blocks: "@/components/blocks",
+  },
+  motion: "spring",
+} as const;
+```

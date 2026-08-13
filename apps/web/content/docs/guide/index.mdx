@@ -1,0 +1,41 @@
+---
+title: Introduction
+description: Beautiful, animated components built with Tailwind CSS and Motion.
+---
+
+## What is Nika UI?
+
+Nika UI is a component library for React that combines **Tailwind CSS**, **Motion** (formerly Framer Motion), and **Headless UI** to deliver beautiful, accessible, animated components.
+
+Nika UI uses a **copy-paste model** — you install components individually via CLI, and the source code is copied directly into your project. You own the code and can customize freely.
+
+## Key Features
+
+- **Tailwind CSS v4** — No external CSS. Theme with CSS variables.
+- **Motion Animations** — Every interactive component has smooth spring animations.
+- **Headless UI** — Accessible primitives from the Tailwind Labs team.
+- **TypeScript** — Full type safety with strict mode.
+- **CLI** — Install components individually with `npx nikaui add`.
+- **27 Components** — From buttons to dialogs, tabs to toasts.
+
+## Quick Start
+
+```bash
+# Initialize in your project
+npx nikaui init
+
+# Add components
+npx nikaui add button card dialog
+
+# Use them
+import { Button } from "@/components/ui/button"
+```
+
+## Philosophy
+
+Every Nika UI component follows these principles:
+
+1. **Animation by default** — Components come with motion built in, tunable per component with a `motion` prop, or `motion="none"` to disable it. See [Animation](/docs/guide/animation).
+2. **Own the code** — Components are copied into your project, not installed as dependencies. Customize everything.
+3. **Tailwind-native** — No CSS-in-JS. No external stylesheets. Just Tailwind classes and CSS variables.
+4. **Accessible** — Interactive components use Headless UI for keyboard navigation, focus management, and screen reader support.

@@ -1,0 +1,30 @@
+---
+title: Toast
+description: Toast notifications with provider.
+---
+
+## Installation
+
+```bash
+npx nikaui add toast
+```
+
+## Usage
+
+```tsx
+import { ToastProvider, useToast } from "@/components/ui/toast"
+```
+
+## API Reference
+
+### `addToast(toast)`
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for this toast's enter/exit transition |
+
+`motion` is a field on the object you pass to `addToast`, not a prop on a
+rendered element — each toast resolves its own feel.
+
+Full prop documentation is still to come. See [Animation](/docs/guide/animation)
+for the preset list and for setting a default globally with `NikaMotionConfig`.

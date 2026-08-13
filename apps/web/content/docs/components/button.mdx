@@ -1,0 +1,63 @@
+---
+title: Button
+description: An animated button component with multiple variants and sizes.
+---
+
+## Installation
+
+```bash
+npx nikaui add button
+```
+
+## Usage
+
+```tsx
+import { Button } from "@/components/ui/button"
+
+export default function Example() {
+  return <Button>Click me</Button>
+}
+```
+
+## Variants
+
+The button component supports 6 variants:
+
+```tsx
+<Button variant="default">Default</Button>
+<Button variant="secondary">Secondary</Button>
+<Button variant="danger">Danger</Button>
+<Button variant="outline">Outline</Button>
+<Button variant="ghost">Ghost</Button>
+<Button variant="link">Link</Button>
+```
+
+## Sizes
+
+```tsx
+<Button size="sm">Small</Button>
+<Button size="default">Default</Button>
+<Button size="lg">Large</Button>
+<Button size="icon">
+  <PlusIcon />
+</Button>
+```
+
+## Animation
+
+The button scales slightly on hover and tap, using the `spring` preset by default. Pass a different preset with the `motion` prop, or turn it off with `"none"`:
+
+```tsx
+<Button motion="none">No animation</Button>
+<Button motion="bounce">Bouncier feel</Button>
+```
+
+See [Animation](/docs/guide/animation) for the full list of presets and how to set a default globally with `NikaMotionConfig`.
+
+## API Reference
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "secondary" \| "danger" \| "outline" \| "ghost" \| "link"` | `"default"` | Visual style variant |
+| `size` | `"default" \| "sm" \| "lg" \| "icon"` | `"default"` | Button size |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for hover/tap |

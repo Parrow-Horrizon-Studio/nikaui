@@ -1,0 +1,27 @@
+---
+title: Alert Dialog
+description: A confirmation dialog with action and cancel buttons.
+---
+
+## Installation
+
+```bash
+npx nikaui add alert-dialog
+```
+
+## Usage
+
+```tsx
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/alert-dialog"
+```
+
+## API Reference
+
+### AlertDialogContent
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the panel's enter/exit transition |
+
+Full prop documentation is still to come. See [Animation](/docs/guide/animation)
+for the preset list and for setting a default globally with `NikaMotionConfig`.

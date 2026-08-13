@@ -1,0 +1,27 @@
+---
+title: Accordion
+description: Collapsible accordion panels.
+---
+
+## Installation
+
+```bash
+npx nikaui add accordion
+```
+
+## Usage
+
+```tsx
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+```
+
+## API Reference
+
+### AccordionContent
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the open/close height transition |
+
+Full prop documentation is still to come. See [Animation](/docs/guide/animation)
+for the preset list and for setting a default globally with `NikaMotionConfig`.
