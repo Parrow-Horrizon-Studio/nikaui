@@ -1,6 +1,64 @@
 @import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
 @import "@nikaui/registry/styles/tokens.css";
 @source "../../../../packages/registry/src";
+
+/* Fumadocs chrome inherits the Nika accent. One way only: --color-fd-* is
+   assigned from --nika-*, never the reverse, and never in the registry.
+
+   Fumadocs registers its Tailwind colour tokens as --color-fd-* (see
+   fumadocs-ui/css/lib/default-colors.css) — utilities like `bg-fd-primary`
+   and Fumadocs' own component CSS read that name, not the bare `--fd-*`
+   custom properties (which Fumadocs reserves for layout dimensions such
+   as --fd-sidebar-width and --fd-header-height). Assigning the bare name
+   compiles and passes every automated check here, but every Fumadocs
+   colour utility keeps rendering with Fumadocs' own default palette. */
+:root {
+  --color-fd-background: var(--nika-canvas);
+  --color-fd-foreground: var(--nika-content);
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+  --color-fd-popover: var(--nika-overlay);
+  --color-fd-popover-foreground: var(--nika-content);
+  --color-fd-card: var(--nika-surface);
+  --color-fd-card-foreground: var(--nika-content);
+  --color-fd-border: var(--nika-line);
+  --color-fd-primary: var(--nika-primary);
+  --color-fd-primary-foreground: var(--nika-primary-fg);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-secondary-foreground: var(--nika-content);
+  --color-fd-accent: var(--nika-muted);
+  --color-fd-accent-foreground: var(--nika-content);
+  --color-fd-ring: var(--nika-ring);
+}
+
+/* Fumadocs' own heading anchor-link button (fumadocs-ui/dist/components/
+   heading.js, `Heading`) ships `opacity-0 transition-opacity
+   group-hover/heading:opacity-100` with no `focus-visible` counterpart, so
+   the whole control — including the focus-visible ring it already computes —
+   stays invisible for a keyboard user who tabs to it. There's no exported
+   prop to override the button's className, so this reaches the compiled
+   Tailwind utility by its own class fragment rather than a selector this
+   app owns. */
+[class*="group-hover/heading:opacity-100"]:focus-visible {
+  opacity: 1;
+}
+
+/* fumadocs-ui/css/neutral.css (imported above) re-declares three of the
+   bridge's properties under `.dark #nd-sidebar` — specificity (1,1,0),
+   which outranks the plain `:root` bridge's (0,1,0). Left alone, dark mode's
+   documentation sidebar would render Fumadocs' own grey palette for those
+   three surfaces while everything else on the page reads from Nika's
+   tokens. This block is not redundant with the one above: it exists only to
+   win that specificity fight, so it must repeat the same selector shape
+   Fumadocs uses. `--color-fd-primary` is not among the three Fumadocs
+   overrides, so the accent needs no matching entry here. */
+.dark #nd-sidebar {
+  --color-fd-muted: var(--nika-muted);
+  --color-fd-secondary: var(--nika-surface-2);
+  --color-fd-muted-foreground: var(--nika-content-muted);
+}
 
 body {
   background: var(--nika-canvas);

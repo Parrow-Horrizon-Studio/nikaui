@@ -4,7 +4,7 @@
     "plugins": [{ "name": "next" }],
     "strictNullChecks": true,
     "declaration": false,
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"], "collections/*": ["./.source/*"] }
   },
   "include": [
     "**/*.ts",
@@ -12,7 +12,8 @@
     "**/*.mjs",
     "next-env.d.ts",
     "next.config.mjs",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    ".source/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

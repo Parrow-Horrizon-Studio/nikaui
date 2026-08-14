@@ -1,0 +1,86 @@
+---
+title: Slider
+description: A draggable input for selecting a value from a range.
+category: interactive
+---
+
+## Installation
+
+```bash
+npx nikaui add slider
+```
+
+## Usage
+
+`Slider` renders a native `<input type="range">`, so it is controlled the same
+way any input is — through `value` and `onChange`:
+
+```tsx
+import { Slider } from "@/components/ui/slider"
+import { useState } from "react"
+
+export default function Example() {
+  const [volume, setVolume] = useState(50)
+
+  return (
+    <div className="space-y-2">
+      <Slider
+        aria-label="Volume"
+        value={volume}
+        onChange={(event) => setVolume(Number(event.target.value))}
+      />
+      <p className="text-sm">{volume}</p>
+    </div>
+  )
+}
+```
+
+`event.target.value` is a string, as it is for every input — convert it before
+storing it if you want a number.
+
+## Range and step
+
+The browser's own defaults apply: the track runs from `0` to `100` in steps of
+`1`. Override them with the standard attributes:
+
+```tsx
+<Slider min={0} max={11} step={1} defaultValue={5} />
+<Slider min={0} max={1} step={0.05} defaultValue={0.5} />
+```
+
+Pass `defaultValue` without `value` for an uncontrolled slider that manages
+itself.
+
+## Disabled
+
+```tsx
+<Slider disabled defaultValue={30} />
+```
+
+## Accessibility
+
+The underlying `input` gives you the `slider` role, arrow-key stepping and the
+value announcement for free. It has no visible label of its own, so pair it
+with a `Label` via `id`/`htmlFor`, or give it an `aria-label`.
+
+## API Reference
+
+### Slider
+
+`Slider` takes every attribute a native `<input>` takes, except `type` — it
+sets `type="range"` itself. It forwards its ref to the input element. The
+attributes that matter most here:
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string \| number \| readonly string[]` | — | Current value, for a controlled slider |
+| `defaultValue` | `string \| number \| readonly string[]` | — | Initial value, for an uncontrolled slider |
+| `onChange` | `React.ChangeEventHandler<HTMLInputElement>` | — | Fires as the thumb moves |
+| `min` | `string \| number` | `0` (browser default) | Lower bound of the track |
+| `max` | `string \| number` | `100` (browser default) | Upper bound of the track |
+| `step` | `string \| number` | `1` (browser default) | Granularity of each move |
+| `disabled` | `boolean` | `false` | Blocks interaction and dims the track |
+| `className` | `string` | — | Merged with the slider's own classes |
+
+There is no `motion` prop: the slider tracks the pointer directly and has
+nothing to animate.

@@ -16,7 +16,7 @@ This is the single reference for Nika UI. It holds the product definition, curre
 | **A** | Monetization & distribution — boundary, delivery, pricing, launch posture | — | — | C, E, F | ✅ **Specced** |
 | **B** | Design-system foundation — tokens, motion API, registry schema | **L** | — | C, D, F, G | ✅ **Specced** |
 | **C** | Landing page — port the prototype onto real Next.js | M | A, B | — | Not started |
-| **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | Not started |
+| **D** | Documentation & showcase — all 22 components, `llms.txt`, `AGENTS.md` | **L** | A, B | G | ✅ **Executed 2026-08-13 — migration only** |
 | **E** | Repo migration & ops — org transfer, protection, CI, npm identity | S–M | A ✅ | — | ✅ **Specced — do first** |
 | **F** | Block & template lineup — choose, then build | M decide / L build | A, B | G | Not started |
 | **G** | Agent surface — MCP server, Pro agent skill | M | B, D, F | — | Not started |
@@ -119,7 +119,7 @@ Two repositories, each a Turborepo, both owned by the Parrow Horrizon Studio org
 
 ```
 Parrow-Horrizon-Studio/nikaui      (public, org)
-  apps/docs         → nikaui.dev       landing + OSS documentation
+  apps/web          → nikaui.dev       landing + OSS documentation
   packages/         registry, cli, eslint-config, typescript-config
 
 Rowee13/nikaui-pro                 (private, personal account)
@@ -247,11 +247,11 @@ The plan itself was amended eight times during execution. A pre-flight scan foun
 | **Merge to `main` before publishing the CLI** | release | The published CLI's remote fallback points at `main`, where `lib/motion.ts` and `ui/button.tsx` still hold pre-migration content. Over a severed network `add button` succeeds and silently delivers stale files; after the anchor guard landed, `init` fails outright instead. Publishing before merging ships a broken CLI |
 | Violet, azure and rose fail AA for `primary-fg` on `primary` | **B follow-up** | 3.54 / 3.21 / 3.34 at rest, azure hover 2.69. Same defect class as `--nika-danger`, which was fixed to 4.74. Retuning three accents is a palette decision, not a mechanical fix |
 | Danger button hover still misses AA | **B follow-up** | `hover:bg-danger/90` measures 4.18:1. Rest is now 4.74 |
-| Five components ship undocumented | **Sub-project D** | `alert`, `textarea`, `radio-group`, `slider`, `progress` are registered and installable with no page. `nikaui list` reports 27; the docs index renders 22 cards |
-| Thirteen doc pages are one-prop stubs | **Sub-project D** | Task 10b gave each an `## API Reference` documenting only `motion`, replacing "Documentation coming soon." Honest, but not a prop table |
+| ~~Five components ship undocumented~~ — **closed by D, 2026-08-13** | — | `alert`, `textarea`, `radio-group`, `slider`, `progress` all got real pages. `nikaui list` and the docs index now both report 27 |
+| Doc pages are one-prop stubs | **unscheduled sub-project (see D's own carried-forward)** | D's audit found the true count is **18**, not the 13 estimated here — each carries an `## API Reference` documenting only `motion`, replacing "Documentation coming soon." Honest, but not a prop table. Now marked by frontmatter rather than merely estimated |
 | Toast lacks `warning` and `info` variants | **Sub-project D/F** | Alert has all five and the tokens exist. A missing feature, not a defect |
 | Danger toast composites over page content | **Sub-project D/F** | `bg-danger/10` on a fixed overlay with no opaque base. `success` behaved this way before B; fixing it needs a layering change, not a class swap |
-| `apps/docs` now fetches fonts at build time | **user decision** | `next/font/google` replaced local Geist files, so `ci` — a required status check — now depends on `fonts.googleapis.com` being reachable on a cold cache |
+| `apps/web` fetches fonts at build time | **user decision** | `next/font/google` (`Manrope`, `JetBrains_Mono` — `apps/web/src/app/layout.tsx`) means `ci`, a required status check, depends on `fonts.googleapis.com` being reachable on a cold cache. Formerly `apps/docs`; the dependency moved with the app, unchanged, when D deleted it |
 | `packages/cli` has no test suite | **B follow-up** | `isValidStylesheetPath`, `onCancel`, `--yes` and the token guard are verified only by manual end-to-end runs. The registry suite now guards `init`'s three substitution anchors; nothing else in the CLI is tested |
 | `resolveTarget` does not sanitise `..` in a target | **Sub-project F/G** | Unreachable today — targets come only from the bundled first-party manifest. Must close before custom registries |
 | `access` and the `styles` resolution bucket are unused | **Sub-project F** | Schema v2 pre-wired both; `add` never reads either |
@@ -273,7 +273,7 @@ Prototype sections, in order: nav with theme toggle → hero with rays, sun, liv
 - Theme defaults to **system**, not dark. `apps/docs` currently defaults to dark; D should align it rather than carry that across.
 - All prototype copy is reviewed against reality before shipping — no "40+ components" unless 40+ exist. The full audit is spec §C4; it found eleven corrections, two of which changed what gets built.
 
-### D — Documentation and showcase
+### D — Documentation and showcase ✅
 
 **Goal:** the prototype's Documentation and Components pages, covering all 22 existing components.
 
@@ -281,6 +281,28 @@ Prototype sections, in order: nav with theme toggle → hero with rays, sun, liv
 - Live previews for every component, with variant and motion-preset switchers.
 - Absorbs agent Tiers 0 and 1 — `llms.txt` and the `AGENTS.md` snippet.
 - **Pro doc pages must not render full source** (§3.4).
+
+#### D — executed 2026-08-13
+
+Spec: [`docs/superpowers/specs/2026-08-12-nikaui-docs-migration.md`](superpowers/specs/2026-08-12-nikaui-docs-migration.md). Plan: [`docs/superpowers/plans/2026-08-12-docs-migration.md`](superpowers/plans/2026-08-12-docs-migration.md). Branch `spec/docs-migration`, 8 code-bearing tasks (T1–T8); a ninth, verification-only, carries no code.
+
+The documentation now lives in `apps/web`, on port 3000. **`apps/docs` no longer exists** — deleted in T8 once every migrated route matched its `apps/docs` original under the parallel two-port run the plan used as its safety mechanism. (Ruling R13, T8: the gate measures "does the route resolve," following redirects, rather than requiring a literal `200` — `/docs` is `redirect("/docs/guide")`, byte-identical in both apps, and a bare 307 was never going to read `200` against either one.)
+
+Delivered: the documentation routes render inside C's site chrome; search and the favicon are wired; every bare same-page fragment in the nav/footer resolves; the honesty gate (`check-copy`) now scans documentation prose, not just application code; and the five components B shipped without pages — `alert`, `progress`, `radio-group`, `slider`, `textarea` — got real ones, closing the five 404s that existed against a landing page claiming 27 components.
+
+**Not delivered, and not claimed:** of 27 component pages, **18 are still stubs** — nine are complete (the four that predate this sub-project, plus the five written here). Stubs are now marked by a single `status: stub` frontmatter field, read by both the page notice and the derived component index, rather than by prose duplicated in three places that could silently drift. Writing the eighteen is explicitly out of scope here — its own, not-yet-scheduled sub-project. "D executed" means the migration is done, the five 404s are closed, and the stub/complete boundary is now honest and mechanically derived — not that the documentation is complete.
+
+**Carried forward:**
+
+| Item | Owner | Note |
+|---|---|---|
+| Eighteen component pages remain `status: stub` | **unscheduled sub-project** | Each carries an `## API Reference` documenting only `motion`; writing real prop tables for all eighteen is its own sub-project, deliberately not this one |
+| `ComboboxTrigger` rejects native input props (`placeholder`, `id`, `name`, `autoFocus`) | **B follow-up — Ruling R11** | `packages/registry/src/ui/combobox.tsx:17-19` leaves a generic uninstantiated. D's combobox preview ships without a placeholder as a workaround; the registry itself is out of D's scope and untouched |
+| Toast lacks `warning`/`info` variants; danger toast composites over page content | **Sub-project F** | Unchanged from B's carried-forward list below — D documented the components as they are, it did not change them |
+| Live previews have no variant or motion-preset switcher | **unscheduled sub-project** | Chartered above ("Live previews for every component, with variant and motion-preset switchers"); what shipped is one fixed demo per component, no switching. Not started |
+| `llms.txt` does not exist | **unscheduled sub-project** | Chartered above as part of "Absorbs agent Tiers 0 and 1." Not started |
+| Agent Tiers 0 and 1 (`llms.txt` and the `AGENTS.md` snippet) | **unscheduled sub-project, likely G** | Chartered above, not started. `apps/web/AGENTS.md` is a `next dev` build artefact, not this deliverable — it is gitignored and never committed |
+| `checkbox` and `radio-group` use a `ring-2 ring-ring` focus pattern at 16px | **measure, do not assume** | The same construction rendered an *invisible* focus ring at 20px on the accent switcher. Judged materially different here — the switch is a filled accent-coloured circle wearing an accent-derived translucent ring (near-zero self-contrast against its own fill), while checkbox/radio sit on canvas with `ring-offset-2` giving a neutral gap — but this has not been measured, only reasoned about. Check contrast at 16px in both themes before assuming it is fine; do not let it be rediscovered by accident a third time |
 
 ### E — Repository migration and ops ✅
 

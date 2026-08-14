@@ -20,10 +20,13 @@ const linkClassName =
   "rounded-sm text-sm font-medium text-content-muted transition-colors hover:text-content focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-canvas";
 
 /**
- * `NAV_LINKS` only ever holds a same-page hash ("#pricing") or an in-app
- * path ("/docs/..."). A hash needs a plain anchor — `next/link` treats it
- * as a route change, not a scroll — everything else gets `next/link` so
- * navigating within the app doesn't trigger a full reload.
+ * `NAV_LINKS` holds in-app paths only: a route ("/docs/...") or a route
+ * with a same-page hash appended ("/#pricing"). Both start with "/", so
+ * both take the `next/link` branch below and navigating within the app
+ * never triggers a full reload. The bare-hash branch is a guard for a
+ * same-page-only link like "#pricing" (no leading "/"), which needs a
+ * plain anchor — `next/link` treats a bare hash as a route change, not a
+ * scroll — should `NAV_LINKS` ever carry one again.
  */
 function NavAnchor({ href, children }: { href: NavLink["href"]; children: ReactNode }) {
   if (href.startsWith("#")) {
@@ -86,13 +89,16 @@ export function Nav() {
           >
             <GithubIcon />
           </a>
-          {/* #waitlist, not #pricing: the waitlist form carries that id (see
+          {/* /#waitlist, not #pricing: the waitlist form carries that id (see
               waitlist-form.tsx) and is what this control promises. Landing on
               the pricing grid instead left the visitor to find the form
-              themselves, below three cards. */}
-          <a href="#waitlist" className={cn(buttonVariants({ size: "sm" }))}>
+              themselves, below three cards. The leading "/" matters too: a
+              bare "#waitlist" only resolves on the landing page — from a
+              documentation route it would go nowhere. `next/link`, not a
+              plain anchor, because the href is now an in-app path. */}
+          <Link href="/#waitlist" className={cn(buttonVariants({ size: "sm" }))}>
             Join the waitlist
-          </a>
+          </Link>
         </div>
       </div>
     </header>

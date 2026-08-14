@@ -6,6 +6,7 @@ import { AccentProvider, AccentScript } from "@/components/site/accent";
 import { Nav } from "@/components/site/nav";
 import { Footer } from "@/components/site/footer";
 import { SITE } from "@/lib/site";
+import { RootProvider } from "fumadocs-ui/provider/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -50,9 +51,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="font-sans antialiased">
         <ThemeProvider>
           <AccentProvider>
-            <Nav />
-            {children}
-            <Footer />
+            {/* Fumadocs' RootProvider wraps next-themes internally. C already
+                mounts next-themes via ThemeProvider, and two providers
+                contending for one `.dark` class is a real conflict — so this
+                one runs with theming off and supplies only the search-dialog
+                and sidebar context the docs layout needs. `enabled` is
+                first-class API: see ThemeOptions in
+                fumadocs-ui/dist/provider/base.d.ts.
+
+                Side effect: Fumadocs' `d` hotkey for toggling the theme goes
+                away with it. C's toggle is the only theme control. */}
+            <RootProvider theme={{ enabled: false }}>
+              <Nav />
+              {children}
+              <Footer />
+            </RootProvider>
           </AccentProvider>
         </ThemeProvider>
       </body>

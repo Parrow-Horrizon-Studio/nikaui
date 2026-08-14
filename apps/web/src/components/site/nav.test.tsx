@@ -72,11 +72,30 @@ describe("Nav", () => {
 
   // It used to target #pricing, leaving the visitor to find the form
   // themselves beneath three cards. #waitlist is the id WaitlistForm's root
-  // actually carries.
+  // actually carries. It is also prefixed with "/" (below) so the control
+  // still resolves from documentation routes, not only the landing page.
   it("sends its waitlist call to action to the waitlist form, not the pricing grid", () => {
     renderNav();
     const cta = screen.getByRole("link", { name: "Join the waitlist" });
-    expect(cta.getAttribute("href")).toBe("#waitlist");
+    expect(cta.getAttribute("href")).toBe("/#waitlist");
+  });
+
+  it("points the waitlist call to action at the landing page, not a bare fragment", () => {
+    // Not `render(<Nav />)` directly, per the file's own convention above:
+    // AccentSwitcher reads AccentProvider's context and throws without it.
+    renderNav();
+    const cta = screen.getByRole("link", { name: "Join the waitlist" });
+    // `#waitlist` alone resolves only on the landing page; on /docs/* it goes
+    // nowhere. The form lives in <Pricing> which only the landing page mounts.
+    expect(cta.getAttribute("href")).toBe("/#waitlist");
+  });
+
+  // Same defect as the CTA: a bare "#pricing" resolves only on the landing
+  // page and goes nowhere from /docs/*.
+  it("points the Pricing nav link at the landing page, not a bare fragment", () => {
+    renderNav();
+    const link = screen.getByRole("link", { name: "Pricing" });
+    expect(link.getAttribute("href")).toBe("/#pricing");
   });
 
   it("renders every configured navigation link with its href", () => {

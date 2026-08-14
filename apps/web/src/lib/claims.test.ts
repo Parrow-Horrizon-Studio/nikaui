@@ -58,3 +58,15 @@ describe("the page's factual claims", () => {
     expect(renderedStats()).toContain(`${ACCENTS.length} / Accents`);
   });
 });
+
+function guideIndexSource(): string {
+  return readFileSync(
+    path.join(REPO_ROOT, "apps/web/content/docs/guide/index.mdx"),
+    "utf8"
+  );
+}
+
+it("states the same component count in the guide as the registry ships", () => {
+  const count = registryComponentCount();
+  expect(guideIndexSource()).toContain(`**${count} Components**`);
+});

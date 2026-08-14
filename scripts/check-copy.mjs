@@ -19,12 +19,18 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "..");
  *   - `docs/` — the design documents legitimately discuss the distribution
  *     model by name; they are the reasoning behind these rules, not copy
  *     shipped to anyone.
- *   - `apps/docs/` — Fumadocs ships vendored CSS containing such names.
- *     Sub-project D replaces this application with `apps/web` anyway.
+ *
+ * `apps/docs/` carried this same carve-out for Fumadocs' vendored CSS until
+ * it was deleted (docs migration, Task 8). `apps/web` inherited Fumadocs,
+ * but both its `src` and `content` are scanned below in full — nothing
+ * under `apps/` is excluded today.
  */
-const ROOTS = ["apps/web/src", "packages/registry/src", "packages/cli/src"].map((relative) =>
-  path.resolve(REPO_ROOT, relative)
-);
+const ROOTS = [
+  "apps/web/src",
+  "apps/web/content",
+  "packages/registry/src",
+  "packages/cli/src",
+].map((relative) => path.resolve(REPO_ROOT, relative));
 
 const FORBIDDEN = [
   { pattern: /npx nika(?!ui)/, why: "the advertised command is `npx nikaui`" },
@@ -70,7 +76,7 @@ function* walk(dir) {
     const full = path.join(dir, entry);
     if (statSync(full).isDirectory()) yield* walk(full);
     else if (/\.test\.(ts|tsx)$/.test(entry)) continue;
-    else if (/\.(ts|tsx|css|mjs)$/.test(entry)) yield full;
+    else if (/\.(ts|tsx|css|mjs|mdx)$/.test(entry)) yield full;
   }
 }
 

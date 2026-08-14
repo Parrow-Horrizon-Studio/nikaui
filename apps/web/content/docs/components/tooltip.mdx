@@ -1,0 +1,29 @@
+---
+title: Tooltip
+description: A hover/focus tooltip.
+category: interactive
+status: stub
+---
+
+## Installation
+
+```bash
+npx nikaui add tooltip
+```
+
+## Usage
+
+```tsx
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+```
+
+## API Reference
+
+### TooltipContent
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the enter/exit transition |
+
+See [Animation](/docs/guide/animation) for the preset list and for setting a
+default globally with `NikaMotionConfig`.

@@ -1,0 +1,74 @@
+---
+title: Alert
+description: A callout for status, warnings and errors.
+category: foundation
+---
+
+## Installation
+
+```bash
+npx nikaui add alert
+```
+
+## Usage
+
+```tsx
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+
+export default function Example() {
+  return (
+    <Alert>
+      <AlertTitle>Heads up</AlertTitle>
+      <AlertDescription>
+        This is what a default alert looks like.
+      </AlertDescription>
+    </Alert>
+  )
+}
+```
+
+`Alert` sets `role="alert"` itself, so assistive technology announces the
+message as soon as it appears.
+
+## Variants
+
+```tsx
+<Alert variant="default">Default</Alert>
+<Alert variant="success">Success</Alert>
+<Alert variant="warning">Warning</Alert>
+<Alert variant="danger">Danger</Alert>
+<Alert variant="info">Info</Alert>
+```
+
+## Icons
+
+An `<svg>` placed as a direct child of `Alert` is pulled into the left gutter
+and the title and description indent to clear it. In the `success`, `warning`,
+`danger` and `info` variants the icon also takes that variant's colour; under
+`default` it inherits the surrounding text colour.
+
+```tsx
+<Alert variant="warning">
+  <TriangleAlertIcon />
+  <AlertTitle>Storage almost full</AlertTitle>
+  <AlertDescription>You have used 92% of your quota.</AlertDescription>
+</Alert>
+```
+
+## API Reference
+
+### Alert
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "success" \| "warning" \| "danger" \| "info"` | `"default"` | Visual style variant |
+
+`Alert` renders a `<div>` and forwards its ref, so it also accepts every
+standard `div` attribute — `id`, `className`, `onClick` and the rest.
+
+### Sub-components
+
+- `AlertTitle` — renders an `<h5>`; accepts every standard heading attribute
+- `AlertDescription` — renders a `<div>`; accepts every standard `div` attribute
+
+Neither sub-component adds props of its own; both forward their ref.

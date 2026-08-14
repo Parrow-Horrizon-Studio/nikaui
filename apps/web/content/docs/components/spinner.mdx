@@ -1,0 +1,38 @@
+---
+title: Spinner
+description: Spinner and loading dots indicators.
+category: foundation
+status: stub
+---
+
+## Installation
+
+```bash
+npx nikaui add spinner
+```
+
+## Usage
+
+```tsx
+import { Spinner, LoadingDots } from "@/components/ui/spinner"
+```
+
+## API Reference
+
+### Spinner
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel; `none` renders a static, unspinning icon |
+
+### LoadingDots
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel; `none` renders three static dots |
+
+Both resolve under the `spinner` key, so `components={{ spinner: "none" }}` on
+`NikaMotionConfig` covers them together.
+
+See [Animation](/docs/guide/animation) for the preset list and for setting a
+default globally with `NikaMotionConfig`.
