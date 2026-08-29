@@ -7,6 +7,8 @@ import { Checkbox } from "./checkbox";
 import { Switch } from "./switch";
 import { Input } from "./input";
 import { Textarea } from "./textarea";
+import { RadioGroup, RadioGroupItem } from "./radio-group";
+import { Card, CardTitle } from "./card";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -173,5 +175,69 @@ describe("Input and Textarea surfaces", () => {
   ])("%s defaults to the bordered variant", (_n, make) => {
     render(make({}));
     expect(screen.getByRole("textbox").className).toContain("border-line-strong");
+  });
+});
+
+describe("RadioGroup", () => {
+  it("unchecked ring is neutral, and the dot springs in", () => {
+    const src = readSource("radio-group");
+    expect(src).toContain("border-indicator");
+    expect(src).not.toContain("border-line-strong");
+    // The dot scales from 0 rather than appearing; the spring is what makes
+    // an 8px indicator legible as a state change at all.
+    expect(src).toMatch(/scale:\s*checked\s*\?\s*1\s*:\s*0/);
+  });
+
+  it("card variant makes the whole row the target", () => {
+    render(
+      <RadioGroup defaultValue="a">
+        <RadioGroupItem value="a" variant="card">
+          A
+        </RadioGroupItem>
+      </RadioGroup>
+    );
+    const cls = screen.getByRole("radio").className;
+    expect(cls).toContain("bg-field");
+    expect(cls).toContain("data-[checked]:border-primary");
+  });
+
+  it("defaults to the plain row", () => {
+    render(
+      <RadioGroup defaultValue="a">
+        <RadioGroupItem value="a">A</RadioGroupItem>
+      </RadioGroup>
+    );
+    expect(screen.getByRole("radio").className).not.toContain("bg-field");
+  });
+});
+
+describe("Card", () => {
+  it("lifts on hover by default, without a heavier resting shadow", () => {
+    render(<Card>x</Card>);
+    const cls = screen.getByText("x").className;
+    expect(cls).toContain("hover:-translate-y-1");
+    expect(cls).toContain("shadow-sm");
+    expect(cls).toContain("border-line");
+  });
+
+  it("elevated variant drops the border for real elevation", () => {
+    render(<Card variant="elevated">x</Card>);
+    const cls = screen.getByText("x").className;
+    expect(cls).toContain("shadow-md");
+    expect(cls).toContain("rounded-xl");
+  });
+
+  it("keeps the reduced-motion pin that the comment documents", () => {
+    // This pin has a known, documented cost. Losing it silently would
+    // reintroduce a from-state that a reduced-motion visitor sees on first
+    // paint. See the comment block in card.tsx.
+    expect(readSource("card")).toContain("motion-reduce:opacity-100!");
+  });
+
+  it("CardTitle stays 24px", () => {
+    // Explicitly decided during brainstorming, against my recommendation.
+    // Pinned so it is not quietly "fixed" later.
+    render(<CardTitle>t</CardTitle>);
+    expect(screen.getByText("t").className).toContain("text-2xl");
   });
 });
