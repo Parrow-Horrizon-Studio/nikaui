@@ -1,9 +1,10 @@
 ---
 title: Aspect Ratio
-description: Maintain consistent aspect ratios.
+description: Holds a fixed width-to-height ratio for its content.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="aspect-ratio" />
 
 ## Installation
 
@@ -15,4 +16,75 @@ npx nikaui add aspect-ratio
 
 ```tsx
 import { AspectRatio } from "@/components/ui/aspect-ratio"
+
+<AspectRatio ratio={16 / 9}>
+  <img src="/cover.jpg" alt="" className="size-full object-cover" />
+</AspectRatio>
 ```
+
+## What it is for
+
+Reserving the space before the content arrives. Without a held ratio, an image
+or embed has zero height until it loads and then pushes everything below it
+down — the layout shift readers notice most, and the one that makes people
+tap the wrong thing.
+
+## Images
+
+```tsx
+<AspectRatio ratio={1}>
+  <img src="/square.jpg" alt="" className="size-full rounded-lg object-cover" />
+</AspectRatio>
+```
+
+`object-cover` fills the box and crops; `object-contain` fits the whole image
+and leaves bars. Neither is the default — pick one, or the image stretches.
+
+## Video
+
+```tsx
+<AspectRatio ratio={16 / 9}>
+  <iframe
+    src="https://player.example.com/embed/xyz"
+    title="Product tour"
+    allowFullScreen
+    className="size-full rounded-lg border-0"
+  />
+</AspectRatio>
+```
+
+An iframe needs a `title`. Without one a screen reader announces "frame" and
+nothing else.
+
+## Maps
+
+```tsx
+<AspectRatio ratio={4 / 3}>
+  <iframe src={mapUrl} title="Office location" className="size-full border-0" />
+</AspectRatio>
+```
+
+## Common ratios
+
+| Ratio | Value | Used for |
+| --- | --- | --- |
+| 16:9 | `16 / 9` | Video, wide covers |
+| 4:3 | `4 / 3` | Maps, older photography |
+| 1:1 | `1` | Avatars, product tiles |
+| 3:2 | `3 / 2` | Photography |
+| 21:9 | `21 / 9` | Cinematic banners |
+
+## This component has no styling
+
+It is a layout primitive with no visual surface of its own — no colour, no
+border, no motion. There is nothing to theme, and that is deliberate rather
+than an omission. Style the content inside it.
+
+## API Reference
+
+### AspectRatio
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `ratio` | `number` | `1` | Width divided by height, e.g. `16 / 9` |
+| `className` | `string` | — | Merged with the wrapper's own classes |

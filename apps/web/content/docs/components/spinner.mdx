@@ -1,9 +1,10 @@
 ---
 title: Spinner
-description: Spinner and loading dots indicators.
+description: An indeterminate loading indicator.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="spinner" />
 
 ## Installation
 
@@ -14,7 +15,83 @@ npx nikaui add spinner
 ## Usage
 
 ```tsx
-import { Spinner, LoadingDots } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner"
+
+<Spinner />
+```
+
+## Sizes
+
+```tsx
+<Spinner size="sm" />
+<Spinner size="default" />
+<Spinner size="lg" />
+<Spinner size="xl" />
+```
+
+## With a label
+
+A spinner alone says something is happening but not what, and says nothing at
+all to a screen reader:
+
+```tsx
+<Spinner label="Deploying" />
+<Spinner label="Deploying" labelPlacement="bottom" />
+```
+
+## Loading dots
+
+An alternative for inline use, where a rotating ring is too loud:
+
+```tsx
+import { LoadingDots } from "@/components/ui/spinner"
+
+<LoadingDots />
+```
+
+## The track
+
+The ring is drawn as a faint full circle with a solid head, rather than an arc
+over nothing. On a busy background an arc alone gives no sense of where the
+ring runs — you see a floating stroke and cannot tell how far round it is.
+
+## In a button
+
+```tsx
+<Button disabled>
+  <Spinner size="sm" />
+  Saving
+</Button>
+```
+
+Keep the label. Replacing the text with a spinner changes the button's width
+and loses the reader's place.
+
+## Announcing the wait
+
+```tsx
+<div role="status" aria-live="polite">
+  <Spinner label="Deploying" />
+</div>
+```
+
+Without a live region, a screen reader is told nothing when loading starts or
+ends.
+
+## Reduced motion
+
+The rotation stops under `prefers-reduced-motion`, through CSS rather than a
+JavaScript check — a JS-gated animation still spins for a reduced-motion
+visitor on first paint, before the check has run.
+
+```tsx
+<Spinner motion="none" />
+```
+
+## Customization
+
+```tsx
+<Spinner className="text-success" />
 ```
 
 ## API Reference
@@ -23,16 +100,11 @@ import { Spinner, LoadingDots } from "@/components/ui/spinner"
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel; `none` renders a static, unspinning icon |
+| `size` | `"sm" \| "default" \| "lg" \| "xl"` | `"default"` | 16 / 24 / 32 / 48px |
+| `label` | `ReactNode` | — | Text beside or beneath the spinner |
+| `labelPlacement` | `"right" \| "bottom"` | `"right"` | Where the label sits |
+| `motion` | `"none" \| …` | inherits | `none` stops the rotation |
 
 ### LoadingDots
 
-| Prop | Type | Default | Description |
-| --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel; `none` renders three static dots |
-
-Both resolve under the `spinner` key, so `components={{ spinner: "none" }}` on
-`NikaMotionConfig` covers them together.
-
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+Takes `motion` and `className`.

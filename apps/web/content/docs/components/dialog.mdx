@@ -4,6 +4,8 @@ description: A modal dialog with animated overlay and panel.
 category: interactive
 ---
 
+<ComponentDemo name="dialog" />
+
 ## Installation
 
 ```bash
@@ -60,6 +62,17 @@ export default function Example() {
 The dialog uses Motion for smooth enter/exit animations:
 - **Overlay** — Fades in/out
 - **Panel** — Scales and slides in with a spring transition
+
+## Sizes
+
+```tsx
+<DialogContent size="sm" />
+<DialogContent size="md" />
+<DialogContent size="lg" />
+<DialogContent size="full" />
+```
+
+`md` is what the dialog has always been, so existing call sites are unchanged.
 
 ## API Reference
 

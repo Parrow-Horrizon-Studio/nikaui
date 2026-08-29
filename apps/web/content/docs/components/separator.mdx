@@ -1,9 +1,10 @@
 ---
 title: Separator
-description: A visual separator for dividing content.
+description: A rule between sections, with or without a label.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="separator" />
 
 ## Installation
 
@@ -15,4 +16,64 @@ npx nikaui add separator
 
 ```tsx
 import { Separator } from "@/components/ui/separator"
+
+<Separator />
 ```
+
+## With a label
+
+The divider between a form and a social-login button, which otherwise has to be
+hand-built every time:
+
+```tsx
+<form>{/* … */}</form>
+<Separator label="OR" className="my-6" />
+<Button variant="outline" className="w-full">Continue with GitHub</Button>
+```
+
+## Vertical
+
+```tsx
+<div className="flex h-5 items-center gap-3 text-sm">
+  <span>Docs</span>
+  <Separator orientation="vertical" />
+  <span>Components</span>
+  <Separator orientation="vertical" />
+  <span>Blocks</span>
+</div>
+```
+
+A vertical separator needs a parent with a height. On its own it collapses to
+nothing, which is the usual reason one appears not to render.
+
+## Decorative or semantic
+
+A separator is decorative by default: `role="none"`, invisible to assistive
+technology. That is right for a rule that only groups things visually, and it
+is right for the labelled form too — the label is real text and is read on its
+own, so a separator role would add an announcement without adding information.
+
+Set `decorative={false}` when the division carries meaning that is otherwise
+only visual:
+
+```tsx
+<Separator decorative={false} />
+```
+
+## Customization
+
+```tsx
+<Separator className="bg-line-strong" />
+<Separator className="my-8" />
+```
+
+## API Reference
+
+### Separator
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `orientation` | `"horizontal" \| "vertical"` | `"horizontal"` | Direction of the rule |
+| `label` | `ReactNode` | — | Centres text between two rules. Horizontal only |
+| `decorative` | `boolean` | `true` | `false` gives it `role="separator"` |
+| `className` | `string` | — | Merged with the separator's own classes |

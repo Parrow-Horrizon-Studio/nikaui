@@ -4,6 +4,8 @@ description: A callout for status, warnings and errors.
 category: foundation
 ---
 
+<ComponentDemo name="alert" />
+
 ## Installation
 
 ```bash
@@ -53,6 +55,39 @@ and the title and description indent to clear it. In the `success`, `warning`,
   <AlertTitle>Storage almost full</AlertTitle>
   <AlertDescription>You have used 92% of your quota.</AlertDescription>
 </Alert>
+```
+
+## Dismissible
+
+```tsx
+<Alert variant="warning" onDismiss={() => setShown(false)}>
+  <AlertTitle>Quota at 90%</AlertTitle>
+</Alert>
+```
+
+The close button carries an accessible name. A bare glyph is invisible to a
+screen reader, which is the usual way this button ships broken.
+
+## With an action
+
+```tsx
+<Alert variant="danger" action={<Button size="sm">View logs</Button>}>
+  <AlertTitle>Deploy failed</AlertTitle>
+  <AlertDescription>Build exited with code 1.</AlertDescription>
+</Alert>
+```
+
+"Something failed" almost always wants "and here is what to do about it".
+
+## The rail
+
+Status is carried by a rail down the edge and an icon chip, over an opaque
+surface — not by tinting the surface itself. A translucent status surface lets
+page content show through and become unreadable, which looks fine on a plain
+background and fails over a photograph.
+
+```tsx
+<Alert variant="danger" rail="top">…</Alert>
 ```
 
 ## API Reference

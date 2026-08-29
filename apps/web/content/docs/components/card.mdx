@@ -4,6 +4,8 @@ description: A card container with header, content, and footer sections.
 category: foundation
 ---
 
+<ComponentDemo name="card" />
+
 ## Installation
 
 ```bash
@@ -51,6 +53,16 @@ Card animates in on mount by default — a fade combined with a slide up, using 
 ```
 
 See [Animation](/docs/guide/animation) for the full list of presets and how to set a default globally with `NikaMotionConfig`.
+
+## Variants
+
+```tsx
+<Card>Bordered, lightly elevated — the default</Card>
+<Card variant="elevated">Borderless, carried by its shadow</Card>
+```
+
+Both lift on hover. The animation is not tied to the elevation, so a default
+card gets the movement without the heavier resting shadow.
 
 ## API Reference
 
