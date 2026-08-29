@@ -55,15 +55,60 @@ const TooltipTrigger = React.forwardRef<
 });
 TooltipTrigger.displayName = "TooltipTrigger";
 
+/**
+ * A tooltip inverts against the page: dark bubble on a light theme, light
+ * bubble on a dark one.
+ *
+ * Before this, a tooltip was `bg-overlay` + `border-line` + `text-content` —
+ * pixel-identical to a Popover. Two components with different jobs and the
+ * same appearance, so nothing but position told a reader which one they were
+ * looking at.
+ *
+ * `variant="surface"` opts out. It is a prop rather than a documented
+ * `className` override because the arrow below is a CSS border triangle whose
+ * coloured edge has to change with the surface — a class on the bubble cannot
+ * reach it, so an override would produce a bubble in one colour and an arrow
+ * still in the other.
+ *
+ * Known limitation of the `surface` variant: its bubble has a 1px border and
+ * the arrow does not, so the arrow's edges are unbordered. Drawing that
+ * properly needs two stacked triangles. Left as-is deliberately — it is an
+ * opt-out variant and the seam is 5px long.
+ */
+const ARROW_POSITION = {
+  top: "top-full left-1/2 -ml-[5px] border-x-[5px] border-t-[5px] border-x-transparent",
+  bottom: "bottom-full left-1/2 -ml-[5px] border-x-[5px] border-b-[5px] border-x-transparent",
+  left: "left-full top-1/2 -mt-[5px] border-y-[5px] border-l-[5px] border-y-transparent",
+  right: "right-full top-1/2 -mt-[5px] border-y-[5px] border-r-[5px] border-y-transparent",
+} as const;
+
+const ARROW_COLOUR = {
+  default: {
+    top: "border-t-inverse",
+    bottom: "border-b-inverse",
+    left: "border-l-inverse",
+    right: "border-r-inverse",
+  },
+  surface: {
+    top: "border-t-overlay",
+    bottom: "border-b-overlay",
+    left: "border-l-overlay",
+    right: "border-r-overlay",
+  },
+} as const;
+
 function TooltipContent({
   children,
   className,
   side = "top",
+  variant = "default",
   motion: motionProp,
 }: {
   children: React.ReactNode;
   className?: string;
   side?: "top" | "bottom" | "left" | "right";
+  /** "surface" opts out of the inversion — see the note above ARROW_POSITION. */
+  variant?: "default" | "surface";
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }) {
@@ -93,13 +138,20 @@ function TooltipContent({
           exit={{ opacity: 0, ...motionOrigin[side] }}
           transition={feel.transition}
           className={cn(
-            "absolute z-50 overflow-hidden rounded-md border border-line bg-overlay px-3 py-1.5 text-sm text-content shadow-md whitespace-nowrap",
+            "absolute z-50 overflow-visible rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap",
+            variant === "surface"
+              ? "border border-line bg-overlay text-content shadow-md"
+              : "bg-inverse text-inverse-content shadow-lg",
             positionClasses[side],
             className
           )}
           role="tooltip"
         >
           {children}
+          <span
+            aria-hidden="true"
+            className={cn("absolute", ARROW_POSITION[side], ARROW_COLOUR[variant][side])}
+          />
         </m.div>
       )}
     </AnimatePresence>

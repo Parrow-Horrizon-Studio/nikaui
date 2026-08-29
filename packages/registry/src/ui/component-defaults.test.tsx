@@ -241,3 +241,16 @@ describe("Card", () => {
     expect(screen.getByText("t").className).toContain("text-2xl");
   });
 });
+
+describe("Accordion", () => {
+  it("tints the row on hover instead of underlining the label", () => {
+    const src = readSource("accordion");
+    // An underline on hover reads as a link; the trigger is a button.
+    expect(src).not.toContain("hover:underline");
+    expect(src).toContain("hover:bg-field-hover");
+  });
+
+  it("keeps hairline rows as the default", () => {
+    expect(readSource("accordion")).toContain('default: "border-b border-line"');
+  });
+});
