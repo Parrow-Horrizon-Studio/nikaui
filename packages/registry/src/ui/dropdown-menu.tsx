@@ -38,7 +38,7 @@ const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenuContent
         ref={ref}
         anchor={align === "end" ? "bottom end" : "bottom start"}
         className={cn(
-          "z-50 min-w-[8rem] overflow-hidden rounded-md border border-line bg-overlay p-1 text-content shadow-md",
+          "z-50 min-w-[8rem] origin-top-left overflow-hidden rounded-lg border border-line bg-overlay p-1.5 text-content shadow-lg",
           className
         )}
         {...props}
@@ -67,7 +67,7 @@ const DropdownMenuItem = React.forwardRef<
     ref={ref}
     as="button"
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[focus]:bg-muted data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-pointer select-none items-center rounded-md px-2.5 py-[7px] text-sm outline-none transition-colors data-[focus]:bg-field-hover data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       inset && "pl-8",
       className
     )}

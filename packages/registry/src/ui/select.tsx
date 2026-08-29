@@ -20,7 +20,7 @@ const SelectTrigger = React.forwardRef<
   <ListboxButton
     ref={ref}
     className={cn(
-      "flex h-10 w-full items-center justify-between rounded-md border border-line-strong bg-canvas px-3 py-2 text-sm placeholder:text-content-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+      "group flex h-10 w-full items-center justify-between rounded-md border border-line-strong bg-canvas px-3 py-2 text-sm placeholder:text-content-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
       className
     )}
     {...props}
@@ -34,7 +34,7 @@ const SelectTrigger = React.forwardRef<
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4 opacity-50"
+      className="h-4 w-4 opacity-50 transition-transform duration-[var(--nika-duration)] ease-out group-data-[open]:rotate-180"
     >
       <path d="m6 9 6 6 6-6" />
     </svg>
@@ -57,7 +57,7 @@ const SelectContent = React.forwardRef<HTMLDivElement, SelectContentProps>(
         ref={ref}
         anchor="bottom start"
         className={cn(
-          "z-50 max-h-60 w-[var(--button-width)] overflow-auto rounded-md border border-line bg-overlay p-1 text-content shadow-md",
+          "z-50 max-h-60 w-[var(--button-width)] origin-top overflow-auto rounded-lg border border-line bg-overlay p-1.5 text-content shadow-lg",
           className
         )}
         {...props}
@@ -83,7 +83,7 @@ const SelectItem = React.forwardRef<
   <ListboxOption
     ref={ref}
     className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[focus]:bg-muted data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex w-full cursor-pointer select-none items-center rounded-md py-[7px] pl-8 pr-2 text-sm outline-none transition-colors data-[focus]:bg-field-hover data-[focus]:text-content data-[selected]:bg-primary/12 data-[selected]:font-semibold data-[selected]:text-primary data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}

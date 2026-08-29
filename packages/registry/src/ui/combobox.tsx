@@ -14,10 +14,22 @@ import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Combobox = HeadlessCombobox;
 
-const ComboboxTrigger = React.forwardRef<
-  HTMLInputElement,
-  React.ComponentPropsWithoutRef<typeof ComboboxInput>
->(({ className, ...props }, ref) => (
+/**
+ * The props intersection is load-bearing, not defensive.
+ *
+ * `ComponentPropsWithoutRef<typeof ComboboxInput>` alone resolves against an
+ * uninstantiated generic, and the result rejected every native input
+ * attribute — `placeholder`, `id`, `name`, `autoComplete`, all of them. A
+ * text input that cannot take a placeholder. Intersecting with
+ * InputHTMLAttributes restores them without giving up the Headless UI props.
+ */
+export type ComboboxTriggerProps = React.ComponentPropsWithoutRef<
+  typeof ComboboxInput
+> &
+  React.InputHTMLAttributes<HTMLInputElement>;
+
+const ComboboxTrigger = React.forwardRef<HTMLInputElement, ComboboxTriggerProps>(
+  ({ className, ...props }, ref) => (
   <div className="relative">
     <ComboboxInput
       ref={ref}
