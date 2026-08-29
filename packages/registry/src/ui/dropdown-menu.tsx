@@ -57,24 +57,114 @@ const DropdownMenuContent = React.forwardRef<HTMLDivElement, DropdownMenuContent
 );
 DropdownMenuContent.displayName = "DropdownMenuContent";
 
-const DropdownMenuItem = React.forwardRef<
-  HTMLButtonElement,
-  React.ComponentPropsWithoutRef<typeof MenuItem> & {
-    inset?: boolean;
-  }
->(({ className, inset, ...props }, ref) => (
-  <MenuItem
-    ref={ref}
-    as="button"
-    className={cn(
-      "relative flex w-full cursor-pointer select-none items-center rounded-md px-2.5 py-[7px] text-sm outline-none transition-colors data-[focus]:bg-field-hover data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      inset && "pl-8",
-      className
-    )}
-    {...props}
-  />
-));
+export type DropdownMenuItemProps = React.ComponentPropsWithoutRef<
+  typeof MenuItem
+> & {
+  inset?: boolean;
+  /** Leading icon. Positioned by the item, so every menu aligns the same way. */
+  icon?: React.ReactNode;
+  /** Trailing keyboard hint, e.g. `⇧⌘P`. */
+  shortcut?: React.ReactNode;
+  /** Secondary line beneath the label. */
+  description?: React.ReactNode;
+  /** Destructive actions read in the danger colour and tint danger on hover. */
+  destructive?: boolean;
+};
+
+/**
+ * The four slots a real menu item needs.
+ *
+ * This took children and nothing else, so an icon, a shortcut hint, a
+ * secondary description and a destructive action were each laid out by hand
+ * in the consuming app — and therefore laid out differently in every app.
+ * Putting them here is what makes two menus in two codebases line up.
+ */
+const DropdownMenuItem = React.forwardRef<HTMLButtonElement, DropdownMenuItemProps>(
+  (
+    { className, inset, icon, shortcut, description, destructive, children, ...props },
+    ref
+  ) => (
+    <MenuItem
+      ref={ref}
+      as="button"
+      className={cn(
+        "relative flex w-full cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-[7px] text-left text-sm outline-none transition-colors data-[focus]:bg-field-hover data-[focus]:text-content data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        destructive &&
+          "text-danger data-[focus]:bg-danger/12 data-[focus]:text-danger",
+        inset && "pl-8",
+        className
+      )}
+      {...props}
+    >
+      {icon ? (
+        <span className="flex size-4 shrink-0 items-center justify-center [&_svg]:size-4">
+          {icon}
+        </span>
+      ) : null}
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="truncate">{children as React.ReactNode}</span>
+        {description ? (
+          <span
+            className={cn(
+              "truncate text-xs",
+              destructive ? "text-danger/70" : "text-content-subtle"
+            )}
+          >
+            {description}
+          </span>
+        ) : null}
+      </span>
+      {shortcut ? (
+        <span className="ml-auto shrink-0 font-mono text-[11px] text-content-subtle">
+          {shortcut}
+        </span>
+      ) : null}
+    </MenuItem>
+  )
+);
 DropdownMenuItem.displayName = "DropdownMenuItem";
+
+export interface DropdownMenuGroupProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  /** Visible heading. Also becomes the group's accessible name. */
+  label?: React.ReactNode;
+}
+
+/**
+ * A labelled group.
+ *
+ * DropdownMenuLabel already existed and was undocumented, but it only
+ * labelled *visually* — nothing tied it to the items beneath it, so assistive
+ * technology heard a stray line of text rather than a heading for what
+ * followed. The accessible name is taken from the visible heading via
+ * aria-labelledby rather than duplicated into an aria-label, which would be
+ * free to drift away from what is on screen.
+ */
+const DropdownMenuGroup = React.forwardRef<HTMLDivElement, DropdownMenuGroupProps>(
+  ({ className, label, children, ...props }, ref) => {
+    const labelId = React.useId();
+    return (
+      <div
+        ref={ref}
+        role="group"
+        aria-labelledby={label ? labelId : undefined}
+        className={cn("py-0.5", className)}
+        {...props}
+      >
+        {label ? (
+          <div
+            id={labelId}
+            className="px-2.5 pb-1 pt-1.5 text-[11px] font-bold uppercase tracking-wider text-content-subtle"
+          >
+            {label}
+          </div>
+        ) : null}
+        {children}
+      </div>
+    );
+  }
+);
+DropdownMenuGroup.displayName = "DropdownMenuGroup";
 
 const DropdownMenuSeparator = React.forwardRef<
   HTMLDivElement,
@@ -108,6 +198,7 @@ export {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuGroup,
   DropdownMenuSeparator,
   DropdownMenuLabel,
 };
