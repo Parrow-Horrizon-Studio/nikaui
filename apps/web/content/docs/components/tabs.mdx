@@ -1,9 +1,10 @@
 ---
 title: Tabs
-description: Tabbed interface with animated transitions.
+description: Switch between panels with a sliding indicator.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="tabs" />
 
 ## Installation
 
@@ -15,15 +16,116 @@ npx nikaui add tabs
 
 ```tsx
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+
+<Tabs>
+  <TabsList>
+    <TabsTrigger>Preview</TabsTrigger>
+    <TabsTrigger>Code</TabsTrigger>
+  </TabsList>
+  <TabsContent>The preview panel</TabsContent>
+  <TabsContent>The code panel</TabsContent>
+</Tabs>
 ```
+
+Triggers and panels are matched by order, so the third trigger shows the third
+panel.
+
+## The indicator
+
+One element moves between triggers rather than each trigger painting its own
+background. It measures the active trigger and translates to it, which is what
+makes the movement continuous instead of a highlight appearing somewhere else.
+
+All four variants are driven by that one mechanism; only its shape and the
+list's chrome change.
+
+## Variants
+
+```tsx
+<TabsList variant="segmented" />  {/* default */}
+<TabsList variant="underline" />
+<TabsList variant="vertical" />
+<TabsList variant="overflow" />
+```
+
+### Vertical
+
+Pass `vertical` to `Tabs` as well, so arrow-key navigation follows the
+orientation:
+
+```tsx
+<Tabs vertical>
+  <TabsList variant="vertical">
+    <TabsTrigger>Account</TabsTrigger>
+    <TabsTrigger>Security</TabsTrigger>
+  </TabsList>
+  <TabsContent>…</TabsContent>
+  <TabsContent>…</TabsContent>
+</Tabs>
+```
+
+### Overflow
+
+For more tabs than fit. The list scrolls horizontally and the active trigger is
+scrolled into view on selection, so keyboard travel never leaves the reader
+looking at an empty strip.
+
+```tsx
+<TabsList variant="overflow">
+  <TabsTrigger>Preview</TabsTrigger>
+  <TabsTrigger>Code</TabsTrigger>
+  <TabsTrigger>Theming</TabsTrigger>
+  <TabsTrigger>Animation</TabsTrigger>
+  <TabsTrigger>Accessibility</TabsTrigger>
+</TabsList>
+```
+
+## Controlled
+
+```tsx
+const [index, setIndex] = useState(0)
+
+<Tabs selectedIndex={index} onChange={setIndex}>
+  {/* … */}
+</Tabs>
+```
+
+## Disabled tabs
+
+```tsx
+<TabsTrigger disabled>Coming soon</TabsTrigger>
+```
+
+## Keyboard
+
+| Key | Action |
+| --- | --- |
+| `←` / `→` | Move between tabs (horizontal) |
+| `↑` / `↓` | Move between tabs (vertical) |
+| `Home` / `End` | First / last tab |
+| `Tab` | Move into the panel |
+
+## Customization
+
+```tsx
+<TabsList className="w-full" />
+<TabsTrigger className="flex-1" />
+```
+
+The indicator is positioned from measurements, so a trigger of any width works
+without configuration — including one that changes width when selected.
 
 ## API Reference
 
-### TabsContent
+### TabsList
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the panel's enter transition |
+| `variant` | `"segmented" \| "underline" \| "vertical" \| "overflow"` | `"segmented"` | Chrome and indicator shape |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Indicator travel |
+| `className` | `string` | — | Merged with the list's own classes |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+### TabsContent
+
+Takes `motion` and `className`. The panel animates in on selection and pins to
+its resting state under reduced motion.

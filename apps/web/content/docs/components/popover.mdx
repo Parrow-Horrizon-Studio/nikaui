@@ -1,9 +1,10 @@
 ---
 title: Popover
-description: A floating popover panel.
+description: A panel anchored to a trigger.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="popover" />
 
 ## Installation
 
@@ -15,7 +16,72 @@ npx nikaui add popover
 
 ```tsx
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+
+<Popover>
+  <PopoverTrigger>Open</PopoverTrigger>
+  <PopoverContent>
+    <p className="text-sm font-semibold">Keyboard shortcuts</p>
+    <p className="mt-1 text-sm text-content-muted">
+      Press ⌘K to open the command palette.
+    </p>
+  </PopoverContent>
+</Popover>
 ```
+
+## Popover, tooltip or dialog?
+
+- A **tooltip** is a hint on hover. It cannot hold anything interactive,
+  because it disappears on blur.
+- A **popover** holds content and controls, stays until dismissed, and does not
+  block the page behind it.
+- A **dialog** blocks the page and demands a decision before you continue.
+
+If the reader can ignore it and carry on, it is a popover.
+
+## Placement
+
+```tsx
+<PopoverContent placement="top">Above</PopoverContent>
+<PopoverContent placement="right">Beside</PopoverContent>
+<PopoverContent placement="bottom">Below — the default</PopoverContent>
+<PopoverContent placement="left">Beside</PopoverContent>
+```
+
+## Alignment
+
+For the top and bottom placements, `align` shifts the panel along the trigger:
+
+```tsx
+<PopoverContent placement="bottom" align="start" />
+<PopoverContent placement="bottom" align="center" />
+<PopoverContent placement="bottom" align="end" />
+```
+
+It has no effect on the left and right placements, where there is nothing to
+align along.
+
+## With form controls
+
+A popover holds focusable content, which is the whole difference from a
+tooltip:
+
+```tsx
+<PopoverContent>
+  <Field label="Width">
+    <Input defaultValue="100%" />
+  </Field>
+  <Button className="mt-3 w-full">Apply</Button>
+</PopoverContent>
+```
+
+## Customization
+
+```tsx
+<PopoverContent className="w-80 p-0" />
+```
+
+The default is `w-72` with padding. Drop the padding when the content brings
+its own, such as a list that should bleed to the edges.
 
 ## API Reference
 
@@ -23,7 +89,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the panel's enter/exit transition |
-
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+| `placement` | `"top" \| "right" \| "bottom" \| "left"` | `"bottom"` | Which side of the trigger |
+| `align` | `"start" \| "center" \| "end"` | `"center"` | Alignment along the trigger, for top and bottom |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Animation feel |
+| `className` | `string` | — | Merged with the panel's own classes |

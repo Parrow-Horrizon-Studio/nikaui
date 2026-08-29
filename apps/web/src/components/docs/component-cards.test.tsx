@@ -91,8 +91,10 @@ describe("the component index", () => {
     expect(bySlug.get("card")?.isStub).toBe(false);
     expect(bySlug.get("badge")?.isStub).toBe(false);
     expect(bySlug.get("dialog")?.isStub).toBe(false);
-    expect(bySlug.get("tooltip")?.isStub).toBe(true);
-    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(12);
+    // A page still being written. Swap this for another as H2 completes
+    // them; when none are left the count below is 0 and this line goes.
+    expect(bySlug.get("skeleton")?.isStub).toBe(true);
+    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(8);
   });
 
   it("groups every component the way the sidebar separators do", () => {
