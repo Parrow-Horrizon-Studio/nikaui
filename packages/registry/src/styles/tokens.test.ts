@@ -284,3 +284,108 @@ describe("other contrast figures tokens.css documents in prose", () => {
   // and Toast's rendered output, which belongs in a test for those
   // components, not in a token-layer parsing test.
 });
+
+/* ===================================================================
+   H1 additions — the tokens introduced for component polish.
+
+   WHY THESE ARE HERE: the block above binds *text* contrast (WCAG AA,
+   4.5:1). `--nika-indicator` exists for a different rule — WCAG 2.1
+   SC 1.4.11 Non-text Contrast, 3:1, which governs a control's state
+   indicator. The Switch off-track measured 1.27:1 on `--nika-line` and
+   1.54:1 on `--nika-line-strong`; neither is a bug in those tokens,
+   which are hairline and divider colours doing their own job correctly.
+   No neutral in the scale reached 3:1 while still reading as "off,
+   neutral, not the accent", so the fix was a new token rather than a
+   nudged value — and this is what stops it drifting back.
+
+   The same token carries the unchecked checkbox border, the unchecked
+   radio ring, and the slider and progress tracks, so one assertion
+   here covers a family of components.
+
+   IF THIS FAILS: lower `--nika-indicator`'s lightness in tokens.css.
+   Lightness is the lever that moves contrast in this palette; chroma
+   barely does.
+   =================================================================== */
+
+const AA_NON_TEXT = 3;
+
+const strippedSource = tokensSource.replace(/\/\*[\s\S]*?\*\//g, "");
+const allBlocks = parseBlocks(strippedSource);
+
+/**
+ * Reads one token from the block with the given selector.
+ *
+ * Deliberately finds the block that actually DEFINES the token rather
+ * than the first block matching the selector: tokens.css has several
+ * `:root` blocks (light palette, semantic/radius/motion, and the `sun`
+ * accent share it), so selector alone is ambiguous and a Map keyed by
+ * selector would silently return whichever came last.
+ */
+function readToken(selector: string, name: string): string {
+  const block = allBlocks.find(
+    (candidate) => candidate.selector === selector && candidate.vars.has(name)
+  );
+  if (!block) {
+    throw new Error(
+      `tokens.css: no block with selector "${selector}" defines --nika-${name}`
+    );
+  }
+  return block.vars.get(name) as string;
+}
+
+const themeBlockSource = strippedSource.slice(
+  strippedSource.indexOf("@theme inline")
+);
+
+describe("--nika-indicator clears WCAG 1.4.11 (3:1) for state indicators", () => {
+  const themes: { label: string; selector: string }[] = [
+    { label: "light", selector: ":root" },
+    { label: "dark", selector: ".dark" },
+  ];
+
+  for (const theme of themes) {
+    describe(theme.label, () => {
+      // The switch off-track sits directly on the page.
+      it(`indicator vs canvas >= ${AA_NON_TEXT}:1`, () => {
+        const ratio = contrastRatio(
+          readToken(theme.selector, "indicator"),
+          readToken(theme.selector, "canvas")
+        );
+        expect(ratio).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      });
+
+      // An unchecked checkbox or radio usually sits on a card, and the
+      // switch thumb inside the off-track is itself `--nika-surface`.
+      it(`indicator vs surface >= ${AA_NON_TEXT}:1`, () => {
+        const ratio = contrastRatio(
+          readToken(theme.selector, "indicator"),
+          readToken(theme.selector, "surface")
+        );
+        expect(ratio).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      });
+    });
+  }
+});
+
+describe("H1 tokens are bridged into @theme inline", () => {
+  // A --nika-* variable that is never mapped compiles fine and is
+  // unusable from a utility class — the failure is silent at build time
+  // and only visible on screen. This is the guard.
+  const bridged = [
+    "field",
+    "field-hover",
+    "field-press",
+    "inverse",
+    "inverse-content",
+    "scrim",
+    "indicator",
+    "shimmer",
+  ];
+
+  for (const name of bridged) {
+    it(`maps --nika-${name}`, () => {
+      expect(themeBlockSource).toContain(`--color-${name}:`);
+      expect(themeBlockSource).toContain(`var(--nika-${name})`);
+    });
+  }
+});

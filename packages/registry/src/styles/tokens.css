@@ -43,6 +43,40 @@
     0 0 0 1px color-mix(in oklch, var(--nika-primary) 28%, transparent),
     0 10px 32px -8px color-mix(in oklch, var(--nika-primary) 38%, transparent);
 
+
+  /* Filled-control surface. Button secondary, the `filled` Input and
+     Textarea variants, and the `card` RadioGroup and Accordion variants all
+     sit on this. Distinct from --nika-muted, which is the hover surface every
+     component already uses — a control resting on `muted` reads as hovered. */
+  --nika-field:           oklch(0.955 0.006 80);
+  --nika-field-hover:     oklch(0.932 0.007 80);
+  --nika-field-press:     oklch(0.915 0.008 80);
+
+  /* Inverted surface pair. Tooltip inverts against the page so it can never be
+     mistaken for a Popover — before this, both rendered bg-overlay + border-line
+     + text-content and were pixel-identical despite doing different jobs. Also
+     available for inverted buttons and code chrome. */
+  --nika-inverse:         oklch(0.235 0.012 55);
+  --nika-inverse-content: oklch(0.985 0.004 85);
+
+  /* Modal backdrop. Replaces a hard-coded `bg-black/50` in alert-dialog.tsx,
+     which broke this repository's own no-hard-coded-colour rule and could not
+     retune: 50% black over an already-dark canvas is far heavier than intended. */
+  --nika-scrim:           color-mix(in oklch, oklch(0.235 0.012 55) 45%, transparent);
+
+  /* State-indicator neutral, WCAG 2.1 SC 1.4.11 (3:1 for non-text).
+     Every other neutral in this scale is deliberately subtle and correct at its
+     own job — `line` and `line-strong` are hairlines, `muted` is a hover
+     surface — and none of them reaches 3:1. The Switch off-track measured
+     1.27:1 on `line` and 1.54:1 on `line-strong`. This token exists solely to
+     close that, and tokens.test.ts asserts it against both canvas and surface
+     in both themes. Also carries the unchecked Checkbox border, the unchecked
+     RadioGroup ring, and the Slider and Progress tracks. */
+  --nika-indicator:       oklch(0.60 0.010 70);
+
+  /* Skeleton sweep highlight. */
+  --nika-shimmer:         color-mix(in oklch, oklch(0.235 0.012 55) 7%, transparent);
+
   color-scheme: light;
 }
 
@@ -71,6 +105,19 @@
   --nika-glow:
     0 0 0 1px color-mix(in oklch, var(--nika-primary) 30%, transparent),
     0 8px 30px -6px color-mix(in oklch, var(--nika-primary) 45%, transparent);
+
+
+  --nika-field:           oklch(0.255 0.009 60);
+  --nika-field-hover:     oklch(0.295 0.010 60);
+  --nika-field-press:     oklch(0.320 0.011 60);
+
+  /* Inverted: on a dark canvas the tooltip becomes light. */
+  --nika-inverse:         oklch(0.965 0.005 85);
+  --nika-inverse-content: oklch(0.165 0.006 60);
+
+  --nika-scrim:           color-mix(in oklch, oklch(0.09 0.004 60) 62%, transparent);
+  --nika-indicator:       oklch(0.545 0.012 62);
+  --nika-shimmer:         color-mix(in oklch, oklch(0.965 0.005 85) 9%, transparent);
 
   color-scheme: dark;
 }
@@ -219,6 +266,15 @@
   --color-danger:          var(--nika-danger);
   --color-danger-fg:       var(--nika-danger-fg);
   --color-info:            var(--nika-info);
+
+  --color-field:           var(--nika-field);
+  --color-field-hover:     var(--nika-field-hover);
+  --color-field-press:     var(--nika-field-press);
+  --color-inverse:         var(--nika-inverse);
+  --color-inverse-content: var(--nika-inverse-content);
+  --color-scrim:           var(--nika-scrim);
+  --color-indicator:       var(--nika-indicator);
+  --color-shimmer:         var(--nika-shimmer);
 
   --radius-sm:             var(--nika-radius-sm);
   --radius-md:             var(--nika-radius-md);
