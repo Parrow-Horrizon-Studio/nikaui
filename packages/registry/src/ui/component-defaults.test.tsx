@@ -5,6 +5,8 @@ import { Badge } from "./badge";
 import { Label } from "./label";
 import { Checkbox } from "./checkbox";
 import { Switch } from "./switch";
+import { Input } from "./input";
+import { Textarea } from "./textarea";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -141,5 +143,35 @@ describe("Switch", () => {
 
   it("thumb travels the full 22px", () => {
     expect(readSource("switch")).toMatch(/x:\s*checked\s*\?\s*22\s*:\s*0/);
+  });
+});
+
+describe("Input and Textarea surfaces", () => {
+  it("textarea sits on the same surface as input", () => {
+    render(<Textarea aria-label="t" />);
+    const cls = screen.getByRole("textbox").className;
+    // Two surfaces for one job: Input was bg-canvas, Textarea bg-canvas-2.
+    // Visible as a seam wherever a form puts them next to each other.
+    expect(cls).toContain("bg-canvas");
+    expect(cls).not.toContain("bg-canvas-2");
+  });
+
+  it.each([
+    ["input", (p: Record<string, unknown>) => <Input aria-label="i" {...p} />],
+    ["textarea", (p: Record<string, unknown>) => <Textarea aria-label="t" {...p} />],
+  ])("%s filled variant drops the border for the field surface", (_n, make) => {
+    render(make({ variant: "filled" }));
+    const cls = screen.getByRole("textbox").className;
+    expect(cls).toContain("bg-field");
+    expect(cls).toContain("hover:bg-field-hover");
+    expect(cls).not.toContain("border-line-strong");
+  });
+
+  it.each([
+    ["input", (p: Record<string, unknown>) => <Input aria-label="i" {...p} />],
+    ["textarea", (p: Record<string, unknown>) => <Textarea aria-label="t" {...p} />],
+  ])("%s defaults to the bordered variant", (_n, make) => {
+    render(make({}));
+    expect(screen.getByRole("textbox").className).toContain("border-line-strong");
   });
 });
