@@ -238,7 +238,7 @@ Decision record, including rejected options:
 
 | Item | Status |
 |---|---|
-| Does `bg-indicator` retune between themes? | **Unresolved.** Measurements contradict: a nested `.dark` wrapper retuned the variable correctly, but toggling `.dark` on `<html>` at runtime did not change the resolved utility. The generated utility rule could not be located in the served CSS to settle it. Worth 20 minutes before H2, since a token that does not retune is an accessibility regression in one theme |
+| ~~Does `bg-indicator` retune between themes?~~ — **closed 2026-08-29, it does.** The compiled CSS emits `.bg-indicator { background-color: var(--nika-indicator) }`, the same shape as `.bg-canvas`, and both token definitions ship. The H1 finding was wrong: it came from a verification page that nested `.dark` on a descendant while the class was toggled on `<html>`, and from trusting contradictory runtime readings instead of the compiled output — which answered it in two minutes |
 | Checkbox / RadioGroup focus ring measurement | Checkbox moved to 20px and the ring lost its offset, which was the suspected cause. **Not measured on screen** — the pane's scroll repaint was unreliable. Still "measure, do not assume" |
 | Normal-motion verification | **Still open**, unchanged from C §5.7 and D. Every available browser pane forces `prefers-reduced-motion: reduce`. H1 adds substantially more motion than existed before, so this matters more than it did |
 | Accordion `variant="card"` | Shipped as opt-in on an **unconfirmed assumption** — the question was asked in the batch-2 review and never answered. Hairline rows remain the default, so it is reversible by deleting one variant |
