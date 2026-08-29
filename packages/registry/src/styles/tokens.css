@@ -123,6 +123,18 @@
 }
 
 /* ---------- ACCENTS ---------- */
+/* --nika-ring is a tuned colour per accent, not a transparency of the accent.
+   It used to be color-mix(primary 55%, transparent), which is a decorative
+   definition rather than a contrast-tuned one: composited over the light
+   canvas the focus ring measured 1.75:1, against the 3:1 WCAG 2.1 SC 1.4.11
+   asks of a focus indicator. Dropping the transparency was not enough on its
+   own — the accent at full opacity still only reached 2.69:1 — so the light
+   ring is darkened per accent. Worst case now is emerald at 4.15:1.
+
+   In dark the accent already clears 3:1 unaided (5.20:1 worst, violet), so
+   the .dark block below restores the ring to the accent itself. That block
+   MUST come after these: it has the same specificity, so source order is what
+   decides it. tokens.test.ts asserts every accent x theme. */
 /* sun is the default: it applies with no attribute present.
 
    Every accent pairs its primary with a DARK primary-fg. violet, azure and
@@ -145,7 +157,7 @@
   --nika-primary-press:  oklch(0.655 0.193 44);
   --nika-primary-fg:     oklch(0.18 0.03 50);
   --nika-accent:         oklch(0.845 0.152 84);
-  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+  --nika-ring:           oklch(0.575 0.170 47);
 }
 
 [data-accent="violet"] {
@@ -154,7 +166,7 @@
   --nika-primary-press:  oklch(0.610 0.205 288);
   --nika-primary-fg:     oklch(0.16 0.03 290);
   --nika-accent:         oklch(0.72 0.16 330);
-  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+  --nika-ring:           oklch(0.545 0.190 290);
 }
 
 [data-accent="emerald"] {
@@ -163,7 +175,7 @@
   --nika-primary-press:  oklch(0.645 0.155 160);
   --nika-primary-fg:     oklch(0.16 0.03 165);
   --nika-accent:         oklch(0.82 0.13 190);
-  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+  --nika-ring:           oklch(0.555 0.140 162);
 }
 
 [data-accent="azure"] {
@@ -172,7 +184,7 @@
   --nika-primary-press:  oklch(0.595 0.168 246);
   --nika-primary-fg:     oklch(0.16 0.03 250);
   --nika-accent:         oklch(0.78 0.13 210);
-  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+  --nika-ring:           oklch(0.540 0.150 248);
 }
 
 [data-accent="rose"] {
@@ -181,7 +193,14 @@
   --nika-primary-press:  oklch(0.61 0.205 16);
   --nika-primary-fg:     oklch(0.16 0.03 20);
   --nika-accent:         oklch(0.80 0.15 50);
-  --nika-ring:           color-mix(in oklch, var(--nika-primary) 55%, transparent);
+  --nika-ring:           oklch(0.550 0.190 18);
+}
+
+/* In dark the accent is already well clear of 3:1 against both canvas and
+   surface, so the ring is the accent itself. Placed after the accent blocks
+   deliberately — equal specificity, later wins. */
+.dark {
+  --nika-ring: var(--nika-primary);
 }
 
 /* ---------- SEMANTIC, RADIUS, TYPE, MOTION ---------- */

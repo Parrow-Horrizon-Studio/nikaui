@@ -405,3 +405,78 @@ describe("H1 tokens are bridged into @theme inline", () => {
     });
   }
 });
+
+/* ===================================================================
+   Focus ring, WCAG 2.1 SC 1.4.11 (3:1 for a focus indicator).
+
+   FOUND BY MEASURING, NOT BY REVIEW. --nika-ring was
+   color-mix(in oklch, var(--nika-primary) 55%, transparent) — a decorative
+   definition, a transparency of the brand colour. Composited over the light
+   canvas that measured 1.75:1 against a 3:1 requirement, and it failed in
+   dark too (2.81:1). Every focusable component in the library was affected,
+   in both themes, across all five accents.
+
+   Dropping the transparency was not sufficient: the accent at full opacity
+   still reached only 2.69:1 in light. The light ring is therefore a darkened
+   value per accent. In dark the accent clears 3:1 unaided, so the ring is the
+   accent itself.
+
+   IF THIS FAILS: a new accent needs a tuned light ring, or an existing one
+   was nudged. Lower the ring's lightness — chroma barely moves contrast here.
+   =================================================================== */
+
+const AA_FOCUS_INDICATOR = 3;
+
+/** The block defining `ring` for one accent, whatever selector shape it uses. */
+function accentRing(name: string): string {
+  const block = allBlocks.find(
+    (candidate) =>
+      candidate.selector.includes(`[data-accent="${name}"]`) &&
+      candidate.vars.has("ring")
+  );
+  if (!block) throw new Error(`tokens.css: accent "${name}" defines no --nika-ring`);
+  return block.vars.get("ring") as string;
+}
+
+describe("focus ring clears 3:1 in every accent and both themes", () => {
+  for (const accent of tokens.accents) {
+    describe(`[data-accent="${accent.name}"]`, () => {
+      it("light ring vs canvas and surface", () => {
+        const ring = accentRing(accent.name);
+        expect(contrastRatio(ring, readToken(":root", "canvas"))).toBeGreaterThanOrEqual(
+          AA_FOCUS_INDICATOR
+        );
+        expect(contrastRatio(ring, readToken(":root", "surface"))).toBeGreaterThanOrEqual(
+          AA_FOCUS_INDICATOR
+        );
+      });
+
+      it("dark ring vs canvas and surface", () => {
+        // In dark the ring resolves to the accent itself.
+        expect(
+          contrastRatio(accent.primary, readToken(".dark", "canvas"))
+        ).toBeGreaterThanOrEqual(AA_FOCUS_INDICATOR);
+        expect(
+          contrastRatio(accent.primary, readToken(".dark", "surface"))
+        ).toBeGreaterThanOrEqual(AA_FOCUS_INDICATOR);
+      });
+    });
+  }
+
+  it("no accent defines the ring as a transparency of the accent", () => {
+    // The original defect in one assertion: a `transparent` mix cannot be
+    // contrast-checked by the block above, because it has no fixed value
+    // until it composites.
+    for (const accent of tokens.accents) {
+      expect(accentRing(accent.name)).not.toContain("transparent");
+    }
+  });
+
+  it("dark restores the ring to the accent, after the accent blocks", () => {
+    // Equal specificity: source order is what makes this win. If it ever
+    // moves above the accents, dark silently keeps the darkened light ring.
+    const darkRingIndex = strippedSource.lastIndexOf("--nika-ring: var(--nika-primary)");
+    const lastAccentIndex = strippedSource.lastIndexOf('[data-accent="');
+    expect(darkRingIndex).toBeGreaterThan(lastAccentIndex);
+  });
+});
