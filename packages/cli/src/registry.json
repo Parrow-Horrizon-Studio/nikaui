@@ -84,6 +84,7 @@
         }
       ],
       "dependencies": [
+        "class-variance-authority",
         "motion"
       ],
       "registryDependencies": [
@@ -102,7 +103,9 @@
           "target": "@ui/input.tsx"
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        "class-variance-authority"
+      ],
       "registryDependencies": [
         "utils"
       ],
@@ -189,7 +192,9 @@
           "target": "@ui/avatar.tsx"
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        "class-variance-authority"
+      ],
       "registryDependencies": [
         "utils"
       ],
@@ -223,6 +228,7 @@
       ],
       "dependencies": [
         "@headlessui/react",
+        "class-variance-authority",
         "motion"
       ],
       "registryDependencies": [
@@ -300,6 +306,7 @@
       ],
       "dependencies": [
         "@headlessui/react",
+        "class-variance-authority",
         "motion"
       ],
       "registryDependencies": [
@@ -380,6 +387,7 @@
       ],
       "dependencies": [
         "@headlessui/react",
+        "class-variance-authority",
         "motion"
       ],
       "registryDependencies": [
@@ -496,7 +504,9 @@
           "target": "@ui/textarea.tsx"
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        "class-variance-authority"
+      ],
       "registryDependencies": [
         "utils"
       ],
@@ -514,6 +524,7 @@
       ],
       "dependencies": [
         "@headlessui/react",
+        "class-variance-authority",
         "motion"
       ],
       "registryDependencies": [
