@@ -130,8 +130,11 @@ describe("Switch", () => {
     const cls = screen.getByRole("switch").className;
     expect(cls).toContain("h-7");
     expect(cls).toContain("w-[50px]");
-    expect(cls).toContain("data-[unchecked]:bg-indicator");
-    expect(cls).not.toContain("data-[unchecked]:bg-line");
+    // Unconditional, not data-[unchecked]: Headless UI never sets that
+    // attribute, so the old rule matched nothing and the track was
+    // transparent. See switch.test.tsx.
+    expect(cls).toContain("bg-indicator");
+    expect(cls).not.toContain("data-[unchecked]:");
   });
 
   it("thumb is 22px on the surface token with a moderate shadow", () => {

@@ -12,8 +12,8 @@ npx nikaui add slider
 
 ## Usage
 
-`Slider` renders a native `<input type="range">`, so it is controlled the same
-way any input is — through `value` and `onChange`:
+`Slider` is controlled through `value` and `onValueChange`. The handler
+receives a **number**, not an event:
 
 ```tsx
 import { Slider } from "@/components/ui/slider"
@@ -24,32 +24,42 @@ export default function Example() {
 
   return (
     <div className="space-y-2">
-      <Slider
-        aria-label="Volume"
-        value={volume}
-        onChange={(event) => setVolume(Number(event.target.value))}
-      />
+      <Slider aria-label="Volume" value={volume} onValueChange={setVolume} />
       <p className="text-sm">{volume}</p>
     </div>
   )
 }
 ```
 
-`event.target.value` is a string, as it is for every input — convert it before
-storing it if you want a number.
+Pass `defaultValue` without `value` for an uncontrolled slider that manages
+itself.
+
+A controlled slider does not move on its own. It reports the value you would
+get and waits for you to pass it back, so you can clamp or reject a change.
+
+## Why this is not a native input
+
+`Slider` is built on a wrapper element rather than `<input type="range">`.
+
+That is a deliberate trade. The native element gives you keyboard handling and
+the `slider` role for free, but there is no cross-browser way to paint the part
+of a range input to the left of its thumb — so the whole track was one flat
+colour and nothing showed where the value sat. A slider that does not show its
+own value is missing information, not merely plain.
+
+The cost is that everything the native element provided is now written by hand,
+and therefore tested by hand. See the Accessibility section.
 
 ## Range and step
-
-The browser's own defaults apply: the track runs from `0` to `100` in steps of
-`1`. Override them with the standard attributes:
 
 ```tsx
 <Slider min={0} max={11} step={1} defaultValue={5} />
 <Slider min={0} max={1} step={0.05} defaultValue={0.5} />
 ```
 
-Pass `defaultValue` without `value` for an uncontrolled slider that manages
-itself.
+Values are clamped to `[min, max]` and quantised to `step` in one place, so
+every route to a new value — each key, and the pointer — produces the same
+legal values.
 
 ## Disabled
 
@@ -57,30 +67,40 @@ itself.
 <Slider disabled defaultValue={30} />
 ```
 
+A disabled slider is removed from the tab order and reports `aria-disabled`.
+
 ## Accessibility
 
-The underlying `input` gives you the `slider` role, arrow-key stepping and the
-value announcement for free. It has no visible label of its own, so pair it
-with a `Label` via `id`/`htmlFor`, or give it an `aria-label`.
+The slider exposes `role="slider"` with `aria-valuenow`, `aria-valuemin`,
+`aria-valuemax` and `aria-orientation`, and handles:
+
+| Key | Moves |
+| --- | --- |
+| `→` / `↑` | One step up |
+| `←` / `↓` | One step down |
+| `Page Up` / `Page Down` | Ten steps |
+| `Home` / `End` | To `min` / `max` |
+
+It has no visible label of its own, so give it an `aria-label`, or pair it with
+a `Label` and `aria-labelledby`.
 
 ## API Reference
 
 ### Slider
 
-`Slider` takes every attribute a native `<input>` takes, except `type` — it
-sets `type="range"` itself. It forwards its ref to the input element. The
-attributes that matter most here:
-
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `value` | `string \| number \| readonly string[]` | — | Current value, for a controlled slider |
-| `defaultValue` | `string \| number \| readonly string[]` | — | Initial value, for an uncontrolled slider |
-| `onChange` | `React.ChangeEventHandler<HTMLInputElement>` | — | Fires as the thumb moves |
-| `min` | `string \| number` | `0` (browser default) | Lower bound of the track |
-| `max` | `string \| number` | `100` (browser default) | Upper bound of the track |
-| `step` | `string \| number` | `1` (browser default) | Granularity of each move |
+| `value` | `number` | — | Current value, for a controlled slider |
+| `defaultValue` | `number` | `0` | Initial value, for an uncontrolled slider |
+| `onValueChange` | `(value: number) => void` | — | Called with the next value |
+| `min` | `number` | `0` | Lower bound of the track |
+| `max` | `number` | `100` | Upper bound of the track |
+| `step` | `number` | `1` | Granularity of each move |
 | `disabled` | `boolean` | `false` | Blocks interaction and dims the track |
 | `className` | `string` | — | Merged with the slider's own classes |
+
+`Slider` forwards its ref to the wrapper `div`, which is the element carrying
+`role="slider"`.
 
 There is no `motion` prop: the slider tracks the pointer directly and has
 nothing to animate.

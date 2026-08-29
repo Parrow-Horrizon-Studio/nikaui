@@ -14,31 +14,30 @@ export interface SwitchProps
 }
 
 /**
- * The unchecked track is `bg-indicator`.
+ * The off track is painted unconditionally; only the ON state is
+ * attribute-driven.
  *
- * WCAG 2.1 SC 1.4.11 asks 3:1 of a control's state indicator. This track is
- * the whole of the off state, so it is the tightest case in the library: it
- * has to clear 3:1 against both the page behind it and its own
- * `bg-surface` thumb.
+ * It used to be `data-[unchecked]:bg-line`, and that never applied.
+ * Headless UI emits `data-checked` when a Switch is on and emits NOTHING
+ * when it is off — no `data-unchecked` attribute exists to match. So the
+ * off track had no background at all: transparent, 1.00:1 against whatever
+ * was behind it, an off switch visible only by its thumb.
  *
- * It did not, for a long time. `bg-canvas-2` put the off track 1.06:1 from
- * the page and 1.06:1 from its thumb — an off switch was effectively
- * invisible, and so was the thumb inside it. `bg-line` improved that to
- * 1.27:1 light / 1.44:1 dark and shipped, with a comment here admitting it
- * still fell short. `bg-line-strong` would have reached only 1.54:1 / 1.88:1,
- * and `bg-muted` is the hover surface every component uses, so an off track
- * painted with it reads as hovered.
+ * The comment that used to sit here said the off track was `bg-line` and
+ * measured 1.27:1. That figure was real for the colour, but the colour was
+ * never on screen. It was found by reading getComputedStyle in a browser
+ * during H1's visual pass — every unit test passed, because the class string
+ * was present and correct and simply matched nothing.
  *
- * The gap was never a wrong value — it was a missing token. Every neutral in
- * the scale is deliberately subtle and correct at its own job. H1 added
- * `--nika-indicator`, tuned for exactly this rule and nothing else:
+ * WCAG 2.1 SC 1.4.11 asks 3:1 of a state indicator, and this track is the
+ * whole of the off state, so it must clear 3:1 against both the page behind
+ * it and its own `bg-surface` thumb. `--nika-indicator` exists for that:
  *
  *   light  3.79:1 against canvas, 3.95:1 against surface
  *   dark   3.88:1 against canvas, 3.61:1 against surface
  *
- * tokens.test.ts asserts all four, so the value cannot drift back. The same
- * token carries the unchecked Checkbox border, the unchecked RadioGroup ring,
- * and the Slider and Progress tracks.
+ * tokens.test.ts asserts all four, and switch.test.tsx asserts that the off
+ * state does not depend on an attribute Headless UI never sets.
  */
 const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
   ({ className, motion: motionProp, ...props }, ref) => {
@@ -48,7 +47,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
       <HeadlessSwitch
         ref={ref}
         className={cn(
-          "peer inline-flex h-7 w-[50px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-[var(--nika-duration)] ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-primary data-[unchecked]:bg-indicator",
+          "peer inline-flex h-7 w-[50px] shrink-0 cursor-pointer items-center rounded-full p-[3px] transition-colors duration-[var(--nika-duration)] ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 bg-indicator data-[checked]:bg-primary",
           className
         )}
         {...props}
