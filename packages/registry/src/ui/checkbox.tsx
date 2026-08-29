@@ -21,7 +21,7 @@ const Checkbox = React.forwardRef<HTMLSpanElement, CheckboxProps>(
       <HeadlessCheckbox
         ref={ref}
         className={cn(
-          "peer h-4 w-4 shrink-0 rounded-sm border border-primary ring-offset-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-primary data-[checked]:text-primary-fg",
+          "peer h-4 w-4 shrink-0 rounded-sm border border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-primary data-[checked]:text-primary-fg",
           className
         )}
         {...props}

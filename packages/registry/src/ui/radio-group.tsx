@@ -53,7 +53,7 @@ const RadioGroupItem = React.forwardRef<HTMLElement, RadioGroupItemProps>(
       >
         {({ checked }) => (
           <>
-            <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong ring-offset-canvas transition-colors group-data-[checked]:border-primary group-focus-visible:ring-2 group-focus-visible:ring-ring group-focus-visible:ring-offset-2">
+            <span className="flex size-4 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors group-data-[checked]:border-primary group-focus-visible:ring-[3px] group-focus-visible:ring-ring">
               <m.span
                 className="size-2 rounded-full bg-primary"
                 initial={false}
