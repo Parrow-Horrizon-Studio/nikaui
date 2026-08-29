@@ -1,9 +1,10 @@
 ---
 title: Label
-description: A label component for form fields.
+description: An accessible label for a form control.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="label" />
 
 ## Installation
 
@@ -15,4 +16,68 @@ npx nikaui add label
 
 ```tsx
 import { Label } from "@/components/ui/label"
+
+<Label htmlFor="email">Email</Label>
+<Input id="email" type="email" />
 ```
+
+`htmlFor` must match the control's `id`. Without it the label is decoration:
+clicking it does not focus the control, and a screen reader announces the
+control unnamed.
+
+Most of the time reach for [Field](/docs/components/field) instead, which
+creates the id and the association for you.
+
+## With a description
+
+```tsx
+<div>
+  <Label htmlFor="key">API key</Label>
+  <p id="key-help" className="mt-1 text-xs text-content-subtle">
+    Found in Settings → Developers
+  </p>
+  <Input id="key" aria-describedby="key-help" />
+</div>
+```
+
+The `aria-describedby` is what makes the hint reach a screen reader. Without
+it the text is on screen and nowhere else.
+
+## Required fields
+
+```tsx
+<Label htmlFor="name">
+  Name<span className="ml-0.5 text-danger" aria-hidden="true">*</span>
+</Label>
+<Input id="name" required aria-required="true" />
+```
+
+The asterisk is `aria-hidden` and `aria-required` carries the meaning. A bare
+`*` is announced as "star", which tells the listener nothing.
+
+## Disabled
+
+A label does not know its control is disabled. Pair them with `peer` when they
+are siblings:
+
+```tsx
+<Input id="x" disabled className="peer" />
+<Label htmlFor="x" className="peer-disabled:opacity-70">Unavailable</Label>
+```
+
+## Customization
+
+```tsx
+<Label className="text-sm uppercase tracking-wide" />
+```
+
+## API Reference
+
+### Label
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `htmlFor` | `string` | — | The id of the control this labels |
+| `className` | `string` | — | Merged with the label's own classes |
+
+Every native `<label>` attribute is accepted and forwarded.

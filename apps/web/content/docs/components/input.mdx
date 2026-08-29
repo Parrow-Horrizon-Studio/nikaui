@@ -1,9 +1,10 @@
 ---
 title: Input
-description: A styled text input component.
+description: A single-line text field.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="input" />
 
 ## Installation
 
@@ -15,4 +16,167 @@ npx nikaui add input
 
 ```tsx
 import { Input } from "@/components/ui/input"
+
+<Input type="email" placeholder="you@example.com" />
 ```
+
+Every native `<input>` attribute is forwarded to the element, so `type`,
+`required`, `autoComplete` and `pattern` work exactly as they do on a plain
+input.
+
+## Icons and affixes
+
+Icons are **props, not children**. The input's padding has to shift to make
+room, and a consumer positioning an icon absolutely has to remember that every
+time. As a prop it cannot be forgotten.
+
+```tsx
+<Input startContent={<MailIcon />} placeholder="you@example.com" />
+<Input endContent={<SearchIcon />} placeholder="Search components" />
+<Input startContent={<span className="text-sm">https://</span>} placeholder="yoursite.com" />
+```
+
+`endContent` stays interactive, because it is usually a clear or reveal button:
+
+```tsx
+<Input
+  type={visible ? "text" : "password"}
+  endContent={
+    <button type="button" onClick={() => setVisible(!visible)}>
+      {visible ? <EyeOffIcon /> : <EyeIcon />}
+    </button>
+  }
+/>
+```
+
+## Types
+
+```tsx
+<Input type="email" />
+<Input type="password" />
+<Input type="number" min={0} max={10} />
+<Input type="date" />
+<Input type="file" />
+<Input type="search" />
+```
+
+## Sizes
+
+```tsx
+<Input size="sm" placeholder="Small" />
+<Input size="md" placeholder="Medium — the default" />
+<Input size="lg" placeholder="Large" />
+```
+
+36, 40 and 44px.
+
+## Validation
+
+Use [Field](/docs/components/field) rather than `invalid` on its own. `invalid`
+colours the border; `Field` also wires `aria-invalid` and an `aria-describedby`
+that resolves to the message. A red border tells a sighted user something is
+wrong and tells a screen reader nothing.
+
+```tsx
+<Field label="Email" error="Enter a valid email address">
+  <Input type="email" defaultValue="not-an-email" />
+</Field>
+```
+
+`invalid` alone is for when you are wiring the ARIA yourself:
+
+```tsx
+<Input invalid aria-invalid aria-describedby="email-error" />
+```
+
+## Disabled and read-only
+
+```tsx
+<Input disabled placeholder="Unavailable" />
+<Input readOnly value="nika_live_8f2a…" />
+```
+
+`readOnly` still takes focus and can be copied from; `disabled` cannot. Reach
+for `readOnly` when the value matters to the reader.
+
+## Controlled form
+
+```tsx
+import { useState } from "react"
+import { Field } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+
+export default function Example() {
+  const [email, setEmail] = useState("")
+  const [touched, setTouched] = useState(false)
+  const invalid = touched && !email.includes("@")
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault()
+        setTouched(true)
+      }}
+      className="space-y-4"
+    >
+      <Field label="Email" error={invalid ? "Enter a valid email address" : undefined}>
+        <Input
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          onBlur={() => setTouched(true)}
+        />
+      </Field>
+      <Button type="submit">Subscribe</Button>
+    </form>
+  )
+}
+```
+
+Anything larger — multi-step flows, schema validation, server actions — belongs
+in a block rather than on a component page.
+
+## Variants
+
+`filled` is a different form language: borderless, on its own surface,
+darkening on hover and again on focus.
+
+```tsx
+<Input variant="filled" placeholder="Filled" />
+```
+
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Input className="rounded-full border-2" />
+```
+
+The token layer changes every input at once, and survives a component update:
+
+```css
+:root {
+  --nika-radius: 1rem;
+  --nika-line-strong: oklch(0.7 0.02 250);
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token change
+applies to the whole library, which is what keeps it coherent.
+
+## API Reference
+
+### Input
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `variant` | `"default" \| "filled"` | `"default"` | Bordered, or a filled surface |
+| `size` | `"sm" \| "md" \| "lg"` | `"md"` | 36 / 40 / 44px |
+| `invalid` | `boolean` | `false` | Colours the border. Prefer `Field` |
+| `startContent` | `ReactNode` | — | Leading icon or affix. Shifts padding automatically |
+| `endContent` | `ReactNode` | — | Trailing icon or action. Stays interactive |
+| `className` | `string` | — | Merged with the input's own classes |
+
+Every native `<input>` attribute is also accepted and forwarded.
