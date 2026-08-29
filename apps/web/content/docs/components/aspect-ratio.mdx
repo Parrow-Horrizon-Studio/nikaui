@@ -74,11 +74,17 @@ nothing else.
 | 3:2 | `3 / 2` | Photography |
 | 21:9 | `21 / 9` | Cinematic banners |
 
-## This component has no styling
+## Customization
 
-It is a layout primitive with no visual surface of its own — no colour, no
-border, no motion. There is nothing to theme, and that is deliberate rather
-than an omission. Style the content inside it.
+There is nothing to theme. AspectRatio is a layout primitive with no visual
+surface of its own — no colour, no border, no motion — and that is deliberate
+rather than an omission. It only holds a ratio. Style the content inside it:
+
+```tsx
+<AspectRatio ratio={16 / 9}>
+  <img className="size-full rounded-xl object-cover" />
+</AspectRatio>
+```
 
 ## API Reference
 

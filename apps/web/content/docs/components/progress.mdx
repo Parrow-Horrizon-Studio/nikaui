@@ -71,6 +71,26 @@ set a default globally with `NikaMotionConfig`.
 The visible percentage is hidden from assistive technology, because the bar
 already reports `aria-valuenow` and would otherwise be announced twice.
 
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Progress className="h-1" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-indicator: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
+
 ## API Reference
 
 ### Progress

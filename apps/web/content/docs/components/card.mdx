@@ -64,6 +64,26 @@ See [Animation](/docs/guide/animation) for the full list of presets and how to s
 Both lift on hover. The animation is not tied to the elevation, so a default
 card gets the movement without the heavier resting shadow.
 
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Card className="p-0" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-shadow: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
+
 ## API Reference
 
 ### Card

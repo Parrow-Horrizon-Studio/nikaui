@@ -74,6 +74,26 @@ The dialog uses Motion for smooth enter/exit animations:
 
 `md` is what the dialog has always been, so existing call sites are unchanged.
 
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<DialogContent className="max-w-md p-8" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-scrim: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
+
 ## API Reference
 
 ### Dialog

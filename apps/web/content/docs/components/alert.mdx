@@ -90,6 +90,26 @@ background and fails over a photograph.
 <Alert variant="danger" rail="top">…</Alert>
 ```
 
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Alert className="rounded-none border-x-0" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-danger: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
+
 ## API Reference
 
 ### Alert
