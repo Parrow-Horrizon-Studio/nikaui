@@ -69,13 +69,17 @@ describe("the five component previews added in sub-project D", () => {
     expect(screen.getByText("5 / 120")).toBeDefined();
   });
 
-  it("renders a slider whose displayed value tracks the input", () => {
+  it("renders a slider whose displayed value tracks the control", () => {
+    // Slider left input[type=range] in H1 so it could paint a filled track,
+    // so its value lives in aria-valuenow and it moves by keyboard rather
+    // than by a change event. The behaviour under test is unchanged: the
+    // caption below the slider follows the value.
     render(previews["slider"]);
     const slider = screen.getByRole("slider");
-    expect((slider as HTMLInputElement).value).toBe("50");
-    fireEvent.change(slider, { target: { value: "80" } });
-    expect((slider as HTMLInputElement).value).toBe("80");
-    expect(screen.getByText("80")).toBeDefined();
+    expect(slider.getAttribute("aria-valuenow")).toBe("50");
+    fireEvent.keyDown(slider, { key: "PageUp" });
+    expect(slider.getAttribute("aria-valuenow")).toBe("60");
+    expect(screen.getByText("60")).toBeDefined();
   });
 
   it("renders a determinate progress bar that reports a real value", async () => {

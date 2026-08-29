@@ -427,7 +427,7 @@ function SliderDemo() {
         max={100}
         step={1}
         value={value}
-        onChange={(event) => setValue(Number(event.target.value))}
+        onValueChange={setValue}
       />
       <div className="text-center text-xs text-fd-muted-foreground">{value}</div>
     </div>
