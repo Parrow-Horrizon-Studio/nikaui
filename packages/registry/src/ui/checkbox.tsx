@@ -21,27 +21,51 @@ const Checkbox = React.forwardRef<HTMLSpanElement, CheckboxProps>(
       <HeadlessCheckbox
         ref={ref}
         className={cn(
-          "peer h-4 w-4 shrink-0 rounded-sm border border-primary focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:bg-primary data-[checked]:text-primary-fg",
+          "peer size-5 shrink-0 rounded-[7px] border-2 border-indicator transition-[background-color,border-color] duration-[var(--nika-duration-fast)] ease-out focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[checked]:border-primary data-[checked]:bg-primary data-[checked]:text-primary-fg",
           className
         )}
         {...props}
       >
         {({ checked }) => (
-          <m.svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-full w-full p-0.5"
+          // Two movements, deliberately out of step: the box squashes and
+          // springs back while the tick is drawn 60ms behind it, so the fill
+          // lands first and the stroke follows. Animating pathLength and
+          // opacity together over one 200ms transition — what this replaced —
+          // reads as a fade, not as a tick being drawn.
+          <m.span
+            className="flex h-full w-full items-center justify-center"
             initial={false}
-            animate={{ pathLength: checked ? 1 : 0, opacity: checked ? 1 : 0 }}
-            transition={feel.transition}
+            animate={{ scale: checked && feel.enabled ? [1, 0.86, 1] : 1 }}
+            transition={
+              feel.enabled
+                ? { duration: 0.52, ease: [0.34, 1.56, 0.64, 1] }
+                : { duration: 0 }
+            }
           >
-            <m.path d="M20 6 9 17l-5-5" />
-          </m.svg>
+            <m.svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-full w-full p-[3px]"
+              initial={false}
+              animate={{ pathLength: checked ? 1 : 0 }}
+              transition={
+                feel.enabled
+                  ? {
+                      duration: 0.34,
+                      ease: [0.22, 1, 0.36, 1],
+                      delay: checked ? 0.06 : 0,
+                    }
+                  : { duration: 0 }
+              }
+            >
+              <m.path d="M20 6 9 17l-5-5" />
+            </m.svg>
+          </m.span>
         )}
       </HeadlessCheckbox>
     );
