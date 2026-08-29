@@ -1,9 +1,10 @@
 ---
 title: Checkbox
-description: A checkbox with animated checkmark.
+description: A checkbox with a drawn checkmark.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="checkbox" />
 
 ## Installation
 
@@ -15,7 +16,92 @@ npx nikaui add checkbox
 
 ```tsx
 import { Checkbox } from "@/components/ui/checkbox"
+
+const [checked, setChecked] = useState(false)
+
+<Checkbox checked={checked} onChange={setChecked} aria-label="Accept terms" />
 ```
+
+`onChange` receives the boolean directly, not an event.
+
+## With a label
+
+A checkbox with no accessible name is unusable by keyboard and screen reader
+alike. Either wrap it in a `label` or give it an `aria-label`:
+
+```tsx
+<label className="flex items-center gap-3 text-sm">
+  <Checkbox checked={checked} onChange={setChecked} />
+  Email me about releases
+</label>
+```
+
+## With a description
+
+```tsx
+<label className="flex items-start gap-3 text-sm">
+  <Checkbox checked={checked} onChange={setChecked} />
+  <span>
+    Weekly digest
+    <span className="block text-xs text-content-subtle">
+      Never more than one email
+    </span>
+  </span>
+</label>
+```
+
+## Group
+
+```tsx
+const [selected, setSelected] = useState<string[]>(["releases"])
+
+{OPTIONS.map((option) => (
+  <label key={option.id} className="flex items-center gap-3 text-sm">
+    <Checkbox
+      checked={selected.includes(option.id)}
+      onChange={(next) =>
+        setSelected(next
+          ? [...selected, option.id]
+          : selected.filter((id) => id !== option.id))
+      }
+    />
+    {option.label}
+  </label>
+))}
+```
+
+## Disabled
+
+```tsx
+<Checkbox disabled />
+<Checkbox disabled checked />
+```
+
+## The animation
+
+The box squashes and springs back while the tick is drawn 60ms behind it, so
+the fill lands first and the stroke follows. Animating the path and its opacity
+together over one duration — which is what this replaced — reads as a fade
+rather than as a tick being drawn.
+
+Set `motion="none"` to turn it off for one instance, or wrap a subtree in
+`NikaMotionConfig`. Everything honours `prefers-reduced-motion` without
+configuration.
+
+```tsx
+<Checkbox motion="none" />
+<Checkbox motion="bounce" />
+```
+
+## Customization
+
+```tsx
+<Checkbox className="size-6 rounded-md" />
+```
+
+The unchecked border uses `--nika-indicator`, a token tuned to clear the 3:1
+WCAG 2.1 asks of a state indicator. Change it in your token file rather than
+per call site, or the contrast guarantee only holds where you remembered.
 
 ## API Reference
 
@@ -23,7 +109,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the checkmark draw |
-
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+| `checked` | `boolean` | — | Controlled state |
+| `defaultChecked` | `boolean` | `false` | Uncontrolled initial state |
+| `onChange` | `(checked: boolean) => void` | — | Called with the next state |
+| `disabled` | `boolean` | `false` | Blocks interaction |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Animation feel |
+| `className` | `string` | — | Merged with the checkbox's own classes |

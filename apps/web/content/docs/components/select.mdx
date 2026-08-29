@@ -1,9 +1,10 @@
 ---
 title: Select
-description: A select dropdown with options.
+description: Choose one option, or several, from a list.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="select" />
 
 ## Installation
 
@@ -14,16 +15,125 @@ npx nikaui add select
 ## Usage
 
 ```tsx
-import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select"
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select"
+
+const [plan, setPlan] = useState("monthly")
+
+<Select value={plan} onChange={setPlan}>
+  <SelectTrigger>
+    {({ value }) => <SelectValue value={value} placeholder="Choose a plan" />}
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="monthly">Monthly</SelectItem>
+    <SelectItem value="yearly">Yearly</SelectItem>
+  </SelectContent>
+</Select>
 ```
+
+`SelectTrigger` takes a render prop carrying the current value. That is how
+`SelectValue` knows what to draw, and it is why the trigger's children are a
+function rather than plain nodes.
+
+## Multiple selection
+
+```tsx
+const [teams, setTeams] = useState<string[]>([])
+
+<Select multiple value={teams} onChange={setTeams}>
+  <SelectTrigger>
+    {({ value }) => (
+      <SelectValue value={value} placeholder="Choose teams" max={2} />
+    )}
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value="Design">Design</SelectItem>
+    <SelectItem value="Engineering">Engineering</SelectItem>
+    <SelectItem value="Marketing">Marketing</SelectItem>
+  </SelectContent>
+</Select>
+```
+
+The list stays open while you pick, and `SelectValue` renders each selection as
+a chip, collapsing past `max` into a count so the trigger cannot grow without
+bound.
+
+## With a label
+
+```tsx
+<Field label="Plan">
+  <Select value={plan} onChange={setPlan}>{/* … */}</Select>
+</Field>
+```
+
+## Disabled
+
+```tsx
+<Select disabled value={plan} onChange={setPlan}>{/* … */}</Select>
+
+<SelectItem value="enterprise" disabled>
+  Enterprise — contact sales
+</SelectItem>
+```
+
+## Grouped options
+
+```tsx
+<SelectContent>
+  <div role="group" aria-label="Individual">
+    <SelectItem value="free">Free</SelectItem>
+    <SelectItem value="pro">Pro</SelectItem>
+  </div>
+  <SelectItem value="team">Team</SelectItem>
+</SelectContent>
+```
+
+## Keyboard
+
+| Key | Action |
+| --- | --- |
+| `Space` / `Enter` | Open, or select the focused option |
+| `↑` / `↓` | Move between options |
+| `Home` / `End` | First / last option |
+| Typing | Jump to a matching option |
+| `Esc` | Close without changing the value |
+
+## Customization
+
+```tsx
+<SelectTrigger className="rounded-full" />
+<SelectContent className="max-h-40" />
+```
+
+The trigger deliberately shares Input's focus ring. If you restyle one, restyle
+both, or a form with a Select beside an Input shows two different focus
+treatments.
 
 ## API Reference
 
-### SelectContent
+### Select
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the listbox's enter/exit transition |
+| `value` | `string \| string[]` | — | Controlled value; an array when `multiple` |
+| `onChange` | `(value) => void` | — | Called with the next value |
+| `multiple` | `boolean` | `false` | Allow several selections |
+| `disabled` | `boolean` | `false` | Blocks interaction |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+### SelectValue
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string \| string[] \| null` | — | What to render |
+| `placeholder` | `ReactNode` | — | Shown when nothing is selected |
+| `max` | `number` | `2` | Chips shown before collapsing into a count |
+
+### SelectContent, SelectItem
+
+`SelectContent` takes `motion` and `className`. `SelectItem` takes `value`,
+`disabled` and `className`.
