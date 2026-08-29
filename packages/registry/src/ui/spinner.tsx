@@ -58,16 +58,19 @@ export interface SpinnerProps
     VariantProps<typeof spinnerVariants> {
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
+  /** Text beside or beneath the spinner. A spinner alone rarely says enough. */
+  label?: React.ReactNode;
+  labelPlacement?: "right" | "bottom";
 }
 
 const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
-  ({ className, size, motion: motionProp, ...props }, ref) => {
+  ({ className, size, label, labelPlacement = "right", motion: motionProp, ...props }, ref) => {
     // The class list is server-rendered, so the reduced-motion half of the
     // gate is CSS (`motion-safe:`) and not this hook — see
     // useConfiguredMotion.
     const configured = useConfiguredMotion("spinner", motionProp);
 
-    return (
+    const svg = (
       <svg
         ref={ref}
         xmlns="http://www.w3.org/2000/svg"
@@ -94,9 +97,28 @@ const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
       </svg>
     );
+
+    if (!label) return svg;
+
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center gap-2",
+          labelPlacement === "bottom" ? "flex-col" : "flex-row"
+        )}
+      >
+        {svg}
+        <span className="text-sm text-content-muted">{label}</span>
+      </span>
+    );
   }
 );
 Spinner.displayName = "Spinner";
+
+export interface SpinnerWithLabelProps {
+  label?: React.ReactNode;
+  labelPlacement?: "right" | "bottom";
+}
 
 export interface LoadingDotsProps {
   className?: string;
