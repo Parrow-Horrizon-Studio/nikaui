@@ -94,7 +94,7 @@ describe("the component index", () => {
     // A page still being written. Swap this for another as H2 completes
     // them; when none are left the count below is 0 and this line goes.
     expect(bySlug.get("skeleton")?.isStub).toBe(true);
-    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(8);
+    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(5);
   });
 
   it("groups every component the way the sidebar separators do", () => {

@@ -1,9 +1,10 @@
 ---
 title: Toast
-description: Toast notifications with provider.
+description: A brief message about something that already happened.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="toast" />
 
 ## Installation
 
@@ -13,20 +14,81 @@ npx nikaui add toast
 
 ## Usage
 
+Wrap your app once, then raise toasts from anywhere:
+
 ```tsx
 import { ToastProvider, useToast } from "@/components/ui/toast"
+
+export default function App({ children }) {
+  return <ToastProvider>{children}</ToastProvider>
+}
+```
+
+```tsx
+const { toast } = useToast()
+
+<Button onClick={() => toast({ title: "Saved", description: "Changes are live" })}>
+  Save
+</Button>
+```
+
+## Statuses
+
+```tsx
+toast({ title: "Saved", variant: "success" })
+toast({ title: "Quota at 90%", variant: "warning" })
+toast({ title: "Deploy failed", variant: "danger" })
+toast({ title: "Version 2.1 available", variant: "info" })
+toast({ title: "Note" })
+```
+
+## Why the surface is opaque
+
+Status used to be carried by a translucent tint with nothing opaque beneath it.
+On a plain background that merely looked washed out; over a photograph, a
+gradient, or any page content a fixed toast happened to sit above, the content
+showed straight through and the text became unreadable.
+
+The status is now a rail down the left edge and an icon chip, over an opaque
+surface. If you restyle a toast, keep something opaque underneath it — this is
+the failure mode that is invisible in a component gallery and obvious in
+production.
+
+## Duration
+
+```tsx
+toast({ title: "Saved", duration: 2000 })
+toast({ title: "Upload failed", duration: Infinity })
+```
+
+Anything the reader must act on should not disappear on a timer. A toast that
+vanishes before it is read is worse than no toast, because the sender believes
+it was delivered.
+
+## What belongs in a toast
+
+Something that already happened, that the reader does not need to act on
+immediately. Anything requiring a decision belongs in a dialog; anything that
+must persist belongs on the page.
+
+## Customization
+
+```tsx
+<ToastProvider className="bottom-4 right-4" />
 ```
 
 ## API Reference
 
-### `addToast(toast)`
+### toast(options)
 
-| Field | Type | Default | Description |
+| Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for this toast's enter/exit transition |
+| `title` | `string` | — | The headline |
+| `description` | `string` | — | Secondary line |
+| `variant` | `"default" \| "success" \| "warning" \| "danger" \| "info"` | `"default"` | Status colour of the rail and chip |
+| `duration` | `number` | `5000` | Milliseconds before dismissal. `Infinity` to keep it |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Animation feel |
 
-`motion` is a field on the object you pass to `addToast`, not a prop on a
-rendered element — each toast resolves its own feel.
+### useToast()
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+Returns `{ toast, dismiss }`. `dismiss(id)` removes one early.
