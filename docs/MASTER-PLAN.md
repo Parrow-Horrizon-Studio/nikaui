@@ -201,6 +201,49 @@ Tiers 2 and 3 are built when the catalogue justifies them — an MCP server sear
 
 ## 4. Roadmap
 
+### H1 / H2 — component polish (added 2026-08-15)
+
+H splits in two: **H1 changes how components look, H2 changes what they can
+do.** F depends on H1 only — blocks are assembled from these components, so
+polishing them afterwards would mean reworking every block.
+
+Specs: [H1](superpowers/specs/2026-08-15-nikaui-component-styling.md) ·
+[H2](superpowers/specs/2026-08-15-nikaui-component-features.md).
+Decision record, including rejected options:
+[notes](superpowers/notes/2026-08-15-h-component-decisions.md).
+
+**Closed by H1, 2026-08-15:**
+
+| Defect | Where it came from |
+|---|---|
+| ~~Alert and Toast composite translucent status tints over page content~~ | B (Toast recorded), Alert found in H's brainstorm |
+| ~~Toast lacks `warning` and `info`~~ | B |
+| ~~`alert-dialog` and `dialog` hard-code `bg-black/50`~~ — broke the repo's own PR-checklist rule | H1's own repo-wide guard |
+| ~~Dialog and AlertDialog were the only floating surfaces on `bg-canvas`~~ | H brainstorm |
+| ~~Textarea on `bg-canvas-2` while Input was on `bg-canvas`~~ | H brainstorm |
+| ~~Avatar fallback on `bg-muted`, the hover surface~~ | H brainstorm |
+| ~~`ComboboxTrigger` rejects `placeholder`, `id`, `name`~~ | D, parked on scope |
+| ~~Accordion underlines its trigger on hover~~ | H brainstorm |
+| ~~Switch off-track below WCAG 1.4.11~~ | B, admitted in the component's own comment |
+| ~~Slider had no filled track~~ | H brainstorm |
+
+**Found and closed during H1 execution, not previously known:**
+
+| Defect | How it was found |
+|---|---|
+| ~~The focus ring failed WCAG 1.4.11 in BOTH themes~~ — 1.75:1 light, 2.81:1 dark, against 3:1. `--nika-ring` was a transparency of the brand colour rather than a contrast-tuned value. Every focusable component, all five accents | Measuring, because H1-9 says to measure rather than reason. Now 4.15:1 worst case, asserted per accent per theme |
+| ~~The Switch off-track was **transparent**, not tinted~~ — `data-[unchecked]:` matched nothing, because Headless UI emits no attribute for the off state. The 1.27:1 figure recorded against it was real for the colour, but the colour was never on screen | Reading `getComputedStyle` in a browser during the visual pass. Every unit test passed |
+
+**Open after H1:**
+
+| Item | Status |
+|---|---|
+| Does `bg-indicator` retune between themes? | **Unresolved.** Measurements contradict: a nested `.dark` wrapper retuned the variable correctly, but toggling `.dark` on `<html>` at runtime did not change the resolved utility. The generated utility rule could not be located in the served CSS to settle it. Worth 20 minutes before H2, since a token that does not retune is an accessibility regression in one theme |
+| Checkbox / RadioGroup focus ring measurement | Checkbox moved to 20px and the ring lost its offset, which was the suspected cause. **Not measured on screen** — the pane's scroll repaint was unreliable. Still "measure, do not assume" |
+| Normal-motion verification | **Still open**, unchanged from C §5.7 and D. Every available browser pane forces `prefers-reduced-motion: reduce`. H1 adds substantially more motion than existed before, so this matters more than it did |
+| Accordion `variant="card"` | Shipped as opt-in on an **unconfirmed assumption** — the question was asked in the batch-2 review and never answered. Hairline rows remain the default, so it is reversible by deleting one variant |
+
+
 | # | Sub-project | Depends on | Status |
 |---|---|---|---|
 | **A** | Monetization and distribution | — | **Specced** |
@@ -208,7 +251,9 @@ Tiers 2 and 3 are built when the catalogue justifies them — an MCP server sear
 | **C** | Landing page | A, B | Not started |
 | **D** | Documentation and showcase | A, B | Not started |
 | **E** | Repository migration and ops | A | **Specced** |
-| **F** | Block and template lineup | A, B | Not started |
+| **H1** | Component defects and default styling | B, D | **In review** |
+| **H2** | Component features and documentation | H1 | **Specced** |
+| **F** | Block and template lineup | A, B, **H1** | Not started |
 | **G** | Agent surface — MCP and skill | B, D, F | Not started |
 
 ### A — Monetization and distribution ✅
