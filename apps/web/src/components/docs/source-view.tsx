@@ -69,6 +69,12 @@ export async function SourceView({ name }: { name: string }) {
   const rendered = await highlight(code, {
     lang: "tsx",
     themes: { light: "github-light", dark: "github-dark" },
+    // Emits --shiki-light / --shiki-dark custom properties instead of inline
+    // colours, which is what fumadocs-ui's stylesheet already knows how to
+    // switch on. Without it both themes' token backgrounds are written
+    // inline and the light theme's white bleeds through in dark mode - it
+    // renders as white patches behind the code, which is how this was found.
+    defaultColor: false,
   });
 
   return (
