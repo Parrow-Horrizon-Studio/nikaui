@@ -227,9 +227,9 @@ describe("a visitor who asked for stillness gets it before hydration, not after"
     expect(renderToString(<Spinner />)).toContain("motion-safe:animate-spin");
   });
 
-  it("Skeleton's pulse is CSS-gated the same way", () => {
+  it("Skeleton's sweep is CSS-gated the same way", () => {
     mocks.reducedMotion = true;
-    expect(renderToString(<Skeleton />)).toContain("motion-safe:animate-pulse");
+    expect(renderToString(<Skeleton />)).toContain("motion-safe:after:animate-[nika-shimmer_1.6s_ease-out_infinite]");
   });
 
   it("an indeterminate Progress parks its segment at the track start", () => {
@@ -257,7 +257,7 @@ describe('an explicit motion="none" still removes the animation outright', () =>
   it("Skeleton renders no pulse class at all", () => {
     mocks.reducedMotion = false;
     expect(renderToString(<Skeleton motion="none" />)).not.toContain(
-      "animate-pulse"
+      "nika-shimmer"
     );
   });
 });

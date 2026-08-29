@@ -48,6 +48,16 @@ const FORBIDDEN = [
     pattern: /shadcn/i,
     why: "no reference-library attribution anywhere in shipped code or copy",
   },
+  // Same constraint, second name. The example coverage in the component docs
+  // was worked out by looking at what a mature library ships, and the
+  // standing rule is that no component, file, class, prop or page may be
+  // labelled as derived from one. A rule nobody is currently thinking about
+  // is exactly the rule that slips into agent-written code and prose, which
+  // is the argument for gating it rather than remembering it.
+  {
+    pattern: /heroui/i,
+    why: "no reference-library attribution anywhere in shipped code or copy",
+  },
   // Three shapes, because the real risk is someone adding the preset as
   // code, not prose: `motionPresets` in packages/registry/src/lib/motion.ts
   // is unquoted object keys, one per line (`bounce: {`), so a `pop: {`

@@ -42,7 +42,7 @@ const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
               : "bottom"
         }
         className={cn(
-          "z-50 w-72 rounded-md border border-line bg-overlay p-4 text-content shadow-md outline-none",
+          "z-50 w-72 origin-top-left rounded-lg border border-line bg-overlay p-4 text-content shadow-lg outline-none",
           className
         )}
         {...props}

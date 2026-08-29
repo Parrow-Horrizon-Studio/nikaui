@@ -7,21 +7,19 @@ import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const toastVariants = cva(
-  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-lg border p-4 shadow-lg transition-all",
+  // Status is carried by a rail, never by the surface — see the comment in
+  // alert.tsx for the full reasoning. It matters more here than there: a
+  // toast is fixed over whatever the page happens to be showing, so a
+  // translucent surface had page content behind it every single time.
+  "pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-lg border border-line bg-overlay pl-[19px] pr-4 py-4 text-content shadow-lg transition-all before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:content-['']",
   {
     variants: {
-      // Status variants follow Alert: a tint of the hue for the surface, the
-      // hue at low alpha for the border, and `text-content` for the body.
-      // The hue itself is never the body text — `text-success` on
-      // `bg-success/10` measures 1.94:1 against the light canvas, because
-      // both the hue and a 10% wash of it over a near-white page sit at
-      // almost the same luminance. `text-content` on the same tint measures
-      // 14.9:1. The status hues are readable as fills, borders and large
-      // icons; they are not body-text colours on the light canvas.
       variant: {
-        default: "border-line bg-canvas text-content",
-        danger: "border-danger/30 bg-danger/10 text-content",
-        success: "border-success/30 bg-success/10 text-content",
+        default: "before:bg-content-subtle",
+        danger: "before:bg-danger",
+        success: "before:bg-success",
+        warning: "before:bg-warning",
+        info: "before:bg-info",
       },
     },
     defaultVariants: {
@@ -34,7 +32,7 @@ export interface Toast {
   id: string;
   title?: string;
   description?: string;
-  variant?: "default" | "danger" | "success";
+  variant?: "default" | "danger" | "success" | "warning" | "info";
   duration?: number;
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;

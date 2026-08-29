@@ -81,6 +81,22 @@ interface CssBlock {
  * matched as if it were a real selector and corrupts the first block's
  * extracted name; that's what stripping guards against.
  */
+/**
+ * Strips what the block reader below cannot represent: comments, and
+ * @keyframes blocks. The latter arrived with the Skeleton shimmer and are the
+ * file's only nested-brace construct — parseBlocks splits on "everything
+ * between one { and the next }", so a keyframe would otherwise be read as if
+ * its percentage steps were selectors.
+ *
+ * Shared by parseTokens and the H1 additions at the bottom, so the two cannot
+ * drift apart on what counts as parseable.
+ */
+function strip(css: string): string {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "");
+}
+
 function parseBlocks(withoutComments: string): CssBlock[] {
   const blocks: CssBlock[] = [];
   const blockPattern = /([^{}]+)\{([^{}]*)\}/g;
@@ -139,7 +155,7 @@ interface ParsedTokens {
 const ACCENT_SELECTOR = /\[data-accent="([\w-]+)"\]/;
 
 function parseTokens(css: string): ParsedTokens {
-  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const withoutComments = strip(css);
   const blocks = parseBlocks(withoutComments);
 
   // Ground truth for the parity check: how many accent selectors the file
@@ -283,4 +299,184 @@ describe("other contrast figures tokens.css documents in prose", () => {
   // derivable from tokens.css alone — checking them means reading Alert's
   // and Toast's rendered output, which belongs in a test for those
   // components, not in a token-layer parsing test.
+});
+
+/* ===================================================================
+   H1 additions — the tokens introduced for component polish.
+
+   WHY THESE ARE HERE: the block above binds *text* contrast (WCAG AA,
+   4.5:1). `--nika-indicator` exists for a different rule — WCAG 2.1
+   SC 1.4.11 Non-text Contrast, 3:1, which governs a control's state
+   indicator. The Switch off-track measured 1.27:1 on `--nika-line` and
+   1.54:1 on `--nika-line-strong`; neither is a bug in those tokens,
+   which are hairline and divider colours doing their own job correctly.
+   No neutral in the scale reached 3:1 while still reading as "off,
+   neutral, not the accent", so the fix was a new token rather than a
+   nudged value — and this is what stops it drifting back.
+
+   The same token carries the unchecked checkbox border, the unchecked
+   radio ring, and the slider and progress tracks, so one assertion
+   here covers a family of components.
+
+   IF THIS FAILS: lower `--nika-indicator`'s lightness in tokens.css.
+   Lightness is the lever that moves contrast in this palette; chroma
+   barely does.
+   =================================================================== */
+
+const AA_NON_TEXT = 3;
+
+const strippedSource = strip(tokensSource);
+const allBlocks = parseBlocks(strippedSource);
+
+/**
+ * Reads one token from the block with the given selector.
+ *
+ * Deliberately finds the block that actually DEFINES the token rather
+ * than the first block matching the selector: tokens.css has several
+ * `:root` blocks (light palette, semantic/radius/motion, and the `sun`
+ * accent share it), so selector alone is ambiguous and a Map keyed by
+ * selector would silently return whichever came last.
+ */
+function readToken(selector: string, name: string): string {
+  const block = allBlocks.find(
+    (candidate) => candidate.selector === selector && candidate.vars.has(name)
+  );
+  if (!block) {
+    throw new Error(
+      `tokens.css: no block with selector "${selector}" defines --nika-${name}`
+    );
+  }
+  return block.vars.get(name) as string;
+}
+
+const themeBlockSource = strippedSource.slice(
+  strippedSource.indexOf("@theme inline")
+);
+
+describe("--nika-indicator clears WCAG 1.4.11 (3:1) for state indicators", () => {
+  const themes: { label: string; selector: string }[] = [
+    { label: "light", selector: ":root" },
+    { label: "dark", selector: ".dark" },
+  ];
+
+  for (const theme of themes) {
+    describe(theme.label, () => {
+      // The switch off-track sits directly on the page.
+      it(`indicator vs canvas >= ${AA_NON_TEXT}:1`, () => {
+        const ratio = contrastRatio(
+          readToken(theme.selector, "indicator"),
+          readToken(theme.selector, "canvas")
+        );
+        expect(ratio).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      });
+
+      // An unchecked checkbox or radio usually sits on a card, and the
+      // switch thumb inside the off-track is itself `--nika-surface`.
+      it(`indicator vs surface >= ${AA_NON_TEXT}:1`, () => {
+        const ratio = contrastRatio(
+          readToken(theme.selector, "indicator"),
+          readToken(theme.selector, "surface")
+        );
+        expect(ratio).toBeGreaterThanOrEqual(AA_NON_TEXT);
+      });
+    });
+  }
+});
+
+describe("H1 tokens are bridged into @theme inline", () => {
+  // A --nika-* variable that is never mapped compiles fine and is
+  // unusable from a utility class — the failure is silent at build time
+  // and only visible on screen. This is the guard.
+  const bridged = [
+    "field",
+    "field-hover",
+    "field-press",
+    "inverse",
+    "inverse-content",
+    "scrim",
+    "indicator",
+    "shimmer",
+  ];
+
+  for (const name of bridged) {
+    it(`maps --nika-${name}`, () => {
+      expect(themeBlockSource).toContain(`--color-${name}:`);
+      expect(themeBlockSource).toContain(`var(--nika-${name})`);
+    });
+  }
+});
+
+/* ===================================================================
+   Focus ring, WCAG 2.1 SC 1.4.11 (3:1 for a focus indicator).
+
+   FOUND BY MEASURING, NOT BY REVIEW. --nika-ring was
+   color-mix(in oklch, var(--nika-primary) 55%, transparent) — a decorative
+   definition, a transparency of the brand colour. Composited over the light
+   canvas that measured 1.75:1 against a 3:1 requirement, and it failed in
+   dark too (2.81:1). Every focusable component in the library was affected,
+   in both themes, across all five accents.
+
+   Dropping the transparency was not sufficient: the accent at full opacity
+   still reached only 2.69:1 in light. The light ring is therefore a darkened
+   value per accent. In dark the accent clears 3:1 unaided, so the ring is the
+   accent itself.
+
+   IF THIS FAILS: a new accent needs a tuned light ring, or an existing one
+   was nudged. Lower the ring's lightness — chroma barely moves contrast here.
+   =================================================================== */
+
+const AA_FOCUS_INDICATOR = 3;
+
+/** The block defining `ring` for one accent, whatever selector shape it uses. */
+function accentRing(name: string): string {
+  const block = allBlocks.find(
+    (candidate) =>
+      candidate.selector.includes(`[data-accent="${name}"]`) &&
+      candidate.vars.has("ring")
+  );
+  if (!block) throw new Error(`tokens.css: accent "${name}" defines no --nika-ring`);
+  return block.vars.get("ring") as string;
+}
+
+describe("focus ring clears 3:1 in every accent and both themes", () => {
+  for (const accent of tokens.accents) {
+    describe(`[data-accent="${accent.name}"]`, () => {
+      it("light ring vs canvas and surface", () => {
+        const ring = accentRing(accent.name);
+        expect(contrastRatio(ring, readToken(":root", "canvas"))).toBeGreaterThanOrEqual(
+          AA_FOCUS_INDICATOR
+        );
+        expect(contrastRatio(ring, readToken(":root", "surface"))).toBeGreaterThanOrEqual(
+          AA_FOCUS_INDICATOR
+        );
+      });
+
+      it("dark ring vs canvas and surface", () => {
+        // In dark the ring resolves to the accent itself.
+        expect(
+          contrastRatio(accent.primary, readToken(".dark", "canvas"))
+        ).toBeGreaterThanOrEqual(AA_FOCUS_INDICATOR);
+        expect(
+          contrastRatio(accent.primary, readToken(".dark", "surface"))
+        ).toBeGreaterThanOrEqual(AA_FOCUS_INDICATOR);
+      });
+    });
+  }
+
+  it("no accent defines the ring as a transparency of the accent", () => {
+    // The original defect in one assertion: a `transparent` mix cannot be
+    // contrast-checked by the block above, because it has no fixed value
+    // until it composites.
+    for (const accent of tokens.accents) {
+      expect(accentRing(accent.name)).not.toContain("transparent");
+    }
+  });
+
+  it("dark restores the ring to the accent, after the accent blocks", () => {
+    // Equal specificity: source order is what makes this win. If it ever
+    // moves above the accents, dark silently keeps the darkened light ring.
+    const darkRingIndex = strippedSource.lastIndexOf("--nika-ring: var(--nika-primary)");
+    const lastAccentIndex = strippedSource.lastIndexOf('[data-accent="');
+    expect(darkRingIndex).toBeGreaterThan(lastAccentIndex);
+  });
 });

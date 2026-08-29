@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { motion as m, type HTMLMotionProps } from "motion/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import {
   useConfiguredMotion,
@@ -9,13 +10,35 @@ import {
   type MotionPreset,
 } from "../lib/motion";
 
-export interface CardProps extends HTMLMotionProps<"div"> {
+/**
+ * `default` keeps the bordered, barely-elevated card the library shipped —
+ * unchanged apart from the hover lift, which is not tied to the elevation.
+ * `elevated` drops the border and lets a real shadow carry the card, which
+ * needs a wider radius to sit right.
+ */
+const cardVariants = cva(
+  "text-content transition-[transform,box-shadow] duration-[var(--nika-duration-slow)] ease-out hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0",
+  {
+    variants: {
+      variant: {
+        default: "rounded-lg border border-line bg-surface shadow-sm hover:shadow-md",
+        elevated:
+          "rounded-xl border border-transparent bg-surface shadow-md hover:shadow-lg",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  }
+);
+
+export interface CardProps
+  extends HTMLMotionProps<"div">,
+    VariantProps<typeof cardVariants> {
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, motion: motionProp, ...props }, ref) => {
+  ({ className, variant, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("card", motionProp);
     // The from-state is server-rendered, so it must not depend on a
     // preference only the client can read — see useConfiguredMotion.
@@ -30,7 +53,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         animate={{ opacity: 1, y: 0 }}
         transition={feel.transition}
         className={cn(
-          "rounded-lg border border-line bg-surface text-content shadow-sm",
+          cardVariants({ variant }),
           // Pins the card to its resting state for a reduced-motion visitor
           // from the first paint, so the server-rendered from-state is never
           // the thing they see. Overrides Motion's inline style, hence `!`.

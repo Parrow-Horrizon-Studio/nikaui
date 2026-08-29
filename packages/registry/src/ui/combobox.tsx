@@ -14,15 +14,27 @@ import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Combobox = HeadlessCombobox;
 
-const ComboboxTrigger = React.forwardRef<
-  HTMLInputElement,
-  React.ComponentPropsWithoutRef<typeof ComboboxInput>
->(({ className, ...props }, ref) => (
+/**
+ * The props intersection is load-bearing, not defensive.
+ *
+ * `ComponentPropsWithoutRef<typeof ComboboxInput>` alone resolves against an
+ * uninstantiated generic, and the result rejected every native input
+ * attribute — `placeholder`, `id`, `name`, `autoComplete`, all of them. A
+ * text input that cannot take a placeholder. Intersecting with
+ * InputHTMLAttributes restores them without giving up the Headless UI props.
+ */
+export type ComboboxTriggerProps = React.ComponentPropsWithoutRef<
+  typeof ComboboxInput
+> &
+  React.InputHTMLAttributes<HTMLInputElement>;
+
+const ComboboxTrigger = React.forwardRef<HTMLInputElement, ComboboxTriggerProps>(
+  ({ className, ...props }, ref) => (
   <div className="relative">
     <ComboboxInput
       ref={ref}
       className={cn(
-        "flex h-10 w-full rounded-md border border-line-strong bg-canvas px-3 py-2 text-sm ring-offset-canvas placeholder:text-content-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-md border border-line-strong bg-canvas px-3 py-2 text-sm placeholder:text-content-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

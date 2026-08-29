@@ -7,6 +7,7 @@ import {
   DisclosurePanel,
 } from "@headlessui/react";
 import { motion as m } from "motion/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
@@ -17,11 +18,33 @@ const Accordion = ({
   <div className={cn("space-y-1", className)} {...props} />
 );
 
-const AccordionItem = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <Disclosure as="div" className={cn("border-b border-line", className)} {...props} />
+/**
+ * `default` is the hairline-separated list. `card` gives each item its own
+ * surface, which suits a short list of two or three and gives the chevron
+ * somewhere to sit; the hairline list stays the default because it is what
+ * long FAQ-style lists want.
+ */
+const accordionItemVariants = cva("", {
+  variants: {
+    variant: {
+      default: "border-b border-line",
+      card:
+        "mb-1.5 overflow-hidden rounded-lg bg-field transition-colors duration-[var(--nika-duration)] ease-out hover:bg-field-hover",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
+export interface AccordionItemProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof accordionItemVariants> {}
+
+const AccordionItem = ({ className, variant, ...props }: AccordionItemProps) => (
+  <Disclosure
+    as="div"
+    className={cn(accordionItemVariants({ variant, className }))}
+    {...props}
+  />
 );
 
 const AccordionTrigger = React.forwardRef<
@@ -31,7 +54,10 @@ const AccordionTrigger = React.forwardRef<
   <DisclosureButton
     ref={ref}
     className={cn(
-      "flex w-full items-center justify-between py-4 font-medium transition-all hover:underline [&[data-open]>svg]:rotate-180",
+      // Hover tints the row rather than underlining the label. An underline on
+      // hover reads as a link, and this is a button — it was the one styling
+      // choice in the library that was a mistake rather than a preference.
+      "-mx-2 flex w-full items-center justify-between rounded-md px-2 py-4 font-medium transition-colors duration-[var(--nika-duration)] ease-out hover:bg-field-hover [&[data-open]>svg]:rotate-180",
       className
     )}
     {...props}
