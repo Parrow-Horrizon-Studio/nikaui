@@ -27,17 +27,23 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
 
     return (
       <DialogBackdrop className={cn("fixed inset-0 z-50", overlayClassName)}>
+        {/*
+          bg-scrim, not bg-black/50. A hard-coded scrim broke this repo's own
+          "all colour comes from the token layer" rule, and could not retune:
+          50% black over an already-dark canvas is far heavier than the same
+          50% over a light one, so dark mode got a backdrop nobody chose.
+        */}
         <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50"
+          className="fixed inset-0 bg-scrim backdrop-blur-[3px]"
         />
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <DialogPanel
             ref={ref}
             className={cn(
-              "w-full max-w-lg rounded-lg border border-line bg-canvas p-6 shadow-lg",
+              "w-full max-w-lg rounded-xl border border-line bg-overlay p-6 shadow-lg",
               className
             )}
             {...props}
