@@ -1,0 +1,43 @@
+---
+title: Field
+description: Ties a form control to its label, description and error.
+category: foundation
+status: stub
+---
+
+## Installation
+
+```bash
+npx nikaui add field
+```
+
+## Usage
+
+```tsx
+import { Field } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
+export default function Example() {
+  return (
+    <Field label="Email" error="Enter a valid email address">
+      <Input type="email" />
+    </Field>
+  )
+}
+```
+
+`Field` wires `aria-invalid` on the control and an `aria-describedby` that
+resolves to the message element. A red border alone tells a sighted user
+something is wrong and tells a screen reader nothing.
+
+## API Reference
+
+### Field
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — | Visible label, tied to the control |
+| `description` | `ReactNode` | — | Help text. Announced only when there is no error |
+| `error` | `ReactNode` | — | Presence marks the field invalid; the text becomes its description |
+| `required` | `boolean` | `false` | Marks the field for sighted and assistive users |
+| `children` | `ReactElement` | — | The control. Cloned to receive the wiring |

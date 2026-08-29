@@ -251,6 +251,23 @@
       ],
       "access": "free"
     },
+    "field": {
+      "name": "field",
+      "type": "ui",
+      "description": "Ties a form control to its label, description and error, including the ARIA wiring",
+      "files": [
+        {
+          "source": "ui/field.tsx",
+          "target": "@ui/field.tsx"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": [
+        "utils",
+        "label"
+      ],
+      "access": "free"
+    },
     "popover": {
       "name": "popover",
       "type": "ui",

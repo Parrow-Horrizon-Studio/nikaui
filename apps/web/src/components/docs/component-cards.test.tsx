@@ -92,7 +92,7 @@ describe("the component index", () => {
     expect(bySlug.get("badge")?.isStub).toBe(false);
     expect(bySlug.get("dialog")?.isStub).toBe(false);
     expect(bySlug.get("tooltip")?.isStub).toBe(true);
-    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(18);
+    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(19);
   });
 
   it("groups every component the way the sidebar separators do", () => {

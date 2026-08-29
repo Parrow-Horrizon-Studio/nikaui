@@ -12,6 +12,7 @@ import {
 import { Input } from "@nikaui/registry/ui/input";
 import { Textarea } from "@nikaui/registry/ui/textarea";
 import { Label } from "@nikaui/registry/ui/label";
+import { Field } from "@nikaui/registry/ui/field";
 import { Alert, AlertTitle, AlertDescription } from "@nikaui/registry/ui/alert";
 import { Progress } from "@nikaui/registry/ui/progress";
 import { Slider } from "@nikaui/registry/ui/slider";
@@ -152,6 +153,7 @@ export const previews: Record<string, React.ReactNode> = {
   switch: <SwitchDemo />,
   checkbox: <CheckboxDemo />,
   "radio-group": <RadioGroupDemo />,
+  field: <FieldDemo />,
   slider: <SliderDemo />,
   tooltip: <TooltipDemo />,
   toast: (
@@ -414,6 +416,19 @@ function RadioGroupDemo() {
       <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
       <RadioGroupItem value="compact">Compact</RadioGroupItem>
     </RadioGroup>
+  );
+}
+
+function FieldDemo() {
+  return (
+    <div className="w-full space-y-4">
+      <Field label="Email" description="We only use this for billing receipts.">
+        <Input type="email" placeholder="you@example.com" />
+      </Field>
+      <Field label="Workspace" error="That name is already taken." required>
+        <Input defaultValue="acme" />
+      </Field>
+    </div>
   );
 }
 
