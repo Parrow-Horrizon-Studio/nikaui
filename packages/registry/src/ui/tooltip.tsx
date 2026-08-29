@@ -100,18 +100,23 @@ const ARROW_COLOUR = {
 function TooltipContent({
   children,
   className,
-  side = "top",
+  side,
+  placement = "top",
   variant = "default",
   motion: motionProp,
 }: {
   children: React.ReactNode;
   className?: string;
+  /** @deprecated Use `placement`, which is the name Popover uses too. */
   side?: "top" | "bottom" | "left" | "right";
+  placement?: "top" | "bottom" | "left" | "right";
   /** "surface" opts out of the inversion — see the note above ARROW_POSITION. */
   variant?: "default" | "surface";
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }) {
+  // `side` kept working so existing call sites do not break silently.
+  const resolved = side ?? placement;
   const { open } = useTooltip();
   const feel = useMotionPreset("tooltip", motionProp);
 
@@ -133,24 +138,26 @@ function TooltipContent({
     <AnimatePresence>
       {open && (
         <m.div
-          initial={{ opacity: 0, ...motionOrigin[side] }}
+          initial={{ opacity: 0, ...motionOrigin[resolved] }}
           animate={{ opacity: 1, x: 0, y: 0 }}
-          exit={{ opacity: 0, ...motionOrigin[side] }}
+          exit={{ opacity: 0, ...motionOrigin[resolved] }}
           transition={feel.transition}
           className={cn(
             "absolute z-50 overflow-visible rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap",
             variant === "surface"
               ? "border border-line bg-overlay text-content shadow-md"
               : "bg-inverse text-inverse-content shadow-lg",
-            positionClasses[side],
+            positionClasses[resolved],
             className
           )}
           role="tooltip"
+          data-placement={resolved}
         >
           {children}
           <span
             aria-hidden="true"
-            className={cn("absolute", ARROW_POSITION[side], ARROW_COLOUR[variant][side])}
+            data-tooltip-arrow=""
+            className={cn("absolute", ARROW_POSITION[resolved], ARROW_COLOUR[variant][resolved])}
           />
         </m.div>
       )}

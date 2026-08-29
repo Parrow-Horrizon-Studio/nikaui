@@ -9,20 +9,38 @@ import {
   Description,
 } from "@headlessui/react";
 import { motion as m } from "motion/react";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 import { useMotionPreset, type MotionPreset } from "../lib/motion";
 
 const Dialog = HeadlessDialog;
 
+const dialogPanelVariants = cva(
+  "w-full rounded-xl border border-line bg-overlay p-6 shadow-lg",
+  {
+    variants: {
+      size: {
+        sm: "max-w-sm",
+        md: "max-w-lg",
+        lg: "max-w-2xl",
+        full: "max-w-[calc(100vw-2rem)]",
+      },
+    },
+    // md is what the dialog always was, so existing call sites are unchanged.
+    defaultVariants: { size: "md" },
+  }
+);
+
 export interface DialogContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPanel> {
+  extends React.ComponentPropsWithoutRef<typeof DialogPanel> ,
+    VariantProps<typeof dialogPanelVariants> {
   overlayClassName?: string;
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }
 
 const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ className, overlayClassName, children, motion: motionProp, ...props }, ref) => {
+  ({ className, overlayClassName, size, children, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("dialog", motionProp);
 
     return (
@@ -42,10 +60,8 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <DialogPanel
             ref={ref}
-            className={cn(
-              "w-full max-w-lg rounded-xl border border-line bg-overlay p-6 shadow-lg",
-              className
-            )}
+            data-dialog-panel=""
+            className={cn(dialogPanelVariants({ size }), className)}
             {...props}
           >
             <m.div

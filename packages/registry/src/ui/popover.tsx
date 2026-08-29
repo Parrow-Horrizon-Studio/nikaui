@@ -23,24 +23,46 @@ PopoverTrigger.displayName = "PopoverTrigger";
 export interface PopoverContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
   align?: "start" | "center" | "end";
+  /**
+   * Which side of the trigger the panel opens on.
+   *
+   * `align` alone could only shift a panel that was always pinned to the
+   * bottom, so "open this above the trigger" was not expressible — and a
+   * trigger near the foot of the page opened its panel off-screen.
+   */
+  placement?: "top" | "right" | "bottom" | "left";
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }
 
 const PopoverContent = React.forwardRef<HTMLDivElement, PopoverContentProps>(
-  ({ className, align = "center", children, motion: motionProp, ...props }, ref) => {
+  (
+    {
+      className,
+      align = "center",
+      placement = "bottom",
+      children,
+      motion: motionProp,
+      ...props
+    },
+    ref
+  ) => {
     const feel = useMotionPreset("popover", motionProp);
 
     return (
       <PopoverPanel
         ref={ref}
+        // Headless UI takes "<side> <alignment>"; alignment only applies to
+        // the two horizontal sides, which is why left/right pass the side
+        // alone rather than an alignment that would be ignored.
         anchor={
-          align === "start"
-            ? "bottom start"
-            : align === "end"
-              ? "bottom end"
-              : "bottom"
+          placement === "top" || placement === "bottom"
+            ? align === "center"
+              ? placement
+              : `${placement} ${align}`
+            : placement
         }
+        data-placement={placement}
         className={cn(
           "z-50 w-72 origin-top-left rounded-lg border border-line bg-overlay p-4 text-content shadow-lg outline-none",
           className
