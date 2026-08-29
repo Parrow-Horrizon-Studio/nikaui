@@ -60,7 +60,10 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
         aria-valuemax={100}
         aria-valuenow={clamped}
         className={cn(
-          "relative h-2 w-full overflow-hidden rounded-full bg-muted",
+          // The track is a state indicator, so it takes the indicator token
+          // rather than the hover surface. /40 keeps it quieter than a switch
+          // off-track, which has to carry the whole off state on its own.
+          "relative h-2 w-full overflow-hidden rounded-full bg-indicator/40",
           className
         )}
         {...props}

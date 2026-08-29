@@ -45,7 +45,9 @@ const AvatarFallback = React.forwardRef<
   <span
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-full bg-muted text-sm font-medium",
+      // Not bg-muted: that token is the hover surface every other component
+      // uses, so a fallback avatar sitting on it read as permanently hovered.
+      "flex h-full w-full items-center justify-center rounded-full bg-primary/20 text-sm font-semibold text-primary",
       className
     )}
     {...props}

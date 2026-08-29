@@ -8,7 +8,7 @@ import { Skeleton } from "./skeleton";
  * Spinner and Skeleton animate with Tailwind keyframe classes rather than a
  * Motion element. That makes them the two components where the motion
  * resolver can be wired up and still reach nothing: `animate-spin` and
- * `animate-pulse` keep running whatever `useMotionPreset` returns, unless
+ * `nika-shimmer` keep running whatever `useMotionPreset` returns, unless
  * the component gates the class itself.
  *
  * It has already gone wrong once — a commit titled "close the reduced-motion
@@ -55,17 +55,17 @@ describe("keyframe animations obey the motion resolver", () => {
     );
   });
 
-  it("Skeleton pulses by default", () => {
+  it("Skeleton sweeps by default", () => {
     const { container } = render(<Skeleton data-testid="s" />);
     expect(container.firstElementChild!.className).toContain(
-      "motion-safe:animate-pulse"
+      "motion-safe:after:animate-[nika-shimmer_1.6s_ease-out_infinite]"
     );
   });
 
   it("Skeleton stops when the instance prop says none", () => {
     const { container } = render(<Skeleton motion="none" />);
     expect(container.firstElementChild!.className).not.toContain(
-      "animate-pulse"
+      "nika-shimmer"
     );
   });
 
@@ -76,7 +76,7 @@ describe("keyframe animations obey the motion resolver", () => {
       </NikaMotionConfig>
     );
     expect(container.firstElementChild!.className).not.toContain(
-      "animate-pulse"
+      "nika-shimmer"
     );
   });
 

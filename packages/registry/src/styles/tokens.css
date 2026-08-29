@@ -234,6 +234,18 @@
   --nika-duration-spring: 520ms;
 }
 
+/* ---------- KEYFRAMES ----------
+   Skeleton's sweep. Defined here so the token layer stays self-contained:
+   `nika init` copies this one file into a consumer's project, and a keyframe
+   living anywhere else would not travel with it.
+
+   NOTE for tokens.test.ts: this is the only nested-brace construct in the
+   file. That parser splits on "everything between one { and the next }", so
+   it strips @keyframes blocks before parsing rather than choking on them. */
+@keyframes nika-shimmer {
+  100% { transform: translateX(100%); }
+}
+
 /* ---------- TAILWIND MAPPING ----------
    `inline` is required: it makes each utility reference the variable
    rather than copy its value, which is what allows switching .dark or

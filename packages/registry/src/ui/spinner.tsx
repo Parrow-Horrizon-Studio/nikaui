@@ -84,6 +84,13 @@ const Spinner = React.forwardRef<SVGSVGElement, SpinnerProps>(
         )}
         {...props}
       >
+        {/*
+          Two paths, not one. The arc alone was drawn from currentColor with
+          the rest of the circle transparent, so on a busy background nothing
+          said where the ring ran — only a floating stroke. The faint circle
+          is the track, the arc is the head.
+        */}
+        <circle cx="12" cy="12" r="9" className="opacity-20" />
         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
       </svg>
     );

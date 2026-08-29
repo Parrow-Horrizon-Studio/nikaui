@@ -81,6 +81,22 @@ interface CssBlock {
  * matched as if it were a real selector and corrupts the first block's
  * extracted name; that's what stripping guards against.
  */
+/**
+ * Strips what the block reader below cannot represent: comments, and
+ * @keyframes blocks. The latter arrived with the Skeleton shimmer and are the
+ * file's only nested-brace construct — parseBlocks splits on "everything
+ * between one { and the next }", so a keyframe would otherwise be read as if
+ * its percentage steps were selectors.
+ *
+ * Shared by parseTokens and the H1 additions at the bottom, so the two cannot
+ * drift apart on what counts as parseable.
+ */
+function strip(css: string): string {
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/@keyframes[^{]*\{(?:[^{}]*\{[^{}]*\})*[^{}]*\}/g, "");
+}
+
 function parseBlocks(withoutComments: string): CssBlock[] {
   const blocks: CssBlock[] = [];
   const blockPattern = /([^{}]+)\{([^{}]*)\}/g;
@@ -139,7 +155,7 @@ interface ParsedTokens {
 const ACCENT_SELECTOR = /\[data-accent="([\w-]+)"\]/;
 
 function parseTokens(css: string): ParsedTokens {
-  const withoutComments = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const withoutComments = strip(css);
   const blocks = parseBlocks(withoutComments);
 
   // Ground truth for the parity check: how many accent selectors the file
@@ -309,7 +325,7 @@ describe("other contrast figures tokens.css documents in prose", () => {
 
 const AA_NON_TEXT = 3;
 
-const strippedSource = tokensSource.replace(/\/\*[\s\S]*?\*\//g, "");
+const strippedSource = strip(tokensSource);
 const allBlocks = parseBlocks(strippedSource);
 
 /**

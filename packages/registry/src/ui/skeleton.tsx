@@ -28,8 +28,16 @@ function Skeleton({ className, motion: motionProp, ...props }: SkeletonProps) {
   return (
     <div
       className={cn(
-        configured.enabled && "motion-safe:animate-pulse",
-        "rounded-md bg-muted",
+        "relative overflow-hidden rounded-md bg-muted",
+        // A sweep, not a pulse. animate-pulse fades the whole block, and at
+        // the bottom of its cycle a skeleton reads as disabled rather than
+        // loading. A directional sweep reads as progress.
+        //
+        // motion-safe: is required, not just the configured.enabled check —
+        // see the comment in spinner.tsx for why a JS-gated keyframe still
+        // runs for a reduced-motion visitor on first paint.
+        configured.enabled &&
+          "motion-safe:after:absolute motion-safe:after:inset-0 motion-safe:after:-translate-x-full motion-safe:after:bg-gradient-to-r motion-safe:after:from-transparent motion-safe:after:via-shimmer motion-safe:after:to-transparent motion-safe:after:animate-[nika-shimmer_1.6s_ease-out_infinite]",
         className
       )}
       {...props}
