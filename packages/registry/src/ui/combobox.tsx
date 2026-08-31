@@ -58,6 +58,54 @@ const ComboboxTrigger = React.forwardRef<HTMLInputElement, ComboboxTriggerProps>
 ));
 ComboboxTrigger.displayName = "ComboboxTrigger";
 
+
+export interface ComboboxChipsProps {
+  /** The current selection when `multiple` is set. */
+  value?: string[] | null;
+  /** How many chips to show before collapsing the rest into a count. */
+  max?: number;
+  className?: string;
+}
+
+/**
+ * The current selection, drawn as chips above the input.
+ *
+ * Deliberately a near-copy of SelectValue rather than an import from
+ * select.tsx: these files are installed one at a time, and `nika add combobox`
+ * must not quietly drag in select. In a copy-into-your-project registry a
+ * shared helper is a dependency the consumer never asked for — duplication is
+ * the cheaper of the two costs.
+ *
+ * Renders nothing when empty, so an unselected combobox has no stray empty row
+ * above it.
+ */
+const ComboboxChips = ({ value, max = 2, className }: ComboboxChipsProps) => {
+  const values = value ?? [];
+  if (!values.length) return null;
+
+  const shown = values.slice(0, max);
+  const rest = values.length - shown.length;
+
+  return (
+    <div className={cn("mb-1.5 flex flex-wrap items-center gap-1.5", className)}>
+      {shown.map((item) => (
+        <span
+          key={item}
+          className="inline-flex max-w-[10rem] items-center truncate rounded-full bg-field px-2 py-0.5 text-xs font-medium text-content"
+        >
+          {item}
+        </span>
+      ))}
+      {rest > 0 ? (
+        <span className="inline-flex items-center rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold text-primary">
+          +{rest}
+        </span>
+      ) : null}
+    </div>
+  );
+};
+ComboboxChips.displayName = "ComboboxChips";
+
 export interface ComboboxContentProps
   extends React.HTMLAttributes<HTMLDivElement> {
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
@@ -129,4 +177,5 @@ const ComboboxItem = React.forwardRef<
 ));
 ComboboxItem.displayName = "ComboboxItem";
 
-export { Combobox, ComboboxTrigger, ComboboxContent, ComboboxItem };
+export { Combobox, ComboboxTrigger,
+  ComboboxChips, ComboboxContent, ComboboxItem };

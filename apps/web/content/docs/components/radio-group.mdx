@@ -4,6 +4,8 @@ description: A set of mutually exclusive options.
 category: interactive
 ---
 
+<ComponentDemo name="radio-group" />
+
 ## Installation
 
 ```bash
@@ -88,6 +90,26 @@ different preset with the `motion` prop on the item, or turn it off with
 
 See [Animation](/docs/guide/animation) for the full list of presets and how to
 set a default globally with `NikaMotionConfig`.
+
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<RadioGroupItem className="text-base" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-indicator: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
 
 ## API Reference
 

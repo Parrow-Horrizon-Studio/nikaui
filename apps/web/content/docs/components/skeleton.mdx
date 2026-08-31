@@ -1,9 +1,10 @@
 ---
 title: Skeleton
-description: A placeholder loading skeleton.
+description: A placeholder in the shape of the content that is loading.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="skeleton" />
 
 ## Installation
 
@@ -15,7 +16,61 @@ npx nikaui add skeleton
 
 ```tsx
 import { Skeleton } from "@/components/ui/skeleton"
+
+<Skeleton className="h-4 w-48" />
 ```
+
+`Skeleton` brings the surface and the sweep; you give it the size and shape.
+
+## Matching the content
+
+A skeleton is only useful if it is the shape of what replaces it. A block that
+does not match causes the page to jump when the content arrives, which is
+worse than showing nothing.
+
+```tsx
+<div className="flex items-center gap-3">
+  <Skeleton className="size-10 rounded-full" />
+  <div className="flex-1 space-y-2">
+    <Skeleton className="h-3 w-2/3" />
+    <Skeleton className="h-3 w-1/3" />
+  </div>
+</div>
+```
+
+## Why a sweep and not a pulse
+
+A pulse fades the whole block, and at the bottom of its cycle a skeleton reads
+as disabled rather than loading. A sweep travels in one direction, which reads
+as progress.
+
+Both stop entirely under `prefers-reduced-motion`, through CSS rather than a
+JavaScript check — a JS-gated animation still runs for a reduced-motion visitor
+on first paint, before the check has happened.
+
+```tsx
+<Skeleton motion="none" className="h-4 w-48" />
+```
+
+## Announcing the wait
+
+A skeleton is decoration. On its own it tells assistive technology nothing —
+the reader hears silence and does not know anything is coming. Mark the region:
+
+```tsx
+<div aria-busy="true" aria-live="polite">
+  {loading ? <Skeleton className="h-4 w-48" /> : <p>{content}</p>}
+</div>
+```
+
+## Customization
+
+```tsx
+<Skeleton className="bg-field" />
+```
+
+The sweep highlight is `--nika-shimmer`. Change it in your token file to
+retune every skeleton at once.
 
 ## API Reference
 
@@ -23,7 +78,5 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel; `none` renders a static, unanimated placeholder |
-
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | `none` stops the sweep |
+| `className` | `string` | — | Size and shape. Merged with the skeleton's own classes |

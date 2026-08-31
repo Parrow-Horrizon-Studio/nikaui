@@ -42,16 +42,50 @@ const alertVariants = cva(
 
 export interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof alertVariants> {}
+    VariantProps<typeof alertVariants> {
+  /** Renders a close button. Omit for an alert that cannot be dismissed. */
+  onDismiss?: () => void;
+  /** Right-aligned slot: "something failed" almost always wants "view logs". */
+  action?: React.ReactNode;
+}
 
 const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
-  ({ className, variant, rail, ...props }, ref) => (
+  ({ className, variant, rail, onDismiss, action, children, ...props }, ref) => (
     <div
       ref={ref}
       role="alert"
       className={cn(alertVariants({ variant, rail }), className)}
       {...props}
-    />
+    >
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">{children}</div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+        {onDismiss ? (
+          <button
+            type="button"
+            onClick={onDismiss}
+            // Named, not a bare glyph: an unlabelled × is invisible to a
+            // screen reader, which is the usual way this button ships broken.
+            aria-label="Dismiss"
+            className="-mr-1 -mt-1 shrink-0 rounded-md p-1 text-content-subtle transition-colors hover:bg-muted hover:text-content focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="size-3.5"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        ) : null}
+      </div>
+    </div>
   )
 );
 Alert.displayName = "Alert";

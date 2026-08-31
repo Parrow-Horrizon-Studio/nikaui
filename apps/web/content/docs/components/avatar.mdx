@@ -1,9 +1,10 @@
 ---
 title: Avatar
-description: An avatar with image and fallback.
+description: A person or entity, as an image or initials.
 category: foundation
-status: stub
 ---
+
+<ComponentDemo name="avatar" />
 
 ## Installation
 
@@ -15,4 +16,104 @@ npx nikaui add avatar
 
 ```tsx
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+
+<Avatar>
+  <AvatarImage src="/rowee.jpg" alt="Rowee Apor" />
+  <AvatarFallback>RA</AvatarFallback>
+</Avatar>
 ```
+
+`AvatarImage` removes itself if the image fails to load, so the fallback shows.
+That is not an edge case — avatar URLs rot constantly.
+
+## The alt text
+
+An avatar beside a name is decorative, and repeating the name is noise. Use an
+empty `alt` there:
+
+```tsx
+<div className="flex items-center gap-3">
+  <Avatar><AvatarImage src="/rowee.jpg" alt="" /></Avatar>
+  <span>Rowee Apor</span>
+</div>
+```
+
+When the avatar stands alone, the name is the alt text.
+
+## Sizes
+
+```tsx
+<Avatar size="xs" />
+<Avatar size="sm" />
+<Avatar size="md" />
+<Avatar size="lg" />
+<Avatar size="xl" />
+```
+
+24, 32, 40, 52 and 68px.
+
+## Status
+
+```tsx
+<Avatar status="online"><AvatarFallback>RA</AvatarFallback></Avatar>
+<Avatar status="away"><AvatarFallback>NK</AvatarFallback></Avatar>
+<Avatar status="offline"><AvatarFallback>PH</AvatarFallback></Avatar>
+```
+
+The status is announced as well as coloured. A colour alone carries no meaning
+for anyone who cannot distinguish it.
+
+## Square
+
+```tsx
+<Avatar shape="square"><AvatarFallback>NK</AvatarFallback></Avatar>
+```
+
+For organisations and projects, where a circle reads as a person.
+
+## Ring
+
+```tsx
+<Avatar ring><AvatarFallback>RA</AvatarFallback></Avatar>
+```
+
+## Groups
+
+```tsx
+<AvatarGroup max={3}>
+  <Avatar><AvatarFallback>RA</AvatarFallback></Avatar>
+  <Avatar><AvatarFallback>NK</AvatarFallback></Avatar>
+  <Avatar><AvatarFallback>PH</AvatarFallback></Avatar>
+  <Avatar><AvatarFallback>JS</AvatarFallback></Avatar>
+  <Avatar><AvatarFallback>MK</AvatarFallback></Avatar>
+</AvatarGroup>
+```
+
+The overflow count is a real element rather than a title attribute, so "+2" is
+readable and announced like the faces it stands in for.
+
+## Customization
+
+```tsx
+<AvatarFallback className="bg-success/20 text-success" />
+```
+
+The fallback deliberately does not use the hover surface token. An avatar
+sitting on it read as permanently hovered.
+
+## API Reference
+
+### Avatar
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `size` | `"xs" \| "sm" \| "md" \| "lg" \| "xl"` | `"md"` | 24 / 32 / 40 / 52 / 68px |
+| `shape` | `"circle" \| "square"` | `"circle"` | Circle for people, square for entities |
+| `status` | `"online" \| "away" \| "offline"` | — | Presence dot, announced |
+| `ring` | `boolean` | `false` | Accent ring for the active user |
+
+### AvatarGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `max` | `number` | `3` | Avatars shown before collapsing into a count |

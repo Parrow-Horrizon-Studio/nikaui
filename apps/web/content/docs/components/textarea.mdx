@@ -4,6 +4,8 @@ description: A multi-line text input.
 category: foundation
 ---
 
+<ComponentDemo name="textarea" />
+
 ## Installation
 
 ```bash
@@ -57,6 +59,48 @@ own. Set `rows`, or override the minimum with a class, to change that:
 ```tsx
 <Textarea disabled placeholder="Unavailable" />
 ```
+
+## Sizes and validation
+
+```tsx
+<Textarea size="sm" />
+<Textarea size="lg" />
+
+<Field label="Message" error="Too short">
+  <Textarea />
+</Field>
+```
+
+On a textarea, `size` moves the type scale rather than a fixed height.
+
+## Variants
+
+```tsx
+<Textarea variant="filled" />
+```
+
+The default sits on the same surface as Input. It used to sit on a different
+one, which put a visible seam between the two wherever a form used both.
+
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Textarea className="min-h-32 font-mono" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-line-strong: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
 
 ## API Reference
 

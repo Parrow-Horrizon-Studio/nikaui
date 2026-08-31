@@ -1,9 +1,10 @@
 ---
 title: Accordion
-description: Collapsible accordion panels.
+description: Collapsible sections.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="accordion" />
 
 ## Installation
 
@@ -14,16 +15,84 @@ npx nikaui add accordion
 ## Usage
 
 ```tsx
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "@/components/ui/accordion"
+
+<Accordion>
+  <AccordionItem>
+    <AccordionTrigger>Is it accessible?</AccordionTrigger>
+    <AccordionContent>
+      Yes. It follows the WAI-ARIA disclosure pattern.
+    </AccordionContent>
+  </AccordionItem>
+</Accordion>
+```
+
+## Open by default
+
+```tsx
+<AccordionItem defaultOpen>
+  <AccordionTrigger>Already open</AccordionTrigger>
+  <AccordionContent>Visible on first paint.</AccordionContent>
+</AccordionItem>
+```
+
+## Variants
+
+`default` is a hairline-separated list, which suits a long FAQ. `card` gives
+each item its own surface, which suits two or three items and gives the chevron
+somewhere to sit.
+
+```tsx
+<AccordionItem variant="card">
+  <AccordionTrigger>Billing</AccordionTrigger>
+  <AccordionContent>Invoices are issued monthly.</AccordionContent>
+</AccordionItem>
+```
+
+## Hover
+
+The trigger tints on hover rather than underlining. An underline on hover reads
+as a link, and this is a button — an accordion that underlines is telling the
+reader it will navigate somewhere, which it will not.
+
+## Animation
+
+The panel animates its height open and closed, and pins to its resting state
+under `prefers-reduced-motion`.
+
+```tsx
+<AccordionContent motion="none">…</AccordionContent>
+```
+
+## Keyboard
+
+| Key | Action |
+| --- | --- |
+| `Enter` / `Space` | Toggle the focused section |
+| `Tab` | Move to the next trigger or into an open panel |
+
+## Customization
+
+```tsx
+<AccordionItem className="border-line-strong" />
+<AccordionTrigger className="text-base" />
 ```
 
 ## API Reference
 
-### AccordionContent
+### AccordionItem
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the open/close height transition |
+| `variant` | `"default" \| "card"` | `"default"` | Hairline rows, or separated cards |
+| `defaultOpen` | `boolean` | `false` | Open on first render |
+| `className` | `string` | — | Merged with the item's own classes |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+### AccordionContent
+
+Takes `motion` and `className`.

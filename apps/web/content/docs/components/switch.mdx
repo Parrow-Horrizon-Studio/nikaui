@@ -1,9 +1,10 @@
 ---
 title: Switch
-description: A toggle switch component.
+description: A toggle for a setting that takes effect immediately.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="switch" />
 
 ## Installation
 
@@ -15,6 +16,65 @@ npx nikaui add switch
 
 ```tsx
 import { Switch } from "@/components/ui/switch"
+
+const [enabled, setEnabled] = useState(false)
+
+<Switch checked={enabled} onChange={setEnabled} aria-label="Airplane mode" />
+```
+
+## Switch or checkbox?
+
+A switch takes effect the moment it is flipped. A checkbox is a value you are
+choosing that gets submitted later. If your form has a Save button, the control
+inside it is almost always a checkbox.
+
+## With a label
+
+```tsx
+<label className="flex items-center justify-between gap-4 text-sm">
+  <span>
+    Airplane mode
+    <span className="block text-xs text-content-subtle">
+      Disables all wireless connections
+    </span>
+  </span>
+  <Switch checked={enabled} onChange={setEnabled} />
+</label>
+```
+
+## Disabled
+
+```tsx
+<Switch disabled />
+<Switch disabled checked />
+```
+
+## The animation
+
+The thumb travels on a spring with a slight overshoot on arrival, and stretches
+while you hold the press. Both stop under `prefers-reduced-motion` or
+`motion="none"`.
+
+```tsx
+<Switch motion="none" />
+```
+
+## Contrast
+
+The off track uses `--nika-indicator` rather than a hairline token. This
+matters more than it sounds: the track is the entire off state, so it has to
+clear the 3:1 that WCAG 2.1 SC 1.4.11 asks of a state indicator — against both
+the page behind it and its own thumb.
+
+Earlier versions did not. The track was once painted with a token that never
+applied at all, leaving an off switch visible only by its thumb. If you
+override the track colour, check it against both surfaces rather than only the
+one you happen to be looking at.
+
+## Customization
+
+```tsx
+<Switch className="h-8 w-[58px]" />
 ```
 
 ## API Reference
@@ -23,7 +83,9 @@ import { Switch } from "@/components/ui/switch"
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the thumb transition |
-
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+| `checked` | `boolean` | — | Controlled state |
+| `defaultChecked` | `boolean` | `false` | Uncontrolled initial state |
+| `onChange` | `(checked: boolean) => void` | — | Called with the next state |
+| `disabled` | `boolean` | `false` | Blocks interaction |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Animation feel |
+| `className` | `string` | — | Merged with the switch's own classes |

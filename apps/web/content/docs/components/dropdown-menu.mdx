@@ -1,9 +1,10 @@
 ---
 title: Dropdown Menu
-description: A dropdown menu with items and separators.
+description: A menu of actions, with sections, submenus and multiple selection.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="dropdown-menu" />
 
 ## Installation
 
@@ -14,16 +15,179 @@ npx nikaui add dropdown-menu
 ## Usage
 
 ```tsx
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+
+<DropdownMenu>
+  <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+  <DropdownMenuContent>
+    <DropdownMenuItem onClick={onProfile}>Profile</DropdownMenuItem>
+    <DropdownMenuItem onClick={onBilling}>Billing</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+```
+
+## With icons
+
+Icons are a prop so every item in every menu aligns the same way, whoever
+writes it:
+
+```tsx
+<DropdownMenuItem icon={<UserIcon />}>Profile</DropdownMenuItem>
+<DropdownMenuItem icon={<CreditCardIcon />}>Billing</DropdownMenuItem>
+```
+
+## With shortcuts
+
+```tsx
+<DropdownMenuItem shortcut="⇧⌘P">Profile</DropdownMenuItem>
+<DropdownMenuItem shortcut="⌘B">Billing</DropdownMenuItem>
+```
+
+The hint is decoration — it displays the shortcut, it does not bind it. Bind
+keys wherever you handle them.
+
+## With descriptions
+
+```tsx
+<DropdownMenuItem description="Your public profile">Profile</DropdownMenuItem>
+```
+
+## Sections
+
+```tsx
+<DropdownMenuGroup label="My account">
+  <DropdownMenuItem>Profile</DropdownMenuItem>
+  <DropdownMenuItem>Billing</DropdownMenuItem>
+</DropdownMenuGroup>
+<DropdownMenuSeparator />
+<DropdownMenuGroup label="Workspace">
+  <DropdownMenuItem>Members</DropdownMenuItem>
+</DropdownMenuGroup>
+```
+
+The group's accessible name comes from the visible heading, so what a screen
+reader announces and what is on screen cannot drift apart.
+
+## Disabled items
+
+```tsx
+<DropdownMenuItem disabled>Archive — coming soon</DropdownMenuItem>
+```
+
+## Destructive actions
+
+```tsx
+<DropdownMenuItem destructive shortcut="⇧⌘Q">Log out</DropdownMenuItem>
+```
+
+`destructive` is styling and intent, not a confirmation. For something
+irreversible, open an [Alert Dialog](/docs/components/alert-dialog).
+
+## Multiple selection
+
+```tsx
+const [showStatusBar, setShowStatusBar] = useState(true)
+
+<DropdownMenuCheckboxItem
+  checked={showStatusBar}
+  onCheckedChange={setShowStatusBar}
+>
+  Status bar
+</DropdownMenuCheckboxItem>
+```
+
+A checkbox item does **not** close the menu when toggled — you are usually
+setting several things at once. That is the only behavioural difference from
+an ordinary item.
+
+## Submenus
+
+```tsx
+<DropdownMenuSub>
+  <DropdownMenuSubTrigger>More tools</DropdownMenuSubTrigger>
+  <DropdownMenuSubContent>
+    <DropdownMenuItem>Save page as…</DropdownMenuItem>
+    <DropdownMenuItem>Developer tools</DropdownMenuItem>
+  </DropdownMenuSubContent>
+</DropdownMenuSub>
+```
+
+The trigger is a menu item with `aria-haspopup`, which is what WAI-ARIA asks
+for — not a button. `→` opens it and moves focus to the first entry; `←` and
+`Esc` close it and return focus to the trigger rather than to the top of the
+parent menu, because landing anywhere else loses your place in the list.
+
+### Custom indicators
+
+```tsx
+<DropdownMenuSubTrigger indicator={<PlusIcon />}>More tools</DropdownMenuSubTrigger>
+```
+
+## Custom trigger
+
+`DropdownMenuTrigger` renders a button and passes its props through, so any
+styling works:
+
+```tsx
+<DropdownMenuTrigger className="rounded-full border px-4 py-2">
+  <Avatar size="sm"><AvatarFallback>RA</AvatarFallback></Avatar>
+</DropdownMenuTrigger>
+```
+
+## Keyboard
+
+| Key | Action |
+| --- | --- |
+| `Enter` / `Space` | Open, or activate the focused item |
+| `↑` / `↓` | Move between items |
+| `→` | Open a submenu |
+| `←` | Close a submenu, returning focus to its trigger |
+| `Esc` | Close |
+
+## Customization
+
+```tsx
+<DropdownMenuContent className="w-56" />
+<DropdownMenuItem className="text-base" />
 ```
 
 ## API Reference
 
-### DropdownMenuContent
+### DropdownMenuItem
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the menu's enter/exit transition |
+| `icon` | `ReactNode` | — | Leading icon, positioned by the item |
+| `shortcut` | `ReactNode` | — | Trailing keyboard hint |
+| `description` | `ReactNode` | — | Second line beneath the label |
+| `destructive` | `boolean` | `false` | Danger colour and hover tint |
+| `disabled` | `boolean` | `false` | Blocks interaction |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+### DropdownMenuCheckboxItem
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `checked` | `boolean` | `false` | Current state |
+| `onCheckedChange` | `(checked: boolean) => void` | — | Called with the next state |
+
+### DropdownMenuGroup
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — | Visible heading, and the group's accessible name |
+
+### DropdownMenuSubTrigger
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `icon` | `ReactNode` | — | Leading icon |
+| `indicator` | `ReactNode` | chevron | Replaces the default indicator |
+
+### DropdownMenuContent
+
+Takes `align`, `motion` and `className`.

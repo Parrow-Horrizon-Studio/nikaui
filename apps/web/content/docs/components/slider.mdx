@@ -4,6 +4,8 @@ description: A draggable input for selecting a value from a range.
 category: interactive
 ---
 
+<ComponentDemo name="slider" />
+
 ## Installation
 
 ```bash
@@ -83,6 +85,26 @@ The slider exposes `role="slider"` with `aria-valuenow`, `aria-valuemin`,
 
 It has no visible label of its own, so give it an `aria-label`, or pair it with
 a `Label` and `aria-labelledby`.
+
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Slider className="h-8" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-indicator: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
 
 ## API Reference
 

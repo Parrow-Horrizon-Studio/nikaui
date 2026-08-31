@@ -1,0 +1,109 @@
+---
+title: Field
+description: Ties a form control to its label, description and error.
+category: foundation
+---
+
+<ComponentDemo name="field" />
+
+## Installation
+
+```bash
+npx nikaui add field
+```
+
+## Usage
+
+```tsx
+import { Field } from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
+
+<Field label="Email" description="We only use this for billing receipts.">
+  <Input type="email" />
+</Field>
+```
+
+`Field` generates an id, points the label at the control, and wires
+`aria-describedby` to the message. You manage none of it.
+
+## Why this exists
+
+The visible half of an error state is the easy half and nearly worthless
+alone. A red border tells a sighted user something is wrong; it tells a screen
+reader nothing.
+
+What carries the meaning is `aria-invalid` on the control and an
+`aria-describedby` that resolves to the message element. That relationship is
+easy to get subtly wrong — a mismatched id, a message rendered outside the
+association — and wrong in a way nothing visibly reports.
+
+```tsx
+<Field label="Email" error="Enter a valid email address">
+  <Input type="email" />
+</Field>
+```
+
+renders the input with `aria-invalid="true"` and `aria-describedby` pointing at
+the message element.
+
+## Errors take precedence
+
+When both are present the error is announced and the description is not.
+Announcing the hint first buries the failure behind advice the reader has
+already failed to follow.
+
+```tsx
+<Field
+  label="Workspace"
+  description="Lowercase letters and dashes"
+  error="That name is already taken"
+>
+  <Input defaultValue="acme" />
+</Field>
+```
+
+## Required
+
+```tsx
+<Field label="Name" required>
+  <Input />
+</Field>
+```
+
+Marks the label with an asterisk and the control with `aria-required`. The
+asterisk itself is `aria-hidden`, because a bare star is announced as "star".
+
+## Works with any control
+
+`Field` clones its child, so it is not tied to `Input`:
+
+```tsx
+<Field label="Message" error="Too short">
+  <Textarea />
+</Field>
+
+<Field label="Plan">
+  <Select>{/* … */}</Select>
+</Field>
+```
+
+## Customization
+
+```tsx
+<Field className="max-w-sm" label="Email">
+  <Input />
+</Field>
+```
+
+## API Reference
+
+### Field
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `label` | `ReactNode` | — | Visible label, tied to the control |
+| `description` | `ReactNode` | — | Help text. Announced only when there is no error |
+| `error` | `ReactNode` | — | Presence marks the field invalid; the text becomes its description |
+| `required` | `boolean` | `false` | Asterisk on the label, `aria-required` on the control |
+| `children` | `ReactElement` | — | The control. Cloned to receive the wiring |
+| `className` | `string` | — | Merged with the wrapper's own classes |

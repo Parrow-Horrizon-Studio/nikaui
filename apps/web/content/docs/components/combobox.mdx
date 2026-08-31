@@ -1,9 +1,10 @@
 ---
 title: Combobox
-description: An autocomplete combobox with search.
+description: A select you can type into.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="combobox" />
 
 ## Installation
 
@@ -14,16 +15,114 @@ npx nikaui add combobox
 ## Usage
 
 ```tsx
-import { Combobox, ComboboxTrigger, ComboboxContent, ComboboxItem } from "@/components/ui/combobox"
+import {
+  Combobox,
+  ComboboxTrigger,
+  ComboboxContent,
+  ComboboxItem,
+} from "@/components/ui/combobox"
+
+const [query, setQuery] = useState("")
+const [framework, setFramework] = useState<string | null>(null)
+
+const filtered = FRAMEWORKS.filter((item) =>
+  item.toLowerCase().includes(query.toLowerCase())
+)
+
+<Combobox value={framework} onChange={setFramework}>
+  <ComboboxTrigger
+    placeholder="Search frameworks"
+    onChange={(event) => setQuery(event.target.value)}
+  />
+  <ComboboxContent>
+    {filtered.map((item) => (
+      <ComboboxItem key={item} value={item}>
+        {item}
+      </ComboboxItem>
+    ))}
+  </ComboboxContent>
+</Combobox>
+```
+
+Filtering is yours. The component owns the input, the list, keyboard
+navigation and selection; which options to show is a question only your data
+can answer.
+
+## Multiple selection
+
+```tsx
+const [teams, setTeams] = useState<string[]>([])
+
+<Combobox multiple value={teams} onChange={setTeams}>
+  <ComboboxChips value={teams} max={2} />
+  <ComboboxTrigger placeholder="Search teams" />
+  <ComboboxContent>{/* … */}</ComboboxContent>
+</Combobox>
+```
+
+`ComboboxChips` renders the current selection above the input and collapses
+past `max` into a count. It renders nothing when empty, so an unselected
+combobox has no stray row above it.
+
+## Empty state
+
+`ComboboxContent` hides itself when it has no children, so an empty result set
+shows nothing rather than an empty panel. Render your own message if you want
+one:
+
+```tsx
+<ComboboxContent>
+  {filtered.length === 0 ? (
+    <p className="px-3 py-2 text-sm text-content-subtle">No matches</p>
+  ) : (
+    filtered.map((item) => <ComboboxItem key={item} value={item}>{item}</ComboboxItem>)
+  )}
+</ComboboxContent>
+```
+
+## With a label
+
+```tsx
+<Field label="Framework">
+  <Combobox value={framework} onChange={setFramework}>{/* … */}</Combobox>
+</Field>
+```
+
+## Keyboard
+
+| Key | Action |
+| --- | --- |
+| Typing | Filters, and opens the list |
+| `↑` / `↓` | Move between options |
+| `Enter` | Select the focused option |
+| `Esc` | Close and restore the input |
+
+## Customization
+
+```tsx
+<ComboboxTrigger className="rounded-full" />
+<ComboboxContent className="max-h-48" />
 ```
 
 ## API Reference
 
-### ComboboxContent
+### Combobox
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the listbox's enter/exit transition |
+| `value` | `string \| string[] \| null` | — | Controlled value; an array when `multiple` |
+| `onChange` | `(value) => void` | — | Called with the next value |
+| `multiple` | `boolean` | `false` | Allow several selections |
+| `disabled` | `boolean` | `false` | Blocks interaction |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+### ComboboxTrigger
+
+Accepts every native `<input>` attribute — `placeholder`, `id`, `name`,
+`autoComplete` and the rest — plus `className`.
+
+### ComboboxChips
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `value` | `string[]` | — | The current selection |
+| `max` | `number` | `2` | Chips shown before collapsing into a count |

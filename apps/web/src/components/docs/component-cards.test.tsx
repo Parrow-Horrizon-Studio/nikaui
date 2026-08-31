@@ -91,8 +91,11 @@ describe("the component index", () => {
     expect(bySlug.get("card")?.isStub).toBe(false);
     expect(bySlug.get("badge")?.isStub).toBe(false);
     expect(bySlug.get("dialog")?.isStub).toBe(false);
-    expect(bySlug.get("tooltip")?.isStub).toBe(true);
-    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(18);
+    // Zero, as of H2: every component page is written. The assertion stays
+    // rather than being deleted — it is what stops a new component being
+    // added with a stub page and nobody noticing, which is how the previous
+    // eighteen accumulated.
+    expect(componentIndex().filter((c) => c.isStub)).toHaveLength(0);
   });
 
   it("groups every component the way the sidebar separators do", () => {

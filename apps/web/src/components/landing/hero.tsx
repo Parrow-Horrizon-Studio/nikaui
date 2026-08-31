@@ -26,7 +26,7 @@ import { InstallBar } from "./install-bar";
  * ordinary runtime exports, importable directly, so there is nothing left to
  * bind by hand — counting them here means there is nothing to drift.
  */
-const COMPONENT_COUNT = 27;
+const COMPONENT_COUNT = 28;
 const MOTION_PRESET_COUNT = Object.keys(motionPresets).length;
 const ACCENT_COUNT = ACCENTS.length;
 

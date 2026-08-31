@@ -12,6 +12,10 @@ import {
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   /** 0–100. Omit for an indeterminate bar. */
   value?: number;
+  /** Text shown above the track. */
+  label?: React.ReactNode;
+  /** Shows the percentage beside the label. */
+  showValue?: boolean;
   /** Animation feel. Omit to inherit from NikaMotionConfig, or "none" to disable. */
   motion?: MotionPreset;
 }
@@ -45,14 +49,14 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
  * is already the correct server-rendered state.
  */
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
-  ({ className, value, motion: motionProp, ...props }, ref) => {
+  ({ className, value, label, showValue, motion: motionProp, ...props }, ref) => {
     const feel = useMotionPreset("progress", motionProp);
     const configured = useConfiguredMotion("progress", motionProp);
     const clamped =
       typeof value === "number" ? Math.min(100, Math.max(0, value)) : undefined;
     const indeterminate = clamped === undefined;
 
-    return (
+    const bar = (
       <div
         ref={ref}
         role="progressbar"
@@ -87,6 +91,27 @@ const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
               : feel.transition
           }
         />
+      </div>
+    );
+
+    if (!label && !showValue) return bar;
+
+    return (
+      <div className="w-full">
+        <div className="mb-1.5 flex items-baseline justify-between gap-3 text-xs">
+          {label ? <span className="font-semibold text-content">{label}</span> : <span />}
+          {showValue ? (
+            // aria-hidden: the bar already reports aria-valuenow, and a
+            // visible duplicate would be announced a second time.
+            <span
+              aria-hidden="true"
+              className="tabular-nums text-content-muted"
+            >
+              {clamped ?? 0}%
+            </span>
+          ) : null}
+        </div>
+        {bar}
       </div>
     );
   }

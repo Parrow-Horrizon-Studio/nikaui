@@ -20,20 +20,30 @@ const textareaVariants = cva(
         filled:
           "rounded-lg border-0 bg-field hover:bg-field-hover focus-visible:bg-field-press focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary",
       },
+      // A textarea has no fixed height, so size moves only its type scale.
+      size: {
+        sm: "text-[13px]",
+        md: "",
+        lg: "text-[15px]",
+      },
+      invalid: {
+        true: "border-danger focus-visible:border-danger focus-visible:ring-danger/45",
+        false: "",
+      },
     },
-    defaultVariants: { variant: "default" },
+    defaultVariants: { variant: "default", size: "md", invalid: false },
   }
 );
 
 export interface TextareaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "size">,
     VariantProps<typeof textareaVariants> {}
 
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, variant, ...props }, ref) => (
+  ({ className, variant, size, invalid, ...props }, ref) => (
     <textarea
       ref={ref}
-      className={cn(textareaVariants({ variant, className }))}
+      className={cn(textareaVariants({ variant, size, invalid, className }))}
       {...props}
     />
   )

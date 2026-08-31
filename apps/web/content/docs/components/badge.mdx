@@ -4,6 +4,8 @@ description: A badge component for labels and statuses.
 category: foundation
 ---
 
+<ComponentDemo name="badge" />
+
 ## Installation
 
 ```bash
@@ -28,6 +30,41 @@ export default function Example() {
 <Badge variant="danger">Danger</Badge>
 <Badge variant="outline">Outline</Badge>
 ```
+
+## Variants
+
+```tsx
+<Badge>Default</Badge>
+<Badge variant="solid">Solid</Badge>
+<Badge variant="secondary">Secondary</Badge>
+<Badge variant="success">Success</Badge>
+<Badge variant="danger">Danger</Badge>
+<Badge variant="outline">Outline</Badge>
+```
+
+The default is tinted rather than filled. A badge is an annotation, and a solid
+accent fill makes it compete with the primary button on the same screen. Reach
+for `solid` when the badge is the point.
+
+## Customization
+
+Two routes. `className` merges with the component's own classes:
+
+```tsx
+<Badge className="px-3 py-1 text-sm" />
+```
+
+The token layer changes every instance at once and survives a component
+update:
+
+```css
+:root {
+  --nika-radius-full: /* your value */;
+}
+```
+
+Prefer tokens. A `className` override applies to one call site; a token
+change applies to the whole library, which is what keeps it coherent.
 
 ## API Reference
 

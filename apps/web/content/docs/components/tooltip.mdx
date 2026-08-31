@@ -1,9 +1,10 @@
 ---
 title: Tooltip
-description: A hover/focus tooltip.
+description: A short hint shown on hover or focus.
 category: interactive
-status: stub
 ---
+
+<ComponentDemo name="tooltip" />
 
 ## Installation
 
@@ -15,7 +16,71 @@ npx nikaui add tooltip
 
 ```tsx
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
+
+<Tooltip>
+  <TooltipTrigger>
+    <Button variant="ghost"><CopyIcon /></Button>
+  </TooltipTrigger>
+  <TooltipContent>Copy to clipboard</TooltipContent>
+</Tooltip>
 ```
+
+## Why it is inverted
+
+The tooltip surface is the opposite of the page: dark on a light theme, light
+on a dark one.
+
+That is not decoration. Before it, a tooltip and a [Popover](/docs/components/popover)
+rendered the same surface, border and text colour — two components with
+different jobs, different lifetimes and different interaction models, drawn
+identically. Nothing but position told a reader which one they were looking at.
+
+If you need the surface treatment back, it is a variant rather than a
+`className` override, because the arrow is a border triangle whose coloured
+edge has to change with it:
+
+```tsx
+<TooltipContent variant="surface">Copy to clipboard</TooltipContent>
+```
+
+## Placement
+
+```tsx
+<TooltipContent placement="top">Above</TooltipContent>
+<TooltipContent placement="right">Beside</TooltipContent>
+<TooltipContent placement="bottom">Below</TooltipContent>
+<TooltipContent placement="left">Beside</TooltipContent>
+```
+
+The arrow follows the placement automatically.
+
+## What belongs in a tooltip
+
+A tooltip supplements a control that is already labelled. It is not a place for
+essential information, and never for interactive content: it disappears on
+blur, so anything inside it is unreachable by keyboard.
+
+An icon-only button still needs its own accessible name — the tooltip is not a
+substitute:
+
+```tsx
+<Tooltip>
+  <TooltipTrigger>
+    <Button variant="ghost" aria-label="Copy to clipboard">
+      <CopyIcon />
+    </Button>
+  </TooltipTrigger>
+  <TooltipContent>Copy to clipboard</TooltipContent>
+</Tooltip>
+```
+
+## Customization
+
+```tsx
+<TooltipContent className="max-w-48 whitespace-normal" />
+```
+
+The default is a single line. Give it a width if the hint needs to wrap.
 
 ## API Reference
 
@@ -23,7 +88,9 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 
 | Prop | Type | Default | Description |
 | --- | --- | --- | --- |
-| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits from `NikaMotionConfig` | Animation feel for the enter/exit transition |
+| `placement` | `"top" \| "right" \| "bottom" \| "left"` | `"top"` | Which side of the trigger |
+| `variant` | `"default" \| "surface"` | `"default"` | Inverted, or the page surface |
+| `motion` | `"none" \| "snap" \| "glide" \| "spring" \| "bounce"` | inherits | Animation feel |
+| `className` | `string` | — | Merged with the tooltip's own classes |
 
-See [Animation](/docs/guide/animation) for the preset list and for setting a
-default globally with `NikaMotionConfig`.
+`side` is accepted as a deprecated alias for `placement`.

@@ -234,11 +234,39 @@ Decision record, including rejected options:
 | ~~The focus ring failed WCAG 1.4.11 in BOTH themes~~ — 1.75:1 light, 2.81:1 dark, against 3:1. `--nika-ring` was a transparency of the brand colour rather than a contrast-tuned value. Every focusable component, all five accents | Measuring, because H1-9 says to measure rather than reason. Now 4.15:1 worst case, asserted per accent per theme |
 | ~~The Switch off-track was **transparent**, not tinted~~ — `data-[unchecked]:` matched nothing, because Headless UI emits no attribute for the off state. The 1.27:1 figure recorded against it was real for the colour, but the colour was never on screen | Reading `getComputedStyle` in a browser during the visual pass. Every unit test passed |
 
+**Closed by H2, 2026-08-29:**
+
+| Item | Notes |
+|---|---|
+| ~~Eighteen component pages remain `status: stub`~~ | Zero remain. All 28 pages carry a live demo, the source a developer owns, the example matrix, customization and a prop table. The `toHaveLength(0)` assertion stays, so a new component cannot arrive with a stub page unnoticed |
+| ~~Live previews have no motion-preset switcher~~ | Delivered. Component pages previously had **no live preview at all** — `previews` existed but was used only for the index's inert thumbnails |
+| ~~Docs never show the source a developer owns~~ | `SourceView` reads the registry file rather than copying it, proven by editing the file and watching the page change |
+| ~~Dropdown has no submenus, sections, descriptions or multiple selection~~ | All built. Headless UI 2.2.10 does not support nested menus, so the second layer's state, focus and dismissal are owned by the component |
+| ~~Select and Combobox cannot hold several values~~ | Both do, with chip display |
+| ~~Tabs highlight jumps rather than moves~~ | One indicator measures the active trigger and translates; four variants share the mechanism |
+
+**Found during H2, not previously known:**
+
+| Defect | How it was found |
+|---|---|
+| ~~Eight components imported `class-variance-authority` without declaring it in the CLI manifest~~ | A dependency-vs-import check written for Task 9. Invisible in the monorepo, where the package is hoisted; `nika add card` in a consumer's project installed a file that would not compile. Both H1 and H2 introduced instances |
+| ~~Submenu opened without moving focus into it~~, so ArrowLeft never closed it | Reading focus in a browser. Every jsdom assertion passed — "opens" was asserted, "moves focus" was not |
+| ~~Shiki dual-theme output leaked white token backgrounds into the dark code blocks~~ | The visual pass at 375px |
+
+**Open after H2:**
+
+| Item | Status |
+|---|---|
+| Variant switcher on previews | **Not delivered.** D chartered it alongside the motion switcher. The previews are fixed ReactNodes, so varying a variant means reworking all 28 demos into functions. Variants are shown as page examples instead, which is what was actually asked for |
+| Normal-motion verification | **Still open**, unchanged since C §5.7. Every available browser pane forces `prefers-reduced-motion: reduce`. H2 adds the motion switcher, whose entire purpose is to be felt, so this gap now has a feature sitting directly on top of it |
+| Dev-only `source.ts` HMR error | **Reproduced again during H2** and cleared by a restart, exactly as recorded. Never occurs under `pnpm build`. Still not diagnosed |
+| `llms.txt` and agent Tiers 0/1 | Unstarted. Belong to G |
+
 **Open after H1:**
 
 | Item | Status |
 |---|---|
-| Does `bg-indicator` retune between themes? | **Unresolved.** Measurements contradict: a nested `.dark` wrapper retuned the variable correctly, but toggling `.dark` on `<html>` at runtime did not change the resolved utility. The generated utility rule could not be located in the served CSS to settle it. Worth 20 minutes before H2, since a token that does not retune is an accessibility regression in one theme |
+| ~~Does `bg-indicator` retune between themes?~~ — **closed 2026-08-29, it does.** The compiled CSS emits `.bg-indicator { background-color: var(--nika-indicator) }`, the same shape as `.bg-canvas`, and both token definitions ship. The H1 finding was wrong: it came from a verification page that nested `.dark` on a descendant while the class was toggled on `<html>`, and from trusting contradictory runtime readings instead of the compiled output — which answered it in two minutes |
 | Checkbox / RadioGroup focus ring measurement | Checkbox moved to 20px and the ring lost its offset, which was the suspected cause. **Not measured on screen** — the pane's scroll repaint was unreliable. Still "measure, do not assume" |
 | Normal-motion verification | **Still open**, unchanged from C §5.7 and D. Every available browser pane forces `prefers-reduced-motion: reduce`. H1 adds substantially more motion than existed before, so this matters more than it did |
 | Accordion `variant="card"` | Shipped as opt-in on an **unconfirmed assumption** — the question was asked in the batch-2 review and never answered. Hairline rows remain the default, so it is reversible by deleting one variant |
@@ -251,8 +279,8 @@ Decision record, including rejected options:
 | **C** | Landing page | A, B | Not started |
 | **D** | Documentation and showcase | A, B | Not started |
 | **E** | Repository migration and ops | A | **Specced** |
-| **H1** | Component defects and default styling | B, D | **In review** |
-| **H2** | Component features and documentation | H1 | **Specced** |
+| **H1** | Component defects and default styling | B, D | **Complete** |
+| **H2** | Component features and documentation | H1 | **In review** |
 | **F** | Block and template lineup | A, B, **H1** | Not started |
 | **G** | Agent surface — MCP and skill | B, D, F | Not started |
 
